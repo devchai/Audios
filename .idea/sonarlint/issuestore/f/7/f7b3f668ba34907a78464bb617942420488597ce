@@ -1,0 +1,38 @@
+
+]
+java:S1192”"FDefine a constant instead of duplicating this literal "ADMOB" 3 times.(ı÷Ü´
+>
+java:S1604Y"(Make this anonymous inner class a lambda(ú¿ßÁ
+œ
+java:S1186H"€Add a nested comment explaining why this method is empty, throw an UnsupportedOperationException or complete the implementation.(ç ùüÿÿÿÿ
+J
+java:S1874X"/Remove this use of "Handler"; it is deprecated.(·–…´ıÿÿÿÿ
+1
+java:S3626^"Remove this redundant jump.(ûÁİ…
+U
+java:S1161m":Add the "@Override" annotation above this method signature(İßéàúÿÿÿÿ
+U
+java:S1161w":Add the "@Override" annotation above this method signature(ü¸æÌûÿÿÿÿ
+P
+java:S1161":Add the "@Override" annotation above this method signature(öÿÕÅ
+Q
+java:S1161„":Add the "@Override" annotation above this method signature(ßû¢½
+K
+java:S1172‰"/Remove this unused method parameter "adlibKey".(òµšøÿÿÿÿ
+d
+java:S3252”"MUse static access with "com.mocoplex.adlib.AdlibManagerCore" for "DID_ERROR".(ı÷Ü´
+D	java:S108–")Either remove or fill this block of code.(Æ¸Û‚øÿÿÿÿ
+D
+java:S1185Ÿ"(Remove this method to simply inherit it.(âöíóûÿÿÿÿ
+n
+java:S3252¨"WUse static access with "com.mocoplex.adlib.AdlibManagerCore" for "INTERSTITIAL_CLOSED".(À–Ì·
+D	java:S108ª")Either remove or fill this block of code.(Æ¸Û‚øÿÿÿÿ
+?
+java:S1185¯"(Remove this method to simply inherit it.(ÅÍµÂ
+D
+java:S1185´"(Remove this method to simply inherit it.(èØ¢Ùûÿÿÿÿ
+?
+java:S1185¹"(Remove this method to simply inherit it.(«ã±Ô
+k
+java:S3252À"OUse static access with "com.mocoplex.adlib.AdlibManagerCore" for "DID_SUCCEED".(°Ä®˜úÿÿÿÿ
+?	java:S108Ã")Either remove or fill this block of code.(”ı¾

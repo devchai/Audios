@@ -1,0 +1,83 @@
+<resources>
+    <string name="app_name">오디오스</string>
+    
+    <!-- Tab Labels -->
+    <string name="tab_convert">변환</string>
+    <string name="tab_library">라이브러리</string>
+    <string name="tab_edit">편집</string>
+    
+    <!-- Convert Tab -->
+    <string name="btn_file_chooser">음원 추출할\n영상 파일 선택</string>
+    <string name="select_file">파일 선택</string>
+    <string name="select_video_file">비디오 파일 선택</string>
+    <string name="select_audio_file">오디오 파일 선택</string>
+    <string name="recent_conversions">최근 변환 파일</string>
+    <string name="no_recent_files">최근 변환한 파일이 없습니다</string>
+    
+    <!-- Conversion Settings -->
+    <string name="conversion_settings">변환 설정</string>
+    <string name="output_format">출력 형식</string>
+    <string name="bitrate">비트레이트</string>
+    <string name="audio_quality">오디오 품질</string>
+    <string name="sample_rate">샘플 레이트</string>
+    <string name="quality_low">낮음</string>
+    <string name="quality_high">높음</string>
+    <string name="bitrate_value">%d kbps</string>
+    <string name="estimated_size">예상 크기: %s</string>
+    <string name="start_conversion">변환 시작</string>
+    <string name="converting">변환 중...</string>
+    <string name="conversion_complete">변환 완료</string>
+    <string name="conversion_failed">변환 실패</string>
+    <string name="conversion_progress">%d%% 완료</string>
+    
+    <!-- Library Tab -->
+    <string name="converted_files">변환된 파일</string>
+    <string name="edited_files">편집된 파일</string>
+    <string name="no_files">파일이 없습니다</string>
+    <string name="file_size">크기: %s</string>
+    <string name="file_duration">길이: %s</string>
+    <string name="file_date">날짜: %s</string>
+    
+    <!-- Edit Tab -->
+    <string name="select_file_to_edit">편집할 파일을 선택하세요</string>
+    <string name="trim">자르기</string>
+    <string name="merge">합치기</string>
+    <string name="volume">볼륨</string>
+    <string name="effects">효과</string>
+    <string name="save_edited">저장</string>
+    <string name="cancel_edit">취소</string>
+    
+    <!-- Player Controls -->
+    <string name="play">재생</string>
+    <string name="pause">일시정지</string>
+    <string name="stop">정지</string>
+    <string name="share">공유</string>
+    <string name="delete">삭제</string>
+    
+    <!-- Permissions -->
+    <string name="toast_none_permission">권한을 승인하지 않을 시 정상 작동하지 않을 수 있습니다.</string>
+    <string name="permission_required">권한 필요</string>
+    <string name="storage_permission_message">파일에 접근하려면 저장소 권한이 필요합니다.</string>
+    <string name="grant_permission">권한 허용</string>
+    <string name="deny_permission">거부</string>
+    
+    <!-- Messages -->
+    <string name="select_file_first">먼저 파일을 선택해주세요</string>
+    <string name="conversion_success_message">변환이 완료되었습니다. 같은 폴더에 저장되었습니다.</string>
+    <string name="conversion_error_message">변환 중 오류가 발생했습니다: %s</string>
+    <string name="file_not_found">파일을 찾을 수 없습니다</string>
+    <string name="unsupported_format">지원하지 않는 형식입니다</string>
+    <string name="storage_full">저장 공간이 부족합니다</string>
+    <string name="delete_confirmation">이 파일을 삭제하시겠습니까?</string>
+    <string name="yes">예</string>
+    <string name="no">아니오</string>
+    <string name="ok">확인</string>
+    <string name="cancel">취소</string>
+    
+    <!-- Settings -->
+    <string name="settings">설정</string>
+    <string name="storage_location">저장 위치</string>
+    <string name="default_settings">기본 설정</string>
+    <string name="about">앱 정보</string>
+    <string name="version">버전 %s</string>
+</resources>

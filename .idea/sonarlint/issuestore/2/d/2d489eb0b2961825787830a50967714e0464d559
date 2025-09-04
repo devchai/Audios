@@ -1,0 +1,48 @@
+
+p
+java:S1604/"(Make this anonymous inner class a lambda(Îôúæûÿÿÿÿ8¡¯¾å×1J$581a0d03-3d73-48f7-92e3-b818400feb5b
+l
+java:S1604ö"(Make this anonymous inner class a lambda(äÓúÓ8©ÀÖ1J$346f7277-fc6c-4afe-a563-4f420426c36f
+	java:S112Ô"FDefine and throw a dedicated exception instead of using a generic one.(Ò‚Òéüÿÿÿÿ8œ©ÀÖ1J$8914e3cf-cf1a-4d07-8d45-627c8ce6447f
+É
+java:S1186q"€Add a nested comment explaining why this method is empty, throw an UnsupportedOperationException or complete the implementation.(àÎ°Óıÿÿÿÿ8š¾„æ×1J$d1bf0531-c53d-49d2-ac4f-5215207ae5b6
+
+java:S1450#"[Remove the "toastManager" field and declare it as a local variable in the relevant methods.(ç¥È¦8¿¹ÃØ1J$120e62dd-83c4-46be-8e0d-9c5e1436ff0f
+É
+java:S11861"€Add a nested comment explaining why this method is empty, throw an UnsupportedOperationException or complete the implementation.(Èø©óùÿÿÿÿ8Ÿ¾„æ×1J$437a8cfa-6792-49da-a6d4-95fd46e91daa
+q
+java:S1874E"/Remove this use of "Handler"; it is deprecated.(Òşëv8­€Œæ×1J$f3d8418b-16e6-467e-bd59-326705628b50
+‚
+java:S1161F":Add the "@Override" annotation above this method signature(—¥æşÿÿÿÿ8µšŒæ×1J$f0edbe33-259c-4c4e-bd5e-9988ed660a3e
+i	java:S131H""Add a default case to this switch.(Ñ¯áÆÿÿÿÿÿ8¶šŒæ×1J$e37acd16-60b5-4084-b501-2e43d6940007
+’
+java:S3252I"OUse static access with "com.mocoplex.adlib.AdlibManagerCore" for "DID_SUCCEED".(õ¡ÜÃ8Îá‹æ×1J$168fd72c-ede9-4a7b-9f45-e0ef71a4c5c6
+
+java:S3252M"MUse static access with "com.mocoplex.adlib.AdlibManagerCore" for "DID_ERROR".( ñ®º8Ïá‹æ×1J$2201cf4a-91bb-4d4d-97b3-991778deb94e
+”
+java:S3252P"QUse static access with "com.mocoplex.adlib.AdlibManagerCore" for "BANNER_FAILED".(ßî«­8Ïá‹æ×1J$40d41638-57cf-4aaf-94d5-bba0f1c6d5cf
+k	java:S108T")Either remove or fill this block of code.(”ı¾8¬¾„æ×1J$03f40764-747e-4750-947d-ab32ce589f8b
+}
+java:S1161]":Add the "@Override" annotation above this method signature(Ù«µ§8¢¾„æ×1J$f4c0aa7a-d041-4ef1-8741-2da8f5464633
+|
+java:S1161b":Add the "@Override" annotation above this method signature(¹§ 8£¾„æ×1J$5c447b6b-2420-47a9-8d8e-a3bad9610d58
+}
+java:S1161g":Add the "@Override" annotation above this method signature(ÍÙ÷¢8£¾„æ×1J$4a793a1a-2bc9-4cfc-82ed-118640c516c8
+Ÿ
+java:S3923”"[Remove this conditional structure or edit its code blocks so that they're not all the same.(¡¦ê8…ºÃØ1J$88b6aaad-4b7f-41b2-be3f-b9d26803d836
+	java:S125˜"<This block of commented-out lines of code should be removed.(¡ôó›8¾Ø1J$e9cdedb9-9f37-4b43-8075-4ee32f7b37b3
+o
+java:S1172œ"+Remove this unused method parameter "view".(ÍÉ‹8¨¾„æ×1J$738ce04e-ca63-4d58-b410-4de7bb79f22d
+	java:S125¡"<This block of commented-out lines of code should be removed.(ìıĞ¤8‰¾’Ø1J$c0f8ce60-85f5-4090-abb5-deaae46bca91
+“
+java:S1874³"JDon't override a deprecated method or explicitly mark it as "@Deprecated".(şèçúÿÿÿÿ8ª¾„æ×1J$07133960-4b2d-48c8-885b-48d89bbb9cf3
+¤
+java:S3923º"[Remove this conditional structure or edit its code blocks so that they're not all the same.(º÷†Àúÿÿÿÿ8ÄØ1J$7f15ae1c-37ff-4b11-a17b-328246a75f05
+q	java:S108º")Either remove or fill this block of code.(º÷†Àúÿÿÿÿ8ãá‹æ×1J$432fa987-2bde-4ca8-b1d8-dd14a1ed1011
+~	java:S125¾"<This block of commented-out lines of code should be removed.(±·ÈV8‡ºÃØ1J$a5a85537-68bd-4908-9fea-bfd606760a40
+
+java:S1874Å"JDon't override a deprecated method or explicitly mark it as "@Deprecated".(ŸŒ¹Ñ8­¾„æ×1J$66476ac0-6ff1-4b3c-af56-1c8a1abcbdf8
+Ê
+java:S1186ø"€Add a nested comment explaining why this method is empty, throw an UnsupportedOperationException or complete the implementation.(»ŠÇ¾ıÿÿÿÿ8±¾„æ×1J$a1cb7336-e60d-4905-9e9b-e74f434aabb4
+s
+java:S1068#"0Remove this unused "toastManager" private field.(ç¥È¦8ŸºÃØ1J$971b03ce-aa27-448e-ad62-00ab4c19c05f

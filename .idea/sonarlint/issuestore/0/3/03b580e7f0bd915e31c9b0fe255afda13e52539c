@@ -1,0 +1,10 @@
+
+t
+java:S3776""RRefactor this method to reduce its Cognitive Complexity from 19 to the 15 allowed.(Ÿ÷Ÿ”úÿÿÿÿ8ãÊòÙÑ1
+H
+java:S1075."&Remove this hard-coded path-delimiter.(å†İˆúÿÿÿÿ8åÊòÙÑ1
+c
+java:S2147‚"ECombine this catch with the one at line 256, which has the same body.(ï­£Ä8¸¨Ø1
+]	java:S899ş";Do something with the "boolean" value returned by "delete".(À¯™ãşÿÿÿÿ8º¨Ø1
+q
+java:S4042ş"NUse "java.nio.file.Files#delete" here for better messages on error conditions.(À¯™ãşÿÿÿÿ8»¨Ø1

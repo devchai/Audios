@@ -1,0 +1,19 @@
+
+E
+java:S1604L"(Make this anonymous inner class a lambda(„ÑñŒ8††™ØÑ1
+£
+java:S1186"€Add a nested comment explaining why this method is empty, throw an UnsupportedOperationException or complete the implementation.(àÎ°Óýÿÿÿÿ8±†™ØÑ1
+£
+java:S1186""€Add a nested comment explaining why this method is empty, throw an UnsupportedOperationException or complete the implementation.(À˜Ð¡þÿÿÿÿ8½¹•ØÑ1
+£
+java:S1186@"€Add a nested comment explaining why this method is empty, throw an UnsupportedOperationException or complete the implementation.(žáá„üÿÿÿÿ8½¹•ØÑ1
+£
+java:S1186D"€Add a nested comment explaining why this method is empty, throw an UnsupportedOperationException or complete the implementation.(ðŒÂ´þÿÿÿÿ8¾¹•ØÑ1
+£
+java:S1186,"€Add a nested comment explaining why this method is empty, throw an UnsupportedOperationException or complete the implementation.(À˜Ð¡þÿÿÿÿ8À¹•ØÑ1
+£
+java:S11865"€Add a nested comment explaining why this method is empty, throw an UnsupportedOperationException or complete the implementation.(žáá„üÿÿÿÿ8À¹•ØÑ1
+£
+java:S11869"€Add a nested comment explaining why this method is empty, throw an UnsupportedOperationException or complete the implementation.(ðŒÂ´þÿÿÿÿ8À¹•ØÑ1
+L
+java:S1874L"/Remove this use of "Handler"; it is deprecated.(„ÑñŒ8É†™ØÑ1

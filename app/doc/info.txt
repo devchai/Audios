@@ -1,0 +1,5 @@
+adlib doc : https://github.com/nhn/adlib.android_media_app
+adlib key : 65c1b1d284ae989307b0f304
+admob app id : ca-app-pub-9873703819368989~1289997911
+admob banner key : ca-app-pub-9873703819368989/7420291999
+admob interstitial key : ca-app-pub-9873703819368989/6177979623
