@@ -183,9 +183,9 @@ public class MainViewModel extends AndroidViewModel {
         permissionStatusText.postValue(statusText);
         
         if (hasPermissions) {
-            updateStatusMessage("모든 권한이 허용되었습니다.");
+            updateStatusMessage("필수 권한이 허용되었습니다. 앱을 정상적으로 사용할 수 있습니다.");
         } else {
-            updateStatusMessage("권한이 필요합니다.");
+            updateStatusMessage("미디어 파일 접근 권한이 필요합니다.");
         }
     }
     
@@ -225,8 +225,8 @@ public class MainViewModel extends AndroidViewModel {
             public void onPermissionGranted(List<String> grantedPermissions) {
                 isPermissionRequesting = false; // 플래그 리셋
                 hasRequiredPermissions.postValue(true);
-                updateStatusMessage("권한이 허용되었습니다.");
-                LoggerManager.logger("권한 요청 완료 - 허용됨");
+                updateStatusMessage("미디어 접근 권한이 허용되었습니다. 파일 변환을 시작할 수 있습니다.");
+                LoggerManager.logger("권한 요청 완료 - 허용됨: " + grantedPermissions);
                 
                 // 상태 업데이트는 불필요한 재귀 호출을 방지하기 위해 제거
                 // checkPermissions(); // 제거됨
@@ -241,8 +241,8 @@ public class MainViewModel extends AndroidViewModel {
             public void onPermissionDenied(List<String> deniedPermissions) {
                 isPermissionRequesting = false; // 플래그 리셋
                 hasRequiredPermissions.postValue(false);
-                updateStatusMessage("권한이 거부되었습니다. 설정에서 허용해주세요.");
-                LoggerManager.logger("권한 요청 완료 - 거부됨");
+                updateStatusMessage("미디어 파일 접근 권한이 거부되었습니다. 설정에서 허용해주세요.");
+                LoggerManager.logger("권한 요청 완료 - 거부됨: " + deniedPermissions);
                 
                 // 완료 콜백 호출
                 if (activityCallback != null) {
@@ -254,8 +254,8 @@ public class MainViewModel extends AndroidViewModel {
             public void onPermissionPermanentlyDenied(List<String> deniedPermissions) {
                 isPermissionRequesting = false; // 플래그 리셋
                 hasRequiredPermissions.postValue(false);
-                updateStatusMessage("권한이 영구적으로 거부되었습니다. 설정에서 수동으로 허용해주세요.");
-                LoggerManager.logger("권한 요청 완료 - 영구적으로 거부됨");
+                updateStatusMessage("권한이 영구적으로 거부되었습니다. 안드로이드 설정 → 앱 → Audios → 권한에서 허용해주세요.");
+                LoggerManager.logger("권한 요청 완료 - 영구적으로 거부됨: " + deniedPermissions);
                 
                 // 완료 콜백 호출
                 if (activityCallback != null) {

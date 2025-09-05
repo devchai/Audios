@@ -3,100 +3,164 @@
     <!-- Basic Colors -->
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+    <color name="transparent">#00000000</color>
     
-    <!-- Material Design 3 Color Palette -->
-    <!-- Primary Colors -->
-    <color name="md_theme_primary">#6750A4</color>
-    <color name="md_theme_on_primary">#FFFFFF</color>
-    <color name="md_theme_primary_container">#EADDFF</color>
-    <color name="md_theme_on_primary_container">#21005D</color>
+    <!-- iOS System Colors - Light Theme -->
+    <!-- Primary System Colors -->
+    <color name="ios_system_blue">#007AFF</color>
+    <color name="ios_system_green">#34C759</color>
+    <color name="ios_system_indigo">#5856D6</color>
+    <color name="ios_system_orange">#FF9500</color>
+    <color name="ios_system_pink">#FF2D55</color>
+    <color name="ios_system_purple">#AF52DE</color>
+    <color name="ios_system_red">#FF3B30</color>
+    <color name="ios_system_teal">#5AC8FA</color>
+    <color name="ios_system_yellow">#FFCC00</color>
     
-    <!-- Secondary Colors -->
-    <color name="md_theme_secondary">#958DA5</color>
-    <color name="md_theme_on_secondary">#FFFFFF</color>
-    <color name="md_theme_secondary_container">#E1D8FF</color>
-    <color name="md_theme_on_secondary_container">#1D192B</color>
+    <!-- iOS Gray Scale -->
+    <color name="ios_system_gray">#8E8E93</color>
+    <color name="ios_system_gray2">#AEAEB2</color>
+    <color name="ios_system_gray3">#C7C7CC</color>
+    <color name="ios_system_gray4">#D1D1D6</color>
+    <color name="ios_system_gray5">#E5E5EA</color>
+    <color name="ios_system_gray6">#F2F2F7</color>
     
-    <!-- Tertiary/Accent Colors -->
-    <color name="md_theme_tertiary">#FFAB00</color>
-    <color name="md_theme_on_tertiary">#FFFFFF</color>
-    <color name="md_theme_tertiary_container">#FFE08D</color>
-    <color name="md_theme_on_tertiary_container">#2A1800</color>
+    <!-- iOS Background Colors -->
+    <color name="ios_system_background">#FFFFFF</color>
+    <color name="ios_system_secondary_background">#F2F2F7</color>
+    <color name="ios_system_tertiary_background">#FFFFFF</color>
+    <color name="ios_system_grouped_background">#F2F2F7</color>
+    <color name="ios_system_grouped_secondary_background">#FFFFFF</color>
     
-    <!-- Error Colors -->
-    <color name="md_theme_error">#BA1A1A</color>
-    <color name="md_theme_on_error">#FFFFFF</color>
+    <!-- iOS Label Colors -->
+    <color name="ios_label">#000000</color>
+    <color name="ios_secondary_label">#3C3C43</color>
+    <color name="ios_tertiary_label">#C3C4C6</color>
+    <color name="ios_quaternary_label">#D1D1D6</color>
+    <color name="ios_placeholder_text">#C3C4C6</color>
+    
+    <!-- iOS Separator Colors -->
+    <color name="ios_separator">#C6C6C8</color>
+    <color name="ios_opaque_separator">#C6C6C8</color>
+    
+    <!-- iOS Fill Colors -->
+    <color name="ios_system_fill">#78788033</color>
+    <color name="ios_secondary_system_fill">#78788028</color>
+    <color name="ios_tertiary_system_fill">#7676801F</color>
+    <color name="ios_quaternary_system_fill">#74748014</color>
+    
+    <!-- Dark Theme Colors -->
+    <color name="ios_dark_system_background">#000000</color>
+    <color name="ios_dark_secondary_background">#1C1C1E</color>
+    <color name="ios_dark_tertiary_background">#2C2C2E</color>
+    <color name="ios_dark_grouped_background">#000000</color>
+    <color name="ios_dark_grouped_secondary_background">#1C1C1E</color>
+    
+    <color name="ios_dark_label">#FFFFFF</color>
+    <color name="ios_dark_secondary_label">#EBEBF5CC</color>
+    <color name="ios_dark_tertiary_label">#EBEBF54D</color>
+    <color name="ios_dark_quaternary_label">#EBEBF52E</color>
+    <color name="ios_dark_placeholder_text">#EBEBF54D</color>
+    
+    <color name="ios_dark_separator">#38383A</color>
+    <color name="ios_dark_opaque_separator">#38383A</color>
+    
+    <color name="ios_dark_system_fill">#7878805C</color>
+    <color name="ios_dark_secondary_system_fill">#78788052</color>
+    <color name="ios_dark_tertiary_system_fill">#7676803D</color>
+    <color name="ios_dark_quaternary_system_fill">#7474802D</color>
+    
+    <!-- App Theme Mappings -->
+    <!-- Using iOS color scheme for Material Design components -->
+    <color name="md_theme_primary">@color/ios_system_blue</color>
+    <color name="md_theme_on_primary">@color/white</color>
+    <color name="md_theme_primary_container">#D7E3FF</color>
+    <color name="md_theme_on_primary_container">#001B3E</color>
+    
+    <color name="md_theme_secondary">@color/ios_system_gray</color>
+    <color name="md_theme_on_secondary">@color/white</color>
+    <color name="md_theme_secondary_container">@color/ios_system_gray6</color>
+    <color name="md_theme_on_secondary_container">@color/ios_label</color>
+    
+    <color name="md_theme_tertiary">@color/ios_system_orange</color>
+    <color name="md_theme_on_tertiary">@color/white</color>
+    <color name="md_theme_tertiary_container">#FFE8D2</color>
+    <color name="md_theme_on_tertiary_container">#331100</color>
+    
+    <color name="md_theme_error">@color/ios_system_red</color>
+    <color name="md_theme_on_error">@color/white</color>
     <color name="md_theme_error_container">#FFDAD6</color>
     <color name="md_theme_on_error_container">#410002</color>
     
-    <!-- Success Colors -->
-    <color name="md_theme_success">#4CAF50</color>
-    <color name="md_theme_on_success">#FFFFFF</color>
+    <color name="md_theme_success">@color/ios_system_green</color>
+    <color name="md_theme_on_success">@color/white</color>
     
-    <!-- Background Colors -->
-    <color name="md_theme_background">#FFFBFE</color>
-    <color name="md_theme_on_background">#1C1B1F</color>
+    <color name="md_theme_background">@color/ios_system_background</color>
+    <color name="md_theme_on_background">@color/ios_label</color>
     
-    <!-- Surface Colors -->
-    <color name="md_theme_surface">#FEF7FF</color>
-    <color name="md_theme_on_surface">#1C1B1F</color>
-    <color name="md_theme_surface_variant">#E7E0EC</color>
-    <color name="md_theme_on_surface_variant">#49454F</color>
+    <color name="md_theme_surface">@color/ios_system_background</color>
+    <color name="md_theme_on_surface">@color/ios_label</color>
+    <color name="md_theme_surface_variant">@color/ios_system_grouped_background</color>
+    <color name="md_theme_on_surface_variant">@color/ios_secondary_label</color>
     
-    <!-- Outline Colors -->
-    <color name="md_theme_outline">#79747E</color>
-    <color name="md_theme_outline_variant">#CAC4D0</color>
+    <color name="md_theme_outline">@color/ios_separator</color>
+    <color name="md_theme_outline_variant">@color/ios_system_gray5</color>
     
-    <!-- Inverse Colors -->
-    <color name="md_theme_inverse_surface">#313033</color>
-    <color name="md_theme_inverse_on_surface">#F4EFF4</color>
-    <color name="md_theme_inverse_primary">#D0BCFF</color>
+    <color name="md_theme_inverse_surface">@color/ios_dark_secondary_background</color>
+    <color name="md_theme_inverse_on_surface">@color/ios_dark_label</color>
+    <color name="md_theme_inverse_primary">@color/ios_system_blue</color>
     
-    <!-- Scrim -->
-    <color name="md_theme_scrim">#000000</color>
+    <color name="md_theme_scrim">#80000000</color>
     
-    <!-- Dark Theme Colors -->
-    <color name="md_theme_dark_primary">#D0BCFF</color>
-    <color name="md_theme_dark_on_primary">#381E72</color>
-    <color name="md_theme_dark_primary_container">#4F378B</color>
-    <color name="md_theme_dark_on_primary_container">#EADDFF</color>
+    <!-- Dark Theme Mappings -->
+    <color name="md_theme_dark_primary">@color/ios_system_blue</color>
+    <color name="md_theme_dark_on_primary">@color/white</color>
+    <color name="md_theme_dark_primary_container">#004A77</color>
+    <color name="md_theme_dark_on_primary_container">#D7E3FF</color>
     
-    <color name="md_theme_dark_secondary">#CCC2DC</color>
-    <color name="md_theme_dark_on_secondary">#332D41</color>
-    <color name="md_theme_dark_secondary_container">#4A4458</color>
-    <color name="md_theme_dark_on_secondary_container">#E8DEF8</color>
+    <color name="md_theme_dark_secondary">@color/ios_system_gray</color>
+    <color name="md_theme_dark_on_secondary">@color/white</color>
+    <color name="md_theme_dark_secondary_container">@color/ios_dark_tertiary_background</color>
+    <color name="md_theme_dark_on_secondary_container">@color/ios_dark_label</color>
     
-    <color name="md_theme_dark_tertiary">#FFB945</color>
-    <color name="md_theme_dark_on_tertiary">#452B00</color>
-    <color name="md_theme_dark_tertiary_container">#633F00</color>
-    <color name="md_theme_dark_on_tertiary_container">#FFDDB3</color>
+    <color name="md_theme_dark_tertiary">@color/ios_system_orange</color>
+    <color name="md_theme_dark_on_tertiary">@color/white</color>
+    <color name="md_theme_dark_tertiary_container">#663300</color>
+    <color name="md_theme_dark_on_tertiary_container">#FFE8D2</color>
     
-    <color name="md_theme_dark_error">#FFB4AB</color>
-    <color name="md_theme_dark_on_error">#690005</color>
+    <color name="md_theme_dark_error">@color/ios_system_red</color>
+    <color name="md_theme_dark_on_error">@color/white</color>
     <color name="md_theme_dark_error_container">#93000A</color>
     <color name="md_theme_dark_on_error_container">#FFDAD6</color>
     
-    <color name="md_theme_dark_background">#1C1B1F</color>
-    <color name="md_theme_dark_on_background">#E6E1E5</color>
+    <color name="md_theme_dark_background">@color/ios_dark_system_background</color>
+    <color name="md_theme_dark_on_background">@color/ios_dark_label</color>
     
-    <color name="md_theme_dark_surface">#1C1B1F</color>
-    <color name="md_theme_dark_on_surface">#E6E1E5</color>
-    <color name="md_theme_dark_surface_variant">#49454F</color>
-    <color name="md_theme_dark_on_surface_variant">#CAC4D0</color>
+    <color name="md_theme_dark_surface">@color/ios_dark_secondary_background</color>
+    <color name="md_theme_dark_on_surface">@color/ios_dark_label</color>
+    <color name="md_theme_dark_surface_variant">@color/ios_dark_tertiary_background</color>
+    <color name="md_theme_dark_on_surface_variant">@color/ios_dark_secondary_label</color>
     
-    <color name="md_theme_dark_outline">#938F99</color>
-    <color name="md_theme_dark_outline_variant">#49454F</color>
+    <color name="md_theme_dark_outline">@color/ios_dark_separator</color>
+    <color name="md_theme_dark_outline_variant">@color/ios_dark_opaque_separator</color>
     
-    <color name="md_theme_dark_inverse_surface">#E6E1E5</color>
-    <color name="md_theme_dark_inverse_on_surface">#1C1B1F</color>
-    <color name="md_theme_dark_inverse_primary">#6750A4</color>
+    <color name="md_theme_dark_inverse_surface">@color/ios_system_gray6</color>
+    <color name="md_theme_dark_inverse_on_surface">@color/ios_label</color>
+    <color name="md_theme_dark_inverse_primary">@color/ios_system_blue</color>
     
     <!-- App Specific Colors -->
-    <color name="tab_selected">#6750A4</color>
-    <color name="tab_unselected">#79747E</color>
-    <color name="progress_bar_color">#6750A4</color>
-    <color name="file_item_background">#F5F5F5</color>
-    <color name="divider_color">#E0E0E0</color>
-    <color name="ripple_color">#336750A4</color>
+    <color name="tab_selected">@color/ios_system_blue</color>
+    <color name="tab_unselected">@color/ios_system_gray</color>
+    <color name="progress_bar_color">@color/ios_system_blue</color>
+    <color name="file_item_background">@color/ios_system_grouped_secondary_background</color>
+    <color name="divider_color">@color/ios_separator</color>
+    <color name="ripple_color">#1A007AFF</color>
     <color name="transparent_black">#80000000</color>
+    
+    <!-- iOS Style Effects -->
+    <color name="ios_blur_light">#D8FFFFFF</color>
+    <color name="ios_blur_dark">#D8000000</color>
+    <color name="ios_selected_background">#E8E8ED</color>
+    <color name="ios_pressed_background">#D1D1D6</color>
+    <color name="ios_disabled_background">#F2F2F7</color>
 </resources>

@@ -97,8 +97,13 @@ public class PermissionManager {
     public void requestStoragePermissions(PermissionCallback callback) {
         this.callback = callback;
         
+        LoggerManager.logger("=== 권한 요청 시작 ===");
+        LoggerManager.logger("Android API 레벨: " + Build.VERSION.SDK_INT);
+        LoggerManager.logger("필수 권한 목록: " + getRequiredPermissions());
+        
         // 이미 모든 권한이 있는 경우
         if (hasAllRequiredPermissions()) {
+            LoggerManager.logger("모든 필수 권한이 이미 허용되어 있음");
             if (callback != null) {
                 callback.onPermissionGranted(getRequiredPermissions());
             }
@@ -106,14 +111,19 @@ public class PermissionManager {
         }
         
         List<String> missingPermissions = getMissingPermissions();
+        LoggerManager.logger("누락된 권한 목록: " + missingPermissions);
         
         // API 30+ MANAGE_EXTERNAL_STORAGE 권한 처리 (선택적)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && 
             !Environment.isExternalStorageManager()) {
+            LoggerManager.logger("MANAGE_EXTERNAL_STORAGE 권한 요청으로 이동");
             requestManageExternalStoragePermission();
         } else if (!missingPermissions.isEmpty()) {
             // 일반 권한 요청
+            LoggerManager.logger("일반 권한 다이얼로그 표시: " + missingPermissions);
             permissionLauncher.launch(missingPermissions.toArray(new String[0]));
+        } else {
+            LoggerManager.logger("요청할 권한이 없음");
         }
     }
     
@@ -140,9 +150,15 @@ public class PermissionManager {
      * 권한 요청 결과 처리
      */
     private void handlePermissionResults(Map<String, Boolean> results) {
+        LoggerManager.logger("=== 권한 요청 결과 처리 ===");
+        LoggerManager.logger("권한 요청 결과: " + results);
+        
         updatePermissionStatus();
         
-        if (callback == null) return;
+        if (callback == null) {
+            LoggerManager.logger("콜백이 null이므로 결과 처리 생략");
+            return;
+        }
         
         List<String> granted = new ArrayList<>();
         List<String> denied = new ArrayList<>();
@@ -152,10 +168,15 @@ public class PermissionManager {
             String permission = entry.getKey();
             boolean isGranted = entry.getValue();
             
+            LoggerManager.logger("권한: " + permission + " -> " + (isGranted ? "허용" : "거부"));
+            
             if (isGranted) {
                 granted.add(permission);
             } else {
-                if (activity.shouldShowRequestPermissionRationale(permission)) {
+                boolean shouldShowRationale = activity.shouldShowRequestPermissionRationale(permission);
+                LoggerManager.logger("shouldShowRequestPermissionRationale(" + permission + "): " + shouldShowRationale);
+                
+                if (shouldShowRationale) {
                     denied.add(permission);
                 } else {
                     permanentlyDenied.add(permission);
@@ -163,21 +184,30 @@ public class PermissionManager {
             }
         }
         
+        LoggerManager.logger("최종 결과 - 허용: " + granted + ", 거부: " + denied + ", 영구거부: " + permanentlyDenied);
+        
+        // 허용된 권한이 있을 때만 onPermissionGranted 호출
         if (!granted.isEmpty()) {
+            LoggerManager.logger("권한 허용 콜백 호출");
             callback.onPermissionGranted(granted);
         }
         
+        // 거부된 권한이 있을 때만 onPermissionDenied 호출  
         if (!denied.isEmpty()) {
+            LoggerManager.logger("권한 거부 콜백 호출");
             callback.onPermissionDenied(denied);
         }
         
+        // 영구 거부된 권한이 있을 때만 onPermissionPermanentlyDenied 호출
         if (!permanentlyDenied.isEmpty()) {
+            LoggerManager.logger("권한 영구 거부 콜백 호출");
             callback.onPermissionPermanentlyDenied(permanentlyDenied);
         }
     }
     
     /**
      * 모든 필수 권한이 부여되었는지 확인
+     * 기본 미디어 권한만 체크 (MANAGE_EXTERNAL_STORAGE는 선택적)
      */
     public boolean hasAllRequiredPermissions() {
         List<String> required = getRequiredPermissions();
@@ -187,12 +217,24 @@ public class PermissionManager {
             }
         }
         
-        // API 30+ 에서는 MANAGE_EXTERNAL_STORAGE 권한도 확인 (선택적)
+        return true;
+    }
+    
+    /**
+     * MANAGE_EXTERNAL_STORAGE 권한 확인 (선택적 권한)
+     */
+    public boolean hasManageExternalStoragePermission() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             return Environment.isExternalStorageManager();
         }
-        
-        return true;
+        return true; // API 30 미만에서는 해당 없음
+    }
+    
+    /**
+     * 모든 권한(기본 + 확장) 확인
+     */
+    public boolean hasAllPermissionsIncludingOptional() {
+        return hasAllRequiredPermissions() && hasManageExternalStoragePermission();
     }
     
     /**
@@ -269,16 +311,33 @@ public class PermissionManager {
         StringBuilder sb = new StringBuilder();
         sb.append("권한 상태:\n");
         
+        // 필수 권한 상태
         List<String> required = getRequiredPermissions();
+        boolean allRequiredGranted = true;
         for (String permission : required) {
             boolean granted = hasPermission(permission);
+            if (!granted) allRequiredGranted = false;
             sb.append("- ").append(getPermissionName(permission)).append(": ")
               .append(granted ? "허용" : "거부").append("\n");
         }
         
+        // 선택적 권한 상태 (API 30+)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            sb.append("- MANAGE_EXTERNAL_STORAGE: ")
-              .append(Environment.isExternalStorageManager() ? "허용" : "거부");
+            boolean manageStorageGranted = Environment.isExternalStorageManager();
+            sb.append("- 전체 파일 접근 권한 (선택적): ")
+              .append(manageStorageGranted ? "허용" : "거부").append("\n");
+        }
+        
+        // 전체 상태 요약
+        sb.append("\n상태 요약: ");
+        if (allRequiredGranted) {
+            if (hasManageExternalStoragePermission()) {
+                sb.append("모든 권한 허용됨 (전체 기능 이용 가능)");
+            } else {
+                sb.append("기본 권한 허용됨 (기본 기능 이용 가능)");
+            }
+        } else {
+            sb.append("필수 권한 없음 (앱 기능 제한됨)");
         }
         
         return sb.toString();

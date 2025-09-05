@@ -16,6 +16,7 @@ import com.arthenica.ffmpegkit.ReturnCode;
 import com.arthenica.ffmpegkit.SessionState;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -152,8 +153,31 @@ public class FFmpegManager {
                 File tempInputFile = fileManager.copyToTemporaryFile(inputUri, context);
                 String inputPath = tempInputFile.getAbsolutePath();
                 
-                // 출력 파일 경로 생성
-                String outputPath = fileManager.createOutputFilePath(context, outputFileName, format.getExtension());
+                // 출력 파일명을 안전한 형태로 정리
+                String safeOutputFileName = fileManager.sanitizeFileName(outputFileName);
+                LoggerManager.logger("원본 파일명: " + outputFileName);
+                LoggerManager.logger("안전한 파일명: " + safeOutputFileName);
+                
+                // 출력 파일 경로 생성 (안전한 파일명 사용)
+                String outputPath = fileManager.createOutputFilePath(context, safeOutputFileName, format.getExtension());
+                
+                // 추가 안전 검증: 출력 경로도 다시 한번 정리
+                outputPath = fileManager.sanitizeFilePath(outputPath);
+                
+                LoggerManager.logger("최종 출력 경로: " + outputPath);
+                
+                // 입력 파일 존재 여부 확인
+                if (!tempInputFile.exists()) {
+                    throw new IOException("입력 임시 파일이 존재하지 않습니다: " + inputPath);
+                }
+                
+                // 출력 디렉토리 존재 여부 확인 및 생성
+                File outputFile = new File(outputPath);
+                File outputDir = outputFile.getParentFile();
+                if (outputDir != null && !outputDir.exists()) {
+                    boolean created = outputDir.mkdirs();
+                    LoggerManager.logger("출력 디렉토리 생성: " + outputDir.getAbsolutePath() + " (" + created + ")");
+                }
                 
                 // 실제 변환 실행
                 performConversion(inputPath, outputPath, format, quality, context);
@@ -202,24 +226,66 @@ public class FFmpegManager {
             // 변환 시작 알림
             notifyStart();
             
+            // 입력 파일 최종 검증
+            File inputFile = new File(inputPath);
+            if (!inputFile.exists() || !inputFile.canRead()) {
+                throw new IOException("입력 파일을 읽을 수 없습니다: " + inputPath);
+            }
+            
             // 입력 파일 기간 가져오기 (진행률 계산용)
             totalDurationMs = getMediaDuration(inputPath);
             LoggerManager.logger("입력 파일 기간: " + totalDurationMs + "ms");
             
+            // 출력 파일의 부모 디렉토리 최종 확인
+            File outputFile = new File(outputPath);
+            File outputDir = outputFile.getParentFile();
+            if (outputDir != null && !outputDir.exists()) {
+                boolean created = outputDir.mkdirs();
+                if (!created) {
+                    throw new IOException("출력 디렉토리를 생성할 수 없습니다: " + outputDir.getAbsolutePath());
+                }
+            }
+            
             // FFmpeg 명령어 생성
             String[] command = buildFFmpegCommand(inputPath, outputPath, format, quality);
             
-            LoggerManager.logger("FFmpeg 명령어: " + String.join(" ", command));
+            LoggerManager.logger("FFmpeg 명령어 배열: " + java.util.Arrays.toString(command));
             
-            // FFmpeg 실행
-            FFmpegSession session = FFmpegKit.execute(String.join(" ", command));
+            // 개별 파라미터로 분리하여 로깅 (디버깅용)
+            for (int i = 0; i < command.length; i++) {
+                LoggerManager.logger("Command[" + i + "]: " + command[i]);
+            }
+            
+            // FFmpeg 실행 (배열을 문자열로 조인하지 않고 개별 실행)
+            StringBuilder commandStr = new StringBuilder();
+            for (String arg : command) {
+                // 공백이나 특수문자가 있는 경우 따옴표로 감싸기
+                if (arg.contains(" ") || arg.contains("[") || arg.contains("]")) {
+                    commandStr.append("\"").append(arg).append("\" ");
+                } else {
+                    commandStr.append(arg).append(" ");
+                }
+            }
+            
+            String finalCommand = commandStr.toString().trim();
+            LoggerManager.logger("최종 FFmpeg 명령어: " + finalCommand);
+            
+            FFmpegSession session = FFmpegKit.execute(finalCommand);
             
             if (ReturnCode.isSuccess(session.getReturnCode())) {
-                LoggerManager.logger("변환 성공: " + outputPath);
+                // 출력 파일 생성 확인
+                if (!outputFile.exists() || outputFile.length() == 0) {
+                    throw new IOException("변환은 성공했으나 출력 파일이 생성되지 않았거나 비어있습니다: " + outputPath);
+                }
+                
+                LoggerManager.logger("변환 성공: " + outputPath + " (크기: " + outputFile.length() + " bytes)");
                 
                 // MediaStore에 저장 (선택적)
-                String fileName = new File(outputPath).getName();
+                String fileName = outputFile.getName();
                 Uri savedUri = fileManager.saveToDownloadsWithMediaStore(context, outputPath, fileName);
+                if (savedUri != null) {
+                    LoggerManager.logger("MediaStore 저장 완료: " + savedUri);
+                }
                 
                 notifyCompletion(inputPath, outputPath);
                 
@@ -228,13 +294,16 @@ public class FFmpegManager {
                 notifyFailure("변환 취소", "사용자에 의해 변환이 취소되었습니다.");
                 
             } else {
-                String errorMessage = "변환 실패 (Return Code: " + session.getReturnCode() + ")";
+                String errorMessage = "변환 실패 (Return Code: " + session.getReturnCode().getValue() + ")";
+                String logs = session.getLogsAsString();
                 LoggerManager.logger(errorMessage);
-                notifyFailure("변환 실패", errorMessage);
+                LoggerManager.logger("FFmpeg 로그: " + logs);
+                notifyFailure("변환 실패", errorMessage + " - " + logs);
             }
             
         } catch (Exception e) {
             LoggerManager.logger("변환 중 오류 발생: " + e.getMessage());
+            e.printStackTrace();
             notifyFailure("변환 오류", e.getMessage());
             
         } finally {

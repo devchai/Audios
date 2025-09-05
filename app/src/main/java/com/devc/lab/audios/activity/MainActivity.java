@@ -21,8 +21,9 @@ import com.devc.lab.audios.model.MainViewModel;
 import com.google.android.gms.ads.MobileAds;
 import com.google.android.gms.ads.initialization.InitializationStatus;
 import com.google.android.gms.ads.initialization.OnInitializationCompleteListener;
-import com.google.android.material.tabs.TabLayoutMediator;
+import androidx.viewpager2.widget.ViewPager2;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.core.content.ContextCompat;
 // import com.mocoplex.adlib.AdlibConfig;
 // import com.mocoplex.adlib.AdlibManager;
 import io.github.inflationx.viewpump.ViewPumpContextWrapper;
@@ -132,7 +133,8 @@ public class MainActivity extends BaseActivity<ActivityMainBinding> {
     @Override
     protected void setup() {
         setupViewPager();
-        setupTabLayout();
+        setupSegmentedControl();
+        setupBottomTabBar();
     }
     
     private void setupViewPager() {
@@ -140,16 +142,105 @@ public class MainActivity extends BaseActivity<ActivityMainBinding> {
         binding.viewPager.setAdapter(adapter);
     }
     
-    private void setupTabLayout() {
-        String[] tabTitles = {
-            getString(R.string.tab_convert),
-            getString(R.string.tab_library),
-            getString(R.string.tab_edit)
-        };
+    private void setupSegmentedControl() {
+        // 초기 상태 설정 (첫 번째 세그먼트 선택)
+        updateSegmentSelection(0);
         
-        new TabLayoutMediator(binding.tabLayout, binding.viewPager,
-                (tab, position) -> tab.setText(tabTitles[position])
-        ).attach();
+        // ViewPager2 페이지 변경 리스너 설정
+        binding.viewPager.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
+            @Override
+            public void onPageSelected(int position) {
+                updateSegmentSelection(position);
+            }
+        });
+        
+        // 세그먼트 클릭 리스너 설정
+        binding.segmentConvert.setOnClickListener(v -> {
+            binding.viewPager.setCurrentItem(0, true);
+        });
+        
+        binding.segmentLibrary.setOnClickListener(v -> {
+            binding.viewPager.setCurrentItem(1, true);
+        });
+        
+        binding.segmentEdit.setOnClickListener(v -> {
+            binding.viewPager.setCurrentItem(2, true);
+        });
+    }
+    
+    private void updateSegmentSelection(int selectedPosition) {
+        // 모든 세그먼트 초기화
+        binding.segmentConvert.setBackground(getDrawable(android.R.color.transparent));
+        binding.segmentLibrary.setBackground(getDrawable(android.R.color.transparent));
+        binding.segmentEdit.setBackground(getDrawable(android.R.color.transparent));
+        
+        // 선택된 세그먼트 하이라이트
+        switch (selectedPosition) {
+            case 0:
+                binding.segmentConvert.setBackground(getDrawable(R.drawable.ios_segment_selected));
+                break;
+            case 1:
+                binding.segmentLibrary.setBackground(getDrawable(R.drawable.ios_segment_selected));
+                break;
+            case 2:
+                binding.segmentEdit.setBackground(getDrawable(R.drawable.ios_segment_selected));
+                break;
+        }
+        
+        // 하단 탭바도 동기화
+        updateBottomTabSelection(selectedPosition);
+    }
+    
+    /**
+     * 하단 탭바 초기화 및 클릭 리스너 설정
+     */
+    private void setupBottomTabBar() {
+        // 초기 하단 탭 상태 설정
+        updateBottomTabSelection(0);
+        
+        // 하단 탭 클릭 리스너 설정
+        binding.tabConvert.setOnClickListener(v -> {
+            binding.viewPager.setCurrentItem(0, true);
+        });
+        
+        binding.tabLibrary.setOnClickListener(v -> {
+            binding.viewPager.setCurrentItem(1, true);
+        });
+        
+        binding.tabEdit.setOnClickListener(v -> {
+            binding.viewPager.setCurrentItem(2, true);
+        });
+    }
+    
+    /**
+     * 하단 탭바 선택 상태 업데이트
+     */
+    private void updateBottomTabSelection(int selectedPosition) {
+        // 모든 탭을 기본 상태로 초기화 (회색)
+        binding.iconConvert.setColorFilter(getColor(R.color.ios_system_gray));
+        binding.labelConvert.setTextColor(getColor(R.color.ios_system_gray));
+        
+        binding.iconLibrary.setColorFilter(getColor(R.color.ios_system_gray));
+        binding.labelLibrary.setTextColor(getColor(R.color.ios_system_gray));
+        
+        binding.iconEdit.setColorFilter(getColor(R.color.ios_system_gray));
+        binding.labelEdit.setTextColor(getColor(R.color.ios_system_gray));
+        
+        // 선택된 탭을 활성 상태로 변경 (파란색)
+        switch (selectedPosition) {
+            case 0:
+                binding.iconConvert.setColorFilter(getColor(R.color.ios_system_blue));
+                binding.labelConvert.setTextColor(getColor(R.color.ios_system_blue));
+                break;
+            case 1:
+                binding.iconLibrary.setColorFilter(getColor(R.color.ios_system_blue));
+                binding.labelLibrary.setTextColor(getColor(R.color.ios_system_blue));
+                break;
+            case 2:
+                binding.iconEdit.setColorFilter(getColor(R.color.ios_system_blue));
+                binding.labelEdit.setTextColor(getColor(R.color.ios_system_blue));
+                break;
+        }
     }
 
     /**

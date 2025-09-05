@@ -624,4 +624,119 @@ public class FileManager {
             e.printStackTrace();
         }
     }
+    
+    /**
+     * 파일명을 FFmpeg와 시스템에서 안전하게 처리할 수 있도록 정리
+     * 특수문자를 제거하고 파일시스템에서 안전한 형태로 변환
+     */
+    public String sanitizeFileName(String fileName) {
+        if (fileName == null || fileName.isEmpty()) {
+            return "unnamed_file";
+        }
+        
+        // 특수문자를 언더스코어로 변환 (FFmpeg 및 파일시스템에서 문제가 될 수 있는 문자들)
+        String sanitized = fileName.replaceAll("[\\[\\](){}|?*\":<>\\\\/]", "_");
+        
+        // 공백을 언더스코어로 변환
+        sanitized = sanitized.replaceAll("\\s+", "_");
+        
+        // 연속된 언더스코어를 하나로 줄임
+        sanitized = sanitized.replaceAll("_{2,}", "_");
+        
+        // 앞뒤 언더스코어 제거
+        sanitized = sanitized.replaceAll("^_+|_+$", "");
+        
+        // 파일명이 너무 길면 자름 (확장자 제외하고 80자로 제한)
+        if (sanitized.length() > 80) {
+            sanitized = sanitized.substring(0, 80);
+        }
+        
+        // 빈 문자열이 되면 기본 이름 사용
+        if (sanitized.isEmpty()) {
+            sanitized = "unnamed_file";
+        }
+        
+        LoggerManager.logger("파일명 정리: '" + fileName + "' -> '" + sanitized + "'");
+        return sanitized;
+    }
+    
+    /**
+     * 파일 전체 경로에서 파일명 부분만 정리하고 경로는 유지
+     */
+    public String sanitizeFilePath(String filePath) {
+        if (filePath == null || filePath.isEmpty()) {
+            return filePath;
+        }
+        
+        File file = new File(filePath);
+        String directory = file.getParent();
+        String fileName = file.getName();
+        
+        // 파일명에서 확장자 분리
+        String nameWithoutExt = removeFileExtension(fileName);
+        String extension = getFileExtension(fileName);
+        
+        // 파일명만 정리 (확장자는 그대로 유지)
+        String sanitizedName = sanitizeFileName(nameWithoutExt);
+        
+        // 정리된 파일명과 확장자를 합쳐서 전체 경로 생성
+        String sanitizedFileName = sanitizedName + extension;
+        
+        return directory != null ? new File(directory, sanitizedFileName).getAbsolutePath() 
+                                 : sanitizedFileName;
+    }
+    
+    /**
+     * 편집된 파일을 저장할 경로 생성
+     */
+    public String generateEditedFilePath(String originalFilePath) {
+        if (originalFilePath == null || context == null) {
+            return null;
+        }
+        
+        File editedDir = getEditedDirectory(context);
+        if (!editedDir.exists()) {
+            editedDir.mkdirs();
+        }
+        
+        File originalFile = new File(originalFilePath);
+        String baseName = removeFileExtension(originalFile.getName());
+        String extension = getFileExtension(originalFile.getName());
+        
+        String editedFileName = "edited_" + baseName + "_" + System.currentTimeMillis() + extension;
+        String outputPath = new File(editedDir, editedFileName).getAbsolutePath();
+        
+        // 중복 파일명 처리
+        return getUniqueFileName(outputPath);
+    }
+    
+    /**
+     * 파일 복사 메서드
+     */
+    public boolean copyFile(String sourcePath, String destPath) {
+        if (sourcePath == null || destPath == null) {
+            return false;
+        }
+        
+        try (InputStream inputStream = new FileInputStream(sourcePath);
+             OutputStream outputStream = new FileOutputStream(destPath)) {
+            
+            byte[] buffer = new byte[8 * 1024]; // 8KB 버퍼
+            int bytesRead;
+            long totalBytes = 0;
+            
+            while ((bytesRead = inputStream.read(buffer)) != -1) {
+                outputStream.write(buffer, 0, bytesRead);
+                totalBytes += bytesRead;
+            }
+            
+            outputStream.flush();
+            LoggerManager.logger("파일 복사 완료: " + destPath + " (" + totalBytes + " bytes)");
+            return true;
+            
+        } catch (IOException e) {
+            LoggerManager.logger("파일 복사 실패: " + e.getMessage());
+            return false;
+        }
+    }
 }

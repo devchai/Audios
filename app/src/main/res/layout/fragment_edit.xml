@@ -70,7 +70,7 @@
                 android:padding="16dp">
 
                 <!-- Waveform View (Custom View) -->
-                <View
+                <com.devc.lab.audios.view.WaveformView
                     android:id="@+id/waveform_view"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
@@ -106,6 +106,81 @@
 
         </com.google.android.material.card.MaterialCardView>
 
+        <!-- Trim Controls -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/card_trim_controls"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="2dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/card_waveform">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="12dp"
+                    android:text="자르기 설정"
+                    android:textAppearance="?attr/textAppearanceTitleMedium"
+                    android:textColor="?attr/colorOnSurface" />
+
+                <!-- Trim Time Display -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="12dp"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical">
+
+                    <TextView
+                        android:id="@+id/tv_trim_time_range"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="00:00 - 00:00"
+                        android:textAppearance="?attr/textAppearanceBodyLarge"
+                        android:textColor="?attr/colorOnSurface" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginHorizontal="8dp"
+                        android:text="길이:"
+                        android:textAppearance="?attr/textAppearanceBodyMedium"
+                        android:textColor="?attr/colorOnSurfaceVariant" />
+
+                    <TextView
+                        android:id="@+id/tv_trim_duration"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="00:00"
+                        android:textAppearance="?attr/textAppearanceBodyMedium"
+                        android:textColor="?attr/colorPrimary" />
+
+                </LinearLayout>
+
+                <!-- Trim Action Button -->
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_apply_trim"
+                    style="@style/Widget.Material3.Button"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="자르기 적용"
+                    app:icon="@drawable/ic_cut"
+                    app:iconSize="20dp" />
+
+            </LinearLayout>
+
+        </com.google.android.material.card.MaterialCardView>
+
         <!-- Player Controls -->
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/card_player_controls"
@@ -116,7 +191,7 @@
             app:cardElevation="2dp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/card_waveform">
+            app:layout_constraintTop_toBottomOf="@id/card_trim_controls">
 
             <LinearLayout
                 android:layout_width="match_parent"

@@ -46,10 +46,14 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
 
 
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
-<!--    &lt;!&ndash; API 29 이하 버전을 위한 권한 &ndash;&gt;-->
-<!--    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />-->
-    <!-- 앱이 파일을 공유하거나 사용자가 파일을 선택할 수 있도록 허용 -->
+    <!-- API 32 이하를 위한 권한 -->
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32"/>
+    
+    <!-- API 33 이상을 위한 세분화된 미디어 권한 -->
+    <uses-permission android:name="android.permission.READ_MEDIA_AUDIO"/>
+    <uses-permission android:name="android.permission.READ_MEDIA_VIDEO"/>
+    
+    <!-- 전체 파일 시스템 접근을 위한 선택적 권한 -->
     <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE"/>
 
 

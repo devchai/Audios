@@ -5,104 +5,242 @@
         xmlns:app="http://schemas.android.com/apk/res-auto"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@color/md_theme_background"
+        android:background="@color/ios_system_grouped_background"
         tools:context=".activity.MainActivity">
 
-    <!-- App Bar -->
-    <com.google.android.material.appbar.MaterialToolbar
-            android:id="@+id/toolbar"
+    <!-- iOS Style Navigation Bar -->
+    <LinearLayout
+            android:id="@+id/navigation_bar"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:background="?attr/colorSurface"
-            android:elevation="4dp"
+            android:orientation="vertical"
+            android:background="@color/ios_system_background"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:title="@string/app_name"
-            app:titleTextAppearance="?attr/textAppearanceHeadlineSmall"
-            app:titleTextColor="?attr/colorOnSurface" />
+            app:layout_constraintTop_toTopOf="parent">
 
-    <!-- Tab Layout -->
-    <com.google.android.material.tabs.TabLayout
-            android:id="@+id/tab_layout"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:background="?attr/colorSurface"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/toolbar"
-            app:tabMode="fixed"
-            app:tabGravity="fill"
-            app:tabIndicatorColor="?attr/colorPrimary"
-            app:tabSelectedTextColor="?attr/colorPrimary"
-            app:tabTextColor="?attr/colorOnSurfaceVariant"
-            app:tabIndicatorFullWidth="false"
-            app:tabIndicatorHeight="3dp">
+        <!-- Status Bar Space -->
+        <View
+                android:id="@+id/status_bar_space"
+                android:layout_width="match_parent"
+                android:layout_height="0dp" />
 
-        <com.google.android.material.tabs.TabItem
-                android:layout_width="wrap_content"
+        <!-- Title Bar -->
+        <LinearLayout
+                android:id="@+id/title_bar"
+                android:layout_width="match_parent"
+                android:layout_height="44dp"
+                android:gravity="center"
+                android:orientation="horizontal"
+                android:paddingHorizontal="16dp">
+
+            <TextView
+                    android:id="@+id/title"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/app_name"
+                    android:textAppearance="@style/TextAppearance.iOS.Headline.Medium"
+                    android:textColor="@color/ios_label"
+                    android:fontWeight="600" />
+
+        </LinearLayout>
+
+        <!-- iOS Style Segmented Control -->
+        <LinearLayout
+                android:id="@+id/segmented_control_container"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="@string/tab_convert"
-                android:icon="@drawable/ic_convert" />
+                android:gravity="center"
+                android:paddingHorizontal="16dp"
+                android:paddingVertical="8dp">
 
-        <com.google.android.material.tabs.TabItem
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/tab_library"
-                android:icon="@drawable/ic_library" />
+            <LinearLayout
+                    android:id="@+id/segmented_control"
+                    android:layout_width="match_parent"
+                    android:layout_height="32dp"
+                    android:background="@drawable/ios_segmented_background"
+                    android:orientation="horizontal"
+                    android:padding="2dp">
 
-        <com.google.android.material.tabs.TabItem
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/tab_edit"
-                android:icon="@drawable/ic_edit" />
+                <TextView
+                        android:id="@+id/segment_convert"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:background="@drawable/ios_segment_selected"
+                        android:gravity="center"
+                        android:text="@string/tab_convert"
+                        android:textAppearance="@style/TextAppearance.iOS.Label.Large"
+                        android:textColor="@color/ios_label"
+                        android:textSize="13sp" />
 
-    </com.google.android.material.tabs.TabLayout>
+                <TextView
+                        android:id="@+id/segment_library"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:background="@android:color/transparent"
+                        android:gravity="center"
+                        android:text="@string/tab_library"
+                        android:textAppearance="@style/TextAppearance.iOS.Label.Large"
+                        android:textColor="@color/ios_label"
+                        android:textSize="13sp" />
 
-    <!-- Divider -->
+                <TextView
+                        android:id="@+id/segment_edit"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:background="@android:color/transparent"
+                        android:gravity="center"
+                        android:text="@string/tab_edit"
+                        android:textAppearance="@style/TextAppearance.iOS.Label.Large"
+                        android:textColor="@color/ios_label"
+                        android:textSize="13sp" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <!-- Separator Line -->
     <View
-            android:id="@+id/divider"
+            android:id="@+id/separator"
             android:layout_width="0dp"
-            android:layout_height="1dp"
-            android:background="?attr/colorOutlineVariant"
+            android:layout_height="0.5dp"
+            android:background="@color/ios_separator"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/tab_layout" />
+            app:layout_constraintTop_toBottomOf="@id/navigation_bar" />
 
-    <!-- ViewPager2 -->
+    <!-- Content ViewPager -->
     <androidx.viewpager2.widget.ViewPager2
             android:id="@+id/view_pager"
             android:layout_width="0dp"
             android:layout_height="0dp"
-            app:layout_constraintBottom_toTopOf="@+id/layout_bottom_ad"
+            android:background="@color/ios_system_grouped_background"
+            app:layout_constraintBottom_toTopOf="@id/bottom_navigation"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/divider" />
+            app:layout_constraintTop_toBottomOf="@id/separator" />
 
-    <!-- Bottom Ad Layout -->
+    <!-- iOS Style Bottom Navigation -->
     <LinearLayout
-            android:id="@+id/layout_bottom_ad"
+            android:id="@+id/bottom_navigation"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:background="?attr/colorSurface"
+            android:background="@color/ios_system_background"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent">
 
-        <!-- Top Divider for Ad -->
+        <!-- Top Separator -->
         <View
                 android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:background="?attr/colorOutlineVariant" />
+                android:layout_height="0.5dp"
+                android:background="@color/ios_separator" />
 
-        <!-- 임시로 광고 영역을 placeholder로 대체 -->
-        <View
-                android:id="@+id/ads"
+        <!-- Tab Bar -->
+        <LinearLayout
+                android:id="@+id/tab_bar"
                 android:layout_width="match_parent"
-                android:layout_height="50dp"
-                android:background="@color/md_theme_surface_variant"
-                android:visibility="gone" />
+                android:layout_height="49dp"
+                android:orientation="horizontal"
+                android:background="@color/ios_system_background">
+
+            <!-- Convert Tab -->
+            <LinearLayout
+                    android:id="@+id/tab_convert"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:orientation="vertical"
+                    android:paddingVertical="4dp">
+
+                <ImageView
+                        android:id="@+id/icon_convert"
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:src="@drawable/ic_convert"
+                        app:tint="@color/ios_system_blue" />
+
+                <TextView
+                        android:id="@+id/label_convert"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/tab_convert"
+                        android:textSize="10sp"
+                        android:textColor="@color/ios_system_blue"
+                        android:layout_marginTop="2dp" />
+
+            </LinearLayout>
+
+            <!-- Library Tab -->
+            <LinearLayout
+                    android:id="@+id/tab_library"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:orientation="vertical"
+                    android:paddingVertical="4dp">
+
+                <ImageView
+                        android:id="@+id/icon_library"
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:src="@drawable/ic_library"
+                        app:tint="@color/ios_system_gray" />
+
+                <TextView
+                        android:id="@+id/label_library"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/tab_library"
+                        android:textSize="10sp"
+                        android:textColor="@color/ios_system_gray"
+                        android:layout_marginTop="2dp" />
+
+            </LinearLayout>
+
+            <!-- Edit Tab -->
+            <LinearLayout
+                    android:id="@+id/tab_edit"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:orientation="vertical"
+                    android:paddingVertical="4dp">
+
+                <ImageView
+                        android:id="@+id/icon_edit"
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:src="@drawable/ic_edit"
+                        app:tint="@color/ios_system_gray" />
+
+                <TextView
+                        android:id="@+id/label_edit"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/tab_edit"
+                        android:textSize="10sp"
+                        android:textColor="@color/ios_system_gray"
+                        android:layout_marginTop="2dp" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+        <!-- Safe Area Bottom Padding -->
+        <View
+                android:id="@+id/safe_area_bottom"
+                android:layout_width="match_parent"
+                android:layout_height="0dp" />
 
     </LinearLayout>
 

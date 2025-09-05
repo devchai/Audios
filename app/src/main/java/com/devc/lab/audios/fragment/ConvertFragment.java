@@ -33,6 +33,9 @@ public class ConvertFragment extends Fragment {
     private FFmpegManager ffmpegManager;
     private DialogManager dialogManager;
     
+    // 현재 변환 설정 저장
+    private ConversionSettings currentConversionSettings;
+    
     // Activity Result Launchers
     private ActivityResultLauncher<String[]> videoFileLauncher;
     private ActivityResultLauncher<String[]> audioFileLauncher;
@@ -67,6 +70,52 @@ public class ConvertFragment extends Fragment {
         toastManager = new ToastManager(getContext());
         ffmpegManager = new FFmpegManager();
         dialogManager = new DialogManager(getContext());
+        
+        // FFmpegManager 콜백 설정
+        setupFFmpegCallbacks();
+    }
+    
+    private void setupFFmpegCallbacks() {
+        // 변환 시작 콜백
+        ffmpegManager.setOnStartListener(() -> {
+            if (getActivity() != null) {
+                getActivity().runOnUiThread(() -> {
+                    com.devc.lab.audios.manager.LoggerManager.logger("FFmpeg 변환 시작");
+                });
+            }
+        });
+        
+        // 진행률 업데이트 콜백
+        ffmpegManager.setOnProgressListener(progress -> {
+            if (getActivity() != null) {
+                getActivity().runOnUiThread(() -> {
+                    dialogManager.updateConversionProgress(progress);
+                    com.devc.lab.audios.manager.LoggerManager.logger("변환 진행률: " + progress + "%");
+                });
+            }
+        });
+        
+        // 변환 완료 콜백
+        ffmpegManager.setOnCompletionListener((inputPath, outputPath) -> {
+            if (getActivity() != null) {
+                getActivity().runOnUiThread(() -> {
+                    dialogManager.dismissProgressDialog();
+                    toastManager.showToastShort("변환 완료: " + new java.io.File(outputPath).getName());
+                    com.devc.lab.audios.manager.LoggerManager.logger("변환 완료: " + outputPath);
+                });
+            }
+        });
+        
+        // 변환 실패 콜백
+        ffmpegManager.setOnFailureListener((message, reason) -> {
+            if (getActivity() != null) {
+                getActivity().runOnUiThread(() -> {
+                    dialogManager.dismissProgressDialog();
+                    toastManager.showToastShort("변환 실패: " + message);
+                    com.devc.lab.audios.manager.LoggerManager.logger("변환 실패: " + message + " - " + reason);
+                });
+            }
+        });
     }
     
     private void setupActivityResultLaunchers() {
@@ -102,14 +151,14 @@ public class ConvertFragment extends Fragment {
     }
     
     private void setupUI() {
-        // 파일 선택 버튼 클릭 리스너
-        binding.btnSelectFile.setOnClickListener(v -> selectFile());
+        // 메인 파일 선택 버튼 클릭 리스너
+        binding.btnSelectFileContainer.setOnClickListener(v -> selectFile());
         
-        // 비디오 파일 선택 버튼 클릭 리스너
-        binding.btnSelectVideoFile.setOnClickListener(v -> selectVideoFile());
+        // 비디오→오디오 변환 옵션 클릭 리스너
+        binding.optionVideoToAudio.setOnClickListener(v -> selectVideoFile());
         
-        // 오디오 파일 선택 버튼 클릭 리스너
-        binding.btnSelectAudioFile.setOnClickListener(v -> selectAudioFile());
+        // 오디오 포맷 변환 옵션 클릭 리스너
+        binding.optionAudioFormat.setOnClickListener(v -> selectAudioFile());
     }
     
     private void selectFile() {
@@ -181,11 +230,14 @@ public class ConvertFragment extends Fragment {
             ConversionSettings settings = getConversionSettingsFromDialog(dialogBinding);
             settings.setInputPath(fileUri.toString());
             
-            // 출력 파일 경로 생성
-            String outputPath = generateOutputPath(fileName, settings.getFormat());
-            settings.setOutputPath(outputPath);
+            // 출력 파일명 생성 (경로는 FFmpegManager에서 자동 생성)
+            String outputFileName = generateOutputFileName(fileName, settings.getFormat());
+            settings.setOutputPath(outputFileName); // 이제 파일명만 저장
             
-            startConversion(settings);
+            // 현재 변환 설정 저장 (콜백에서 사용)
+            currentConversionSettings = settings;
+            
+            startConversion(fileUri, settings);
             dialog.dismiss();
         });
         
@@ -243,70 +295,85 @@ public class ConvertFragment extends Fragment {
         return settings;
     }
     
-    private String generateOutputPath(String fileName, ConversionSettings.AudioFormat format) {
+    private String generateOutputFileName(String fileName, ConversionSettings.AudioFormat format) {
         // 확장자를 제거하고 새 확장자로 대체
         String nameWithoutExtension = fileName.contains(".") ? 
             fileName.substring(0, fileName.lastIndexOf(".")) : fileName;
-        return nameWithoutExtension + "_converted." + format.getExtension();
+        
+        // FileManager의 sanitizeFileName 메서드를 사용하여 안전한 파일명 생성
+        String safeBaseName = fileManager.sanitizeFileName(nameWithoutExtension);
+        String outputFileName = safeBaseName + "_converted." + format.getExtension();
+        
+        com.devc.lab.audios.manager.LoggerManager.logger("파일명 변환: '" + fileName + "' -> '" + outputFileName + "'");
+        
+        return outputFileName;
     }
     
-    private void startConversion(ConversionSettings settings) {
+    private void startConversion(android.net.Uri fileUri, ConversionSettings settings) {
         toastManager.showToastShort("변환을 시작합니다: " + settings.getFormat());
         
         // 새로운 진행률 다이얼로그 표시
         String fileName = settings.getOutputPath();
         dialogManager.showConversionProgressDialog(fileName, settings);
         
-        // TODO: 실제 FFmpeg 변환 로직 구현
-        // 현재는 시뮬레이션 진행
-        simulateConversionProgress(settings);
-        
         com.devc.lab.audios.manager.LoggerManager.logger("Conversion Settings: " + settings.toString());
+        
+        // FFmpegManager 출력 포맷 변환
+        FFmpegManager.OutputFormat outputFormat = convertToFFmpegFormat(settings.getFormat());
+        FFmpegManager.AudioQuality audioQuality = convertToFFmpegQuality(settings.getBitrate());
+        
+        try {
+            // 실제 FFmpeg 변환 시작
+            ffmpegManager.extractAudioFromVideoUri(
+                fileUri, 
+                settings.getOutputPath(), // 파일명
+                outputFormat, 
+                audioQuality, 
+                getContext()
+            );
+            
+        } catch (Exception e) {
+            com.devc.lab.audios.manager.LoggerManager.logger("변환 시작 실패: " + e.getMessage());
+            dialogManager.dismissProgressDialog();
+            toastManager.showToastShort("변환 시작 실패: " + e.getMessage());
+        }
     }
     
-    private void simulateConversionProgress(ConversionSettings settings) {
-        new Thread(() -> {
-            try {
-                for (int progress = 0; progress <= 100; progress += 5) {
-                    final int currentProgress = progress;
-                    
-                    // UI 스레드에서 진행률 업데이트
-                    if (getActivity() != null) {
-                        getActivity().runOnUiThread(() -> {
-                            dialogManager.updateConversionProgress(currentProgress);
-                            
-                            // 예상 시간 업데이트 (시뮬레이션)
-                            int remainingSeconds = (100 - currentProgress) / 10;
-                            String timeText = String.format("%d:%02d", remainingSeconds / 60, remainingSeconds % 60);
-                            dialogManager.updateEstimatedTime(timeText);
-                            
-                            // 파일 크기 정보 업데이트 (예시)
-                            if (currentProgress == 20) {
-                                dialogManager.updateFileSizeInfo("45.2 MB", "예상 8.5 MB");
-                            }
-                        });
-                    }
-                    
-                    Thread.sleep(300); // 시뮬레이션 딜레이
-                }
-                
-                // 변환 완료
-                if (getActivity() != null) {
-                    getActivity().runOnUiThread(() -> {
-                        dialogManager.dismissProgressDialog();
-                        toastManager.showToastShort("변환이 완료되었습니다!");
-                    });
-                }
-                
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }).start();
+    private FFmpegManager.OutputFormat convertToFFmpegFormat(ConversionSettings.AudioFormat format) {
+        switch (format) {
+            case MP3:
+                return FFmpegManager.OutputFormat.MP3;
+            case WAV:
+                return FFmpegManager.OutputFormat.WAV;
+            case AAC:
+                return FFmpegManager.OutputFormat.AAC;
+            default:
+                return FFmpegManager.OutputFormat.MP3;
+        }
     }
+    
+    private FFmpegManager.AudioQuality convertToFFmpegQuality(int bitrate) {
+        if (bitrate <= 96) {
+            return FFmpegManager.AudioQuality.LOW;
+        } else if (bitrate <= 128) {
+            return FFmpegManager.AudioQuality.MEDIUM;
+        } else if (bitrate <= 192) {
+            return FFmpegManager.AudioQuality.HIGH;
+        } else {
+            return FFmpegManager.AudioQuality.VERY_HIGH;
+        }
+    }
+    
     
     @Override
     public void onDestroyView() {
         super.onDestroyView();
+        
+        // FFmpegManager 리소스 정리
+        if (ffmpegManager != null) {
+            ffmpegManager.cleanup();
+        }
+        
         binding = null;
     }
 }

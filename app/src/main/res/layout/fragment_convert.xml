@@ -4,188 +4,351 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="?attr/colorSurface"
+    android:background="@color/ios_system_grouped_background"
     android:fillViewport="true">
 
-    <androidx.constraintlayout.widget.ConstraintLayout
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="16dp">
+        android:orientation="vertical">
 
-        <!-- Main Conversion Section -->
-        <com.google.android.material.card.MaterialCardView
-            android:id="@+id/card_main_convert"
-            android:layout_width="0dp"
+        <!-- Main Action Section -->
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            app:cardCornerRadius="16dp"
-            app:cardElevation="4dp"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:strokeColor="?attr/colorOutline"
-            app:strokeWidth="1dp">
+            android:orientation="vertical"
+            android:padding="16dp">
 
+            <!-- Hero Section -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:padding="24dp">
+                android:gravity="center"
+                android:paddingVertical="32dp">
 
-                <!-- Icon and Title -->
-                <LinearLayout
-                    android:layout_width="match_parent"
+                <!-- Icon Container -->
+                <FrameLayout
+                    android:layout_width="120dp"
+                    android:layout_height="120dp"
+                    android:background="@drawable/ios_circle_background">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:gravity="center"
+                        android:orientation="horizontal">
+
+                        <ImageView
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
+                            android:src="@drawable/ic_video"
+                            app:tint="@color/ios_system_blue" />
+
+                        <ImageView
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:layout_marginHorizontal="8dp"
+                            android:src="@drawable/ic_arrow_right"
+                            app:tint="@color/ios_system_gray3" />
+
+                        <ImageView
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
+                            android:src="@drawable/ic_audio"
+                            app:tint="@color/ios_system_orange" />
+
+                    </LinearLayout>
+
+                </FrameLayout>
+
+                <!-- Title -->
+                <TextView
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:gravity="center"
-                    android:orientation="horizontal">
+                    android:layout_marginTop="16dp"
+                    android:text="미디어 변환"
+                    android:textAppearance="@style/TextAppearance.iOS.Display.Small"
+                    android:textColor="@color/ios_label" />
 
-                    <ImageView
-                        android:layout_width="48dp"
-                        android:layout_height="48dp"
-                        android:src="@drawable/ic_video_to_audio"
-                        app:tint="?attr/colorPrimary" />
+                <!-- Subtitle -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="비디오를 오디오로, 오디오 포맷 변경"
+                    android:textAppearance="@style/TextAppearance.iOS.Body.Medium"
+                    android:textColor="@color/ios_secondary_label" />
 
-                    <ImageView
-                        android:layout_width="24dp"
-                        android:layout_height="24dp"
-                        android:layout_marginHorizontal="16dp"
-                        android:src="@drawable/ic_arrow_right"
-                        app:tint="?attr/colorOnSurface" />
+            </LinearLayout>
 
-                    <ImageView
-                        android:layout_width="48dp"
-                        android:layout_height="48dp"
-                        android:src="@drawable/ic_audio"
-                        app:tint="?attr/colorTertiary" />
+            <!-- Primary Action Button -->
+            <LinearLayout
+                android:id="@+id/btn_select_file_container"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:background="@drawable/ios_button_primary"
+                android:gravity="center"
+                android:orientation="horizontal"
+                android:clickable="true"
+                android:focusable="true">
 
-                </LinearLayout>
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:layout_marginEnd="8dp"
+                    android:src="@drawable/ic_file_plus"
+                    app:tint="@color/white" />
 
-                <!-- File Selection Buttons -->
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btn_select_file"
-                    style="@style/Widget.Material3.Button"
-                    android:layout_width="match_parent"
-                    android:layout_height="64dp"
-                    android:layout_marginTop="24dp"
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
                     android:text="@string/select_file"
-                    android:textSize="16sp"
-                    app:cornerRadius="12dp"
-                    app:icon="@drawable/ic_file_plus"
-                    app:iconGravity="textStart"
-                    app:iconSize="24dp" />
+                    android:textAppearance="@style/TextAppearance.iOS.Body.Large"
+                    android:textColor="@color/white"
+                    android:fontWeight="600" />
 
             </LinearLayout>
 
-        </com.google.android.material.card.MaterialCardView>
+        </LinearLayout>
 
-        <!-- Conversion Type Selection -->
-        <com.google.android.material.card.MaterialCardView
-            android:id="@+id/card_conversion_type"
-            android:layout_width="0dp"
+        <!-- Quick Actions Section -->
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            app:cardCornerRadius="12dp"
-            app:cardElevation="2dp"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/card_main_convert">
+            android:orientation="vertical"
+            android:layout_marginTop="8dp"
+            android:background="@color/ios_system_background">
 
-            <LinearLayout
+            <!-- Section Header -->
+            <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:padding="16dp">
+                android:paddingHorizontal="16dp"
+                android:paddingTop="16dp"
+                android:paddingBottom="8dp"
+                android:text="빠른 작업"
+                android:textAppearance="@style/TextAppearance.iOS.Label.Large"
+                android:textColor="@color/ios_tertiary_label"
+                android:textAllCaps="true"
+                android:textSize="11sp" />
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="12dp"
-                    android:text="변환 타입 선택"
-                    android:textAppearance="?attr/textAppearanceTitleMedium"
-                    android:textColor="?attr/colorOnSurface" />
+            <!-- Video to Audio Option -->
+            <LinearLayout
+                android:id="@+id/option_video_to_audio"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:paddingHorizontal="16dp"
+                android:paddingVertical="12dp"
+                android:background="?attr/selectableItemBackground"
+                android:clickable="true"
+                android:focusable="true">
+
+                <FrameLayout
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:background="@drawable/ios_icon_background_blue">
+
+                    <ImageView
+                        android:layout_width="18dp"
+                        android:layout_height="18dp"
+                        android:layout_gravity="center"
+                        android:src="@drawable/ic_video"
+                        app:tint="@color/white" />
+
+                </FrameLayout>
 
                 <LinearLayout
-                    android:layout_width="match_parent"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal">
+                    android:layout_weight="1"
+                    android:layout_marginStart="12dp"
+                    android:orientation="vertical">
 
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/btn_select_video_file"
-                        style="@style/Widget.Material3.Button.OutlinedButton"
-                        android:layout_width="0dp"
+                    <TextView
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginEnd="8dp"
-                        android:layout_weight="1"
-                        android:text="@string/select_video_file"
-                        app:icon="@drawable/ic_video"
-                        app:iconSize="20dp" />
+                        android:text="비디오에서 오디오 추출"
+                        android:textAppearance="@style/TextAppearance.iOS.Body.Large"
+                        android:textColor="@color/ios_label" />
 
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/btn_select_audio_file"
-                        style="@style/Widget.Material3.Button.OutlinedButton"
-                        android:layout_width="0dp"
+                    <TextView
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginStart="8dp"
-                        android:layout_weight="1"
-                        android:text="@string/select_audio_file"
-                        app:icon="@drawable/ic_audio"
-                        app:iconSize="20dp" />
+                        android:text="MP4, AVI, MOV → MP3, WAV"
+                        android:textAppearance="@style/TextAppearance.iOS.Body.Small"
+                        android:textColor="@color/ios_secondary_label" />
 
                 </LinearLayout>
 
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:src="@drawable/ic_arrow_right"
+                    app:tint="@color/ios_tertiary_label" />
+
             </LinearLayout>
 
-        </com.google.android.material.card.MaterialCardView>
+            <!-- Separator -->
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="0.5dp"
+                android:layout_marginStart="60dp"
+                android:background="@color/ios_separator" />
 
-        <!-- Recent Conversions -->
-        <com.google.android.material.card.MaterialCardView
-            android:id="@+id/card_recent_conversions"
-            android:layout_width="0dp"
+            <!-- Audio Format Option -->
+            <LinearLayout
+                android:id="@+id/option_audio_format"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:paddingHorizontal="16dp"
+                android:paddingVertical="12dp"
+                android:background="?attr/selectableItemBackground"
+                android:clickable="true"
+                android:focusable="true">
+
+                <FrameLayout
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:background="@drawable/ios_icon_background_orange">
+
+                    <ImageView
+                        android:layout_width="18dp"
+                        android:layout_height="18dp"
+                        android:layout_gravity="center"
+                        android:src="@drawable/ic_audio"
+                        app:tint="@color/white" />
+
+                </FrameLayout>
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="12dp"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="오디오 포맷 변환"
+                        android:textAppearance="@style/TextAppearance.iOS.Body.Large"
+                        android:textColor="@color/ios_label" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="MP3 ↔ WAV ↔ AAC ↔ FLAC"
+                        android:textAppearance="@style/TextAppearance.iOS.Body.Small"
+                        android:textColor="@color/ios_secondary_label" />
+
+                </LinearLayout>
+
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:src="@drawable/ic_arrow_right"
+                    app:tint="@color/ios_tertiary_label" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+        <!-- Recent Files Section -->
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            app:cardCornerRadius="12dp"
-            app:cardElevation="2dp"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/card_conversion_type">
+            android:orientation="vertical"
+            android:layout_marginTop="32dp"
+            android:background="@color/ios_system_background">
 
+            <!-- Section Header -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:paddingHorizontal="16dp"
+                android:paddingTop="16dp"
+                android:paddingBottom="8dp">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="최근 변환"
+                    android:textAppearance="@style/TextAppearance.iOS.Label.Large"
+                    android:textColor="@color/ios_tertiary_label"
+                    android:textAllCaps="true"
+                    android:textSize="11sp" />
+
+                <TextView
+                    android:id="@+id/btn_see_all"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="모두 보기"
+                    android:textAppearance="@style/TextAppearance.iOS.Body.Small"
+                    android:textColor="@color/ios_system_blue"
+                    android:clickable="true"
+                    android:focusable="true" />
+
+            </LinearLayout>
+
+            <!-- Recent Files List -->
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/recycler_recent_files"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:nestedScrollingEnabled="false"
+                tools:itemCount="3"
+                tools:listitem="@layout/item_recent_file" />
+
+            <!-- Empty State -->
+            <LinearLayout
+                android:id="@+id/empty_state"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:padding="16dp">
+                android:gravity="center"
+                android:paddingVertical="48dp"
+                android:visibility="gone"
+                tools:visibility="visible">
+
+                <ImageView
+                    android:layout_width="64dp"
+                    android:layout_height="64dp"
+                    android:src="@drawable/ic_folder_empty"
+                    app:tint="@color/ios_quaternary_label" />
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="12dp"
-                    android:text="@string/recent_conversions"
-                    android:textAppearance="?attr/textAppearanceTitleMedium"
-                    android:textColor="?attr/colorOnSurface" />
-
-                <androidx.recyclerview.widget.RecyclerView
-                    android:id="@+id/recycler_recent_files"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:nestedScrollingEnabled="false"
-                    tools:itemCount="3"
-                    tools:listitem="@layout/item_recent_file" />
+                    android:layout_marginTop="16dp"
+                    android:text="@string/no_recent_files"
+                    android:textAppearance="@style/TextAppearance.iOS.Body.Large"
+                    android:textColor="@color/ios_secondary_label" />
 
                 <TextView
-                    android:id="@+id/tv_no_recent_files"
-                    android:layout_width="match_parent"
-                    android:layout_height="100dp"
-                    android:gravity="center"
-                    android:text="@string/no_recent_files"
-                    android:textAppearance="?attr/textAppearanceBodyMedium"
-                    android:textColor="?attr/colorOnSurfaceVariant"
-                    android:visibility="gone"
-                    tools:visibility="visible" />
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="파일을 선택하여 변환을 시작하세요"
+                    android:textAppearance="@style/TextAppearance.iOS.Body.Small"
+                    android:textColor="@color/ios_tertiary_label" />
 
             </LinearLayout>
 
-        </com.google.android.material.card.MaterialCardView>
+        </LinearLayout>
 
-    </androidx.constraintlayout.widget.ConstraintLayout>
+        <!-- Bottom Padding for Safe Area -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="100dp" />
+
+    </LinearLayout>
 
 </ScrollView>
