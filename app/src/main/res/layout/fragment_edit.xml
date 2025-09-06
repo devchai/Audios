@@ -269,38 +269,35 @@
                     android:textAppearance="?attr/textAppearanceTitleMedium"
                     android:textColor="?attr/colorOnSurface" />
 
-                <!-- First Row of Edit Tools -->
-                <LinearLayout
+                <!-- 편집 도구 - 자르기 (개선된 디자인) -->
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_trim"
+                    style="@style/Widget.Material3.Button"
                     android:layout_width="match_parent"
+                    android:layout_height="56dp"
+                    android:text="@string/trim"
+                    android:textSize="16sp"
+                    app:icon="@drawable/ic_cut"
+                    app:iconSize="24dp"
+                    app:iconGravity="textStart"
+                    app:cornerRadius="12dp" />
+
+                <!-- 합치기 버튼 임시 주석 처리 -->
+                <!--
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_merge"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="8dp"
-                    android:orientation="horizontal">
+                    android:layout_marginStart="8dp"
+                    android:layout_weight="1"
+                    android:text="@string/merge"
+                    app:icon="@drawable/ic_merge"
+                    app:iconSize="20dp" />
+                -->
 
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/btn_trim"
-                        style="@style/Widget.Material3.Button.OutlinedButton"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginEnd="8dp"
-                        android:layout_weight="1"
-                        android:text="@string/trim"
-                        app:icon="@drawable/ic_cut"
-                        app:iconSize="20dp" />
-
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/btn_merge"
-                        style="@style/Widget.Material3.Button.OutlinedButton"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="8dp"
-                        android:layout_weight="1"
-                        android:text="@string/merge"
-                        app:icon="@drawable/ic_merge"
-                        app:iconSize="20dp" />
-
-                </LinearLayout>
-
-                <!-- Second Row of Edit Tools -->
+                <!-- 볼륨, 효과 버튼 임시 주석 처리 -->
+                <!--
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -329,6 +326,7 @@
                         app:iconSize="20dp" />
 
                 </LinearLayout>
+                -->
 
             </LinearLayout>
 

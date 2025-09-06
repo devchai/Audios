@@ -161,9 +161,10 @@ public class EditFragment extends Fragment {
         
         // 편집 도구 버튼들 클릭 리스너
         binding.btnTrim.setOnClickListener(v -> trimAudio());
-        binding.btnMerge.setOnClickListener(v -> mergeAudio());
-        binding.btnVolume.setOnClickListener(v -> adjustVolume());
-        binding.btnEffects.setOnClickListener(v -> applyEffects());
+        // 임시 주석 처리된 버튼들의 리스너
+        // binding.btnMerge.setOnClickListener(v -> mergeAudio());
+        // binding.btnVolume.setOnClickListener(v -> adjustVolume());
+        // binding.btnEffects.setOnClickListener(v -> applyEffects());
         
         // 저장/취소 버튼 클릭 리스너
         binding.btnSaveEdited.setOnClickListener(v -> saveEditedFile());
@@ -319,9 +320,10 @@ public class EditFragment extends Fragment {
     
     private void setEditToolsEnabled(boolean enabled) {
         binding.btnTrim.setEnabled(enabled);
-        binding.btnMerge.setEnabled(enabled);
-        binding.btnVolume.setEnabled(enabled);
-        binding.btnEffects.setEnabled(enabled);
+        // 임시 주석 처리된 버튼들 비활성화/활성화 제외
+        // binding.btnMerge.setEnabled(enabled);
+        // binding.btnVolume.setEnabled(enabled);
+        // binding.btnEffects.setEnabled(enabled);
         binding.btnSaveEdited.setEnabled(enabled);
         
         binding.btnPlayPause.setEnabled(enabled);
