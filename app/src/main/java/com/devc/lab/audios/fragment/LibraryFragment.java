@@ -8,6 +8,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
+import android.media.MediaMetadataRetriever;
 import com.devc.lab.audios.databinding.FragmentLibraryBinding;
 import com.devc.lab.audios.adapter.AudioFileAdapter;
 import com.devc.lab.audios.model.AudioFile;
@@ -209,11 +210,8 @@ public class LibraryFragment extends Fragment implements AudioFileAdapter.OnItem
             String extension = getFileExtension(file.getName());
             audioFile.setFormat(extension.toUpperCase());
             
-            // TODO: MediaMetadataRetriever를 사용해서 실제 음악 파일의 메타데이터 읽기
-            // 현재는 기본값 설정
-            audioFile.setDuration(0); // 실제 구현에서는 MetadataRetriever 사용
-            audioFile.setBitrate(128); // 기본값
-            audioFile.setSampleRate(44100); // 기본값
+            // MediaMetadataRetriever를 사용해서 실제 음악 파일의 메타데이터 추출
+            extractAudioMetadata(audioFile, file);
             
             return audioFile;
             
@@ -229,6 +227,77 @@ public class LibraryFragment extends Fragment implements AudioFileAdapter.OnItem
             return fileName.substring(lastDotIndex + 1);
         }
         return "";
+    }
+    
+    /**
+     * MediaMetadataRetriever를 사용해서 오디오 파일의 메타데이터 추출
+     */
+    private void extractAudioMetadata(AudioFile audioFile, File file) {
+        MediaMetadataRetriever retriever = null;
+        try {
+            retriever = new MediaMetadataRetriever();
+            retriever.setDataSource(file.getAbsolutePath());
+            
+            // Duration 추출 (밀리초 단위)
+            String durationStr = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION);
+            if (durationStr != null && !durationStr.isEmpty()) {
+                try {
+                    long duration = Long.parseLong(durationStr);
+                    audioFile.setDuration(duration);
+                } catch (NumberFormatException e) {
+                    audioFile.setDuration(0); // 파싱 실패 시 기본값
+                }
+            } else {
+                audioFile.setDuration(0);
+            }
+            
+            // Bitrate 추출
+            String bitrateStr = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_BITRATE);
+            if (bitrateStr != null && !bitrateStr.isEmpty()) {
+                try {
+                    int bitrate = Integer.parseInt(bitrateStr) / 1000; // bps를 kbps로 변환
+                    audioFile.setBitrate(bitrate);
+                } catch (NumberFormatException e) {
+                    audioFile.setBitrate(128); // 파싱 실패 시 기본값
+                }
+            } else {
+                audioFile.setBitrate(128); // 기본값
+            }
+            
+            // Sample Rate 추출
+            String sampleRateStr = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_SAMPLERATE);
+            if (sampleRateStr != null && !sampleRateStr.isEmpty()) {
+                try {
+                    int sampleRate = Integer.parseInt(sampleRateStr);
+                    audioFile.setSampleRate(sampleRate);
+                } catch (NumberFormatException e) {
+                    audioFile.setSampleRate(44100); // 파싱 실패 시 기본값
+                }
+            } else {
+                audioFile.setSampleRate(44100); // 기본값
+            }
+            
+        } catch (Exception e) {
+            // MediaMetadataRetriever 예외 처리
+            // 지원하지 않는 포맷이거나 손상된 파일의 경우 기본값 사용
+            audioFile.setDuration(0);
+            audioFile.setBitrate(128);
+            audioFile.setSampleRate(44100);
+            
+            // 로그 기록
+            if (getActivity() != null) {
+                android.util.Log.w("LibraryFragment", "메타데이터 추출 실패: " + file.getName() + " - " + e.getMessage());
+            }
+        } finally {
+            // 리소스 해제
+            if (retriever != null) {
+                try {
+                    retriever.release();
+                } catch (Exception e) {
+                    android.util.Log.e("LibraryFragment", "MediaMetadataRetriever 해제 실패: " + e.getMessage());
+                }
+            }
+        }
     }
     
     private void showLoadingState(boolean show) {
