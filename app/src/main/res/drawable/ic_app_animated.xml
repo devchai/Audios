@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 2024-2025 Animated App Icon for Splash Screen -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="120dp"
+    android:height="120dp"
+    android:viewportWidth="120"
+    android:viewportHeight="120">
+    
+    <!-- Background Circle -->
+    <path
+        android:fillColor="@color/md_theme_primary_container"
+        android:pathData="M60,60m-50,0a50,50 0,1 1,100 0a50,50 0,1 1,-100 0" />
+    
+    <!-- Audio Waveform Icon -->
+    <group android:translateX="60" android:translateY="60">
+        <!-- Center bar -->
+        <path
+            android:fillColor="@color/md_theme_primary"
+            android:pathData="M-2,-20 L2,-20 L2,20 L-2,20 Z" />
+        <!-- Left bars -->
+        <path
+            android:fillColor="@color/md_theme_secondary"
+            android:pathData="M-10,-15 L-6,-15 L-6,15 L-10,15 Z" />
+        <path
+            android:fillColor="@color/md_theme_tertiary"
+            android:pathData="M-18,-10 L-14,-10 L-14,10 L-18,10 Z" />
+        <!-- Right bars -->
+        <path
+            android:fillColor="@color/md_theme_secondary"
+            android:pathData="M6,-15 L10,-15 L10,15 L6,15 Z" />
+        <path
+            android:fillColor="@color/md_theme_tertiary"
+            android:pathData="M14,-10 L18,-10 L18,10 L14,10 Z" />
+    </group>
+</vector>

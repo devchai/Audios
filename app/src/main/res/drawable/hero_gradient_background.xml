@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 2024-2025 Hero Section Gradient Background -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <gradient
+        android:type="linear"
+        android:angle="135"
+        android:startColor="@color/gradient_primary_start"
+        android:centerColor="@color/md_theme_primary_container"
+        android:endColor="@color/gradient_primary_end" />
+    <corners android:radius="32dp" />
+</shape>

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 2024-2025 Modern Gradient Background for Splash Screen -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <gradient
+        android:angle="135"
+        android:startColor="@color/gradient_primary_start"
+        android:centerColor="#7D5260"
+        android:endColor="@color/gradient_primary_end"
+        android:type="linear" />
+</shape>

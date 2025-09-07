@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 2024-2025 Modern Shared Element Transition -->
+<transitionSet xmlns:android="http://schemas.android.com/apk/res/android">
+    <changeBounds>
+        <arcMotion
+            android:minimumHorizontalAngle="15"
+            android:minimumVerticalAngle="0" />
+    </changeBounds>
+    <changeTransform />
+    <changeClipBounds />
+    <changeImageTransform />
+</transitionSet>

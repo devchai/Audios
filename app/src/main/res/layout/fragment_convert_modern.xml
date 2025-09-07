@@ -1,0 +1,271 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 2024-2025 Modern Convert Fragment with Hero Design -->
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="?attr/colorBackground"
+    android:fillViewport="true"
+    android:scrollbars="none"
+    android:overScrollMode="never">
+
+    <!-- Main Container with Enhanced Spacing -->
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingTop="24dp"
+        android:paddingHorizontal="20dp"
+        android:paddingBottom="32dp">
+
+        <!-- ===== 2024-2025 Hero Section with Glassmorphism ===== -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/hero_card"
+            style="@style/Widget.Audios.Card.Hero"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="32dp"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="32dp"
+                android:gravity="center">
+
+                <!-- Modern Icon Container with Gradient -->
+                <FrameLayout
+                    android:layout_width="160dp"
+                    android:layout_height="160dp"
+                    android:background="@drawable/hero_gradient_background">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:gravity="center"
+                        android:orientation="horizontal">
+
+                        <!-- Video Icon -->
+                        <ImageView
+                            android:layout_width="48dp"
+                            android:layout_height="48dp"
+                            android:src="@drawable/ic_video"
+                            app:tint="?attr/colorOnPrimary"
+                            android:contentDescription="비디오 아이콘" />
+
+                        <!-- Arrow with Animation Feel -->
+                        <ImageView
+                            android:layout_width="32dp"
+                            android:layout_height="32dp"
+                            android:layout_marginHorizontal="12dp"
+                            android:src="@drawable/ic_arrow_right"
+                            app:tint="?attr/colorOnPrimary"
+                            android:alpha="0.8"
+                            android:contentDescription="변환 화살표" />
+
+                        <!-- Audio Icon -->
+                        <ImageView
+                            android:layout_width="48dp"
+                            android:layout_height="48dp"
+                            android:src="@drawable/ic_audio"
+                            app:tint="?attr/colorOnPrimary"
+                            android:contentDescription="오디오 아이콘" />
+
+                    </LinearLayout>
+
+                </FrameLayout>
+
+                <!-- Bold Display Title (2024-2025 Typography) -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="28dp"
+                    android:text="미디어 변환"
+                    android:textAppearance="@style/TextAppearance.Audios.Display.Medium"
+                    android:textColor="?attr/colorOnSurface"
+                    android:gravity="center" />
+
+                <!-- Enhanced Subtitle -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="비디오를 고품질 오디오로\n빠르고 간편하게 변환하세요"
+                    android:textAppearance="@style/TextAppearance.Audios.Body.Large"
+                    android:textColor="?attr/colorOnSurfaceVariant"
+                    android:gravity="center"
+                    android:lineSpacingExtra="2dp" />
+
+            </LinearLayout>
+
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- ===== Enhanced Primary Action Button ===== -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_select_file"
+            style="@style/Widget.Audios.Button"
+            android:layout_width="0dp"
+            android:layout_height="64dp"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="24dp"
+            android:text="@string/select_file"
+            android:textSize="16sp"
+            app:icon="@drawable/ic_file_plus"
+            app:iconGravity="textStart"
+            app:iconSize="24dp"
+            app:iconPadding="12dp"
+            app:layout_constraintTop_toBottomOf="@id/hero_card"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+        <!-- ===== Features Cards Section ===== -->
+        <LinearLayout
+            android:id="@+id/features_section"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginTop="16dp"
+            app:layout_constraintTop_toBottomOf="@id/btn_select_file"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent">
+
+            <!-- Features Title -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                android:text="주요 기능"
+                android:textAppearance="@style/TextAppearance.Audios.Headline.Medium"
+                android:textColor="?attr/colorOnSurface" />
+
+            <!-- Features Grid -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:baselineAligned="false">
+
+                <!-- Feature 1: Video to Audio -->
+                <com.google.android.material.card.MaterialCardView
+                    style="@style/Widget.Audios.Card.Glass"
+                    android:layout_width="0dp"
+                    android:layout_height="120dp"
+                    android:layout_weight="1"
+                    android:layout_marginEnd="8dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:orientation="vertical"
+                        android:gravity="center"
+                        android:padding="16dp">
+
+                        <ImageView
+                            android:layout_width="32dp"
+                            android:layout_height="32dp"
+                            android:layout_marginBottom="8dp"
+                            android:src="@drawable/ic_video"
+                            app:tint="?attr/colorPrimary" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="동영상\n음원 추출"
+                            android:textAppearance="@style/TextAppearance.Audios.Label.Large"
+                            android:textColor="?attr/colorOnSurface"
+                            android:gravity="center" />
+
+                    </LinearLayout>
+
+                </com.google.android.material.card.MaterialCardView>
+
+                <!-- Feature 2: High Quality -->
+                <com.google.android.material.card.MaterialCardView
+                    style="@style/Widget.Audios.Card.Glass"
+                    android:layout_width="0dp"
+                    android:layout_height="120dp"
+                    android:layout_weight="1"
+                    android:layout_marginStart="8dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:orientation="vertical"
+                        android:gravity="center"
+                        android:padding="16dp">
+
+                        <ImageView
+                            android:layout_width="32dp"
+                            android:layout_height="32dp"
+                            android:layout_marginBottom="8dp"
+                            android:src="@drawable/ic_audio"
+                            app:tint="?attr/colorTertiary" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="고품질\n변환"
+                            android:textAppearance="@style/TextAppearance.Audios.Label.Large"
+                            android:textColor="?attr/colorOnSurface"
+                            android:gravity="center" />
+
+                    </LinearLayout>
+
+                </com.google.android.material.card.MaterialCardView>
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+        <!-- ===== Modern Empty State (Hidden by default) ===== -->
+        <LinearLayout
+            android:id="@+id/empty_state_container"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:padding="32dp"
+            android:visibility="gone"
+            app:layout_constraintTop_toBottomOf="@id/features_section"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            tools:visibility="visible">
+
+            <ImageView
+                android:layout_width="80dp"
+                android:layout_height="80dp"
+                android:layout_marginBottom="16dp"
+                android:src="@drawable/ic_audio"
+                app:tint="?attr/colorOnSurfaceVariant"
+                android:alpha="0.6" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:text="변환할 파일을 선택하세요"
+                android:textAppearance="@style/TextAppearance.Audios.Title.Medium"
+                android:textColor="?attr/colorOnSurface" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="MP4, AVI, MOV 등 다양한 형식을 지원합니다"
+                android:textAppearance="@style/TextAppearance.Audios.Body.Medium"
+                android:textColor="?attr/colorOnSurfaceVariant"
+                android:gravity="center" />
+
+        </LinearLayout>
+
+        <!-- Bottom Safe Area -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="32dp"
+            app:layout_constraintTop_toBottomOf="@id/empty_state_container" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</ScrollView>

@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Google Sans Bold fallback to system font -->
+<font-family xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Fallback to system sans-serif font -->
+</font-family>

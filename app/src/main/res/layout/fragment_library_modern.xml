@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 2024-2025 Modern Library Fragment with Smart Empty States -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="?attr/colorBackground"
+    android:orientation="vertical">
+
+    <!-- ===== Modern Tab Layout for File Types ===== -->
+    <com.google.android.material.tabs.TabLayout
+        android:id="@+id/tab_layout_file_types"
+        style="@style/Widget.Audios.TabLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="20dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="8dp"
+        app:tabMode="fixed"
+        app:tabGravity="fill"
+        app:tabIndicatorHeight="3dp"
+        app:tabIndicatorAnimationMode="elastic">
+
+        <com.google.android.material.tabs.TabItem
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/converted_files" />
+
+        <com.google.android.material.tabs.TabItem
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/edited_files" />
+
+    </com.google.android.material.tabs.TabLayout>
+
+    <!-- Modern Subtle Divider -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginHorizontal="20dp"
+        android:background="?attr/colorOutlineVariant"
+        android:alpha="0.3" />
+
+    <!-- ===== Enhanced SwipeRefreshLayout ===== -->
+    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+        android:id="@+id/swipe_refresh_layout"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <!-- Enhanced RecyclerView with Better Spacing -->
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/recycler_view_files"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:clipToPadding="false"
+                android:paddingHorizontal="16dp"
+                android:paddingTop="16dp"
+                android:paddingBottom="88dp"
+                android:scrollbars="vertical"
+                android:scrollbarStyle="outsideOverlay"
+                tools:listitem="@layout/item_audio_file_modern" />
+
+            <!-- ===== Modern Empty State with Illustration ===== -->
+            <LinearLayout
+                android:id="@+id/layout_empty_state"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:orientation="vertical"
+                android:padding="40dp"
+                android:visibility="gone"
+                tools:visibility="visible">
+
+                <!-- Modern Empty State Icon with Gradient -->
+                <FrameLayout
+                    android:layout_width="120dp"
+                    android:layout_height="120dp"
+                    android:layout_marginBottom="24dp"
+                    android:background="@drawable/hero_gradient_background">
+
+                    <ImageView
+                        android:layout_width="60dp"
+                        android:layout_height="60dp"
+                        android:layout_gravity="center"
+                        android:src="@drawable/ic_folder_empty"
+                        app:tint="?attr/colorOnPrimary"
+                        android:contentDescription="빈 폴더 아이콘" />
+
+                </FrameLayout>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="8dp"
+                    android:text="@string/no_files"
+                    android:textAppearance="@style/TextAppearance.Audios.Headline.Medium"
+                    android:textColor="?attr/colorOnSurface" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="24dp"
+                    android:text="변환하거나 편집한 파일이\n여기에 표시됩니다"
+                    android:textAppearance="@style/TextAppearance.Audios.Body.Large"
+                    android:textColor="?attr/colorOnSurfaceVariant"
+                    android:gravity="center"
+                    android:lineSpacingExtra="2dp" />
+
+                <!-- Call-to-Action Button -->
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_start_converting"
+                    style="@style/Widget.Audios.Button.Outlined"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="변환 시작하기"
+                    app:icon="@drawable/ic_video"
+                    app:iconGravity="textStart"
+                    app:iconSize="20dp" />
+
+            </LinearLayout>
+
+            <!-- ===== Modern Loading State with Skeleton Effect ===== -->
+            <LinearLayout
+                android:id="@+id/layout_loading_state"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <!-- Enhanced Loading Animation -->
+                <com.google.android.material.progressindicator.CircularProgressIndicator
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="20dp"
+                    app:indicatorColor="?attr/colorPrimary"
+                    app:indicatorSize="48dp"
+                    app:trackThickness="4dp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="8dp"
+                    android:text="파일을 불러오는 중..."
+                    android:textAppearance="@style/TextAppearance.Audios.Title.Medium"
+                    android:textColor="?attr/colorOnSurface" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="잠시만 기다려주세요"
+                    android:textAppearance="@style/TextAppearance.Audios.Body.Medium"
+                    android:textColor="?attr/colorOnSurfaceVariant" />
+
+            </LinearLayout>
+
+        </FrameLayout>
+
+    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+
+    <!-- ===== Modern Floating Action Button for Sort/Filter ===== -->
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fab_sort"
+        style="@style/Widget.Audios.FloatingActionButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end"
+        android:layout_margin="24dp"
+        android:contentDescription="정렬 및 필터"
+        app:srcCompat="@drawable/ic_sort" />
+
+</LinearLayout>

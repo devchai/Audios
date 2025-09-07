@@ -1,266 +1,458 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- Base application theme with iOS-inspired design -->
+    <!-- ===== 2024-2025 Material You Base Theme ===== -->
     <style name="Base.Theme.Audios" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- iOS Style Color System -->
-        <!-- Primary -->
-        <item name="colorPrimary">@color/ios_system_blue</item>
-        <item name="colorOnPrimary">@color/white</item>
-        <item name="colorPrimaryContainer">#D7E3FF</item>
-        <item name="colorOnPrimaryContainer">#001B3E</item>
         
-        <!-- Secondary -->
-        <item name="colorSecondary">@color/ios_system_gray</item>
-        <item name="colorOnSecondary">@color/white</item>
-        <item name="colorSecondaryContainer">@color/ios_system_gray6</item>
-        <item name="colorOnSecondaryContainer">@color/ios_label</item>
+        <!-- Material You Dynamic Color System -->
+        <!-- Primary Palette -->
+        <item name="colorPrimary">@color/md_theme_primary</item>
+        <item name="colorOnPrimary">@color/md_theme_on_primary</item>
+        <item name="colorPrimaryContainer">@color/md_theme_primary_container</item>
+        <item name="colorOnPrimaryContainer">@color/md_theme_on_primary_container</item>
         
-        <!-- Tertiary -->
-        <item name="colorTertiary">@color/ios_system_orange</item>
-        <item name="colorOnTertiary">@color/white</item>
-        <item name="colorTertiaryContainer">#FFE8D2</item>
-        <item name="colorOnTertiaryContainer">#331100</item>
+        <!-- Secondary Palette -->
+        <item name="colorSecondary">@color/md_theme_secondary</item>
+        <item name="colorOnSecondary">@color/md_theme_on_secondary</item>
+        <item name="colorSecondaryContainer">@color/md_theme_secondary_container</item>
+        <item name="colorOnSecondaryContainer">@color/md_theme_on_secondary_container</item>
         
-        <!-- Error -->
-        <item name="colorError">@color/ios_system_red</item>
-        <item name="colorOnError">@color/white</item>
-        <item name="colorErrorContainer">#FFDAD6</item>
-        <item name="colorOnErrorContainer">#410002</item>
+        <!-- Tertiary Palette -->
+        <item name="colorTertiary">@color/md_theme_tertiary</item>
+        <item name="colorOnTertiary">@color/md_theme_on_tertiary</item>
+        <item name="colorTertiaryContainer">@color/md_theme_tertiary_container</item>
+        <item name="colorOnTertiaryContainer">@color/md_theme_on_tertiary_container</item>
         
-        <!-- Background -->
-        <item name="android:colorBackground">@color/ios_system_grouped_background</item>
-        <item name="colorOnBackground">@color/ios_label</item>
+        <!-- Error Palette -->
+        <item name="colorError">@color/md_theme_error</item>
+        <item name="colorOnError">@color/md_theme_on_error</item>
+        <item name="colorErrorContainer">@color/md_theme_error_container</item>
+        <item name="colorOnErrorContainer">@color/md_theme_on_error_container</item>
         
-        <!-- Surface -->
-        <item name="colorSurface">@color/ios_system_background</item>
-        <item name="colorOnSurface">@color/ios_label</item>
-        <item name="colorSurfaceVariant">@color/ios_system_grouped_background</item>
-        <item name="colorOnSurfaceVariant">@color/ios_secondary_label</item>
+        <!-- Background & Surface -->
+        <item name="android:colorBackground">@color/md_theme_background</item>
+        <item name="colorBackground">@color/md_theme_background</item>
+        <item name="colorOnBackground">@color/md_theme_on_background</item>
+        <item name="colorSurface">@color/md_theme_surface</item>
+        <item name="colorOnSurface">@color/md_theme_on_surface</item>
+        <item name="colorSurfaceVariant">@color/md_theme_surface_variant</item>
+        <item name="colorOnSurfaceVariant">@color/md_theme_on_surface_variant</item>
         
-        <!-- Outline -->
-        <item name="colorOutline">@color/ios_separator</item>
-        <item name="colorOutlineVariant">@color/ios_system_gray5</item>
+        <!-- Outline & Dividers -->
+        <item name="colorOutline">@color/md_theme_outline</item>
+        <item name="colorOutlineVariant">@color/md_theme_outline_variant</item>
         
-        <!-- Inverse -->
-        <item name="colorSurfaceInverse">@color/ios_dark_secondary_background</item>
-        <item name="colorOnSurfaceInverse">@color/ios_dark_label</item>
-        <item name="colorPrimaryInverse">@color/ios_system_blue</item>
+        <!-- Inverse Colors -->
+        <item name="colorSurfaceInverse">@color/md_theme_inverse_surface</item>
+        <item name="colorOnSurfaceInverse">@color/md_theme_inverse_on_surface</item>
+        <item name="colorPrimaryInverse">@color/md_theme_inverse_primary</item>
         
-        <!-- Status Bar -->
+        <!-- Surface Tint & Shadow (removed colorSurfaceTint due to compatibility issues) -->
+        
+        <!-- ===== 2024-2025 Edge-to-Edge & System UI ===== -->
+        
+        <!-- Status Bar - Transparent with Dynamic Colors -->
         <item name="android:statusBarColor">@color/transparent</item>
         <item name="android:windowLightStatusBar">true</item>
+        <item name="android:enforceStatusBarContrast" tools:targetApi="s">false</item>
         
-        <!-- Navigation Bar -->
-        <item name="android:navigationBarColor">@color/ios_system_background</item>
+        <!-- Navigation Bar - Edge-to-Edge -->
+        <item name="android:navigationBarColor">@color/transparent</item>
         <item name="android:windowLightNavigationBar" tools:targetApi="o_mr1">true</item>
+        <item name="android:enforceNavigationBarContrast" tools:targetApi="s">false</item>
         
-        <!-- Typography - iOS Style -->
-        <item name="android:fontFamily">sans-serif</item>
-        <item name="textAppearanceDisplayLarge">@style/TextAppearance.iOS.Display.Large</item>
-        <item name="textAppearanceDisplayMedium">@style/TextAppearance.iOS.Display.Medium</item>
-        <item name="textAppearanceDisplaySmall">@style/TextAppearance.iOS.Display.Small</item>
-        <item name="textAppearanceHeadlineLarge">@style/TextAppearance.iOS.Headline.Large</item>
-        <item name="textAppearanceHeadlineMedium">@style/TextAppearance.iOS.Headline.Medium</item>
-        <item name="textAppearanceHeadlineSmall">@style/TextAppearance.iOS.Headline.Small</item>
-        <item name="textAppearanceTitleLarge">@style/TextAppearance.iOS.Title.Large</item>
-        <item name="textAppearanceTitleMedium">@style/TextAppearance.iOS.Title.Medium</item>
-        <item name="textAppearanceTitleSmall">@style/TextAppearance.iOS.Title.Small</item>
-        <item name="textAppearanceBodyLarge">@style/TextAppearance.iOS.Body.Large</item>
-        <item name="textAppearanceBodyMedium">@style/TextAppearance.iOS.Body.Medium</item>
-        <item name="textAppearanceBodySmall">@style/TextAppearance.iOS.Body.Small</item>
-        <item name="textAppearanceLabelLarge">@style/TextAppearance.iOS.Label.Large</item>
-        <item name="textAppearanceLabelMedium">@style/TextAppearance.iOS.Label.Medium</item>
-        <item name="textAppearanceLabelSmall">@style/TextAppearance.iOS.Label.Small</item>
+        <!-- Modern Typography System - Variable Fonts -->
+        <item name="android:fontFamily">@font/google_sans_variable</item>
+        <item name="textAppearanceDisplayLarge">@style/TextAppearance.Audios.Display.Large</item>
+        <item name="textAppearanceDisplayMedium">@style/TextAppearance.Audios.Display.Medium</item>
+        <item name="textAppearanceDisplaySmall">@style/TextAppearance.Audios.Display.Small</item>
+        <item name="textAppearanceHeadlineLarge">@style/TextAppearance.Audios.Headline.Large</item>
+        <item name="textAppearanceHeadlineMedium">@style/TextAppearance.Audios.Headline.Medium</item>
+        <item name="textAppearanceHeadlineSmall">@style/TextAppearance.Audios.Headline.Small</item>
+        <item name="textAppearanceTitleLarge">@style/TextAppearance.Audios.Title.Large</item>
+        <item name="textAppearanceTitleMedium">@style/TextAppearance.Audios.Title.Medium</item>
+        <item name="textAppearanceTitleSmall">@style/TextAppearance.Audios.Title.Small</item>
+        <item name="textAppearanceBodyLarge">@style/TextAppearance.Audios.Body.Large</item>
+        <item name="textAppearanceBodyMedium">@style/TextAppearance.Audios.Body.Medium</item>
+        <item name="textAppearanceBodySmall">@style/TextAppearance.Audios.Body.Small</item>
+        <item name="textAppearanceLabelLarge">@style/TextAppearance.Audios.Label.Large</item>
+        <item name="textAppearanceLabelMedium">@style/TextAppearance.Audios.Label.Medium</item>
+        <item name="textAppearanceLabelSmall">@style/TextAppearance.Audios.Label.Small</item>
         
-        <!-- Shape - iOS Style Rounded Corners -->
-        <item name="shapeAppearanceSmallComponent">@style/ShapeAppearance.iOS.SmallComponent</item>
-        <item name="shapeAppearanceMediumComponent">@style/ShapeAppearance.iOS.MediumComponent</item>
-        <item name="shapeAppearanceLargeComponent">@style/ShapeAppearance.iOS.LargeComponent</item>
+        <!-- Modern Shape System - Rounded Corners 2024-2025 -->
+        <item name="shapeAppearanceSmallComponent">@style/ShapeAppearance.Audios.SmallComponent</item>
+        <item name="shapeAppearanceMediumComponent">@style/ShapeAppearance.Audios.MediumComponent</item>
+        <item name="shapeAppearanceLargeComponent">@style/ShapeAppearance.Audios.LargeComponent</item>
         
-        <!-- Remove Elevation for iOS-like appearance -->
-        <item name="elevationOverlayEnabled">false</item>
+        <!-- Modern Window & Transition System -->
         <item name="android:windowContentTransitions">true</item>
+        <item name="android:windowActivityTransitions">true</item>
+        <item name="android:windowAllowEnterTransitionOverlap">true</item>
+        <item name="android:windowAllowReturnTransitionOverlap">true</item>
+        <item name="android:windowSharedElementEnterTransition">@transition/shared_element_transition</item>
+        <item name="android:windowSharedElementExitTransition">@transition/shared_element_transition</item>
+        
+        <!-- Enhanced Material You Features -->
+        <item name="android:windowDrawsSystemBarBackgrounds">true</item>
+        <item name="android:fitsSystemWindows">false</item>
     </style>
 
-    <style name="Theme.Audios" parent="Base.Theme.Audios"/>
-    
-    <!-- iOS Style Shape Appearances -->
-    <style name="ShapeAppearance.iOS.SmallComponent" parent="ShapeAppearance.Material3.SmallComponent">
-        <item name="cornerFamily">rounded</item>
-        <item name="cornerSize">10dp</item>
+    <style name="Theme.Audios" parent="Base.Theme.Audios">
+        <!-- Additional theme properties for pre-Android 12 devices -->
+        <!-- Dynamic colors are handled in values-v31/themes.xml for API 31+ -->
     </style>
     
-    <style name="ShapeAppearance.iOS.MediumComponent" parent="ShapeAppearance.Material3.MediumComponent">
+    <!-- ===== 2024-2025 Modern Shape System ===== -->
+    
+    <!-- Enhanced Rounded Corner System -->
+    <style name="ShapeAppearance.Audios.SmallComponent" parent="ShapeAppearance.Material3.SmallComponent">
         <item name="cornerFamily">rounded</item>
-        <item name="cornerSize">14dp</item>
+        <item name="cornerSize">16dp</item>
     </style>
     
-    <style name="ShapeAppearance.iOS.LargeComponent" parent="ShapeAppearance.Material3.LargeComponent">
+    <style name="ShapeAppearance.Audios.MediumComponent" parent="ShapeAppearance.Material3.MediumComponent">
         <item name="cornerFamily">rounded</item>
         <item name="cornerSize">20dp</item>
     </style>
     
-    <!-- iOS Style Text Appearances -->
-    <style name="TextAppearance.iOS.Display.Large" parent="TextAppearance.Material3.DisplayLarge">
-        <item name="android:textSize">34sp</item>
-        <item name="android:textColor">@color/ios_label</item>
+    <style name="ShapeAppearance.Audios.LargeComponent" parent="ShapeAppearance.Material3.LargeComponent">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">28dp</item>
+    </style>
+    
+    <!-- Glassmorphism Card Shape -->
+    <style name="ShapeAppearance.Audios.GlassCard" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">24dp</item>
+    </style>
+    
+    <!-- Hero Section Shape -->
+    <style name="ShapeAppearance.Audios.HeroCard" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">32dp</item>
+    </style>
+    
+    <!-- ===== 2024-2025 Modern Typography System ===== -->
+    
+    <!-- Display Styles - Bold & Impactful -->
+    <style name="TextAppearance.Audios.Display.Large" parent="TextAppearance.Material3.DisplayLarge">
+        <item name="android:textSize">40sp</item>
+        <item name="android:textColor">?attr/colorOnBackground</item>
+        <item name="android:fontWeight" tools:targetApi="o">800</item>
+        <item name="android:letterSpacing">-0.02</item>
+        <item name="fontFamily">@font/google_sans_variable</item>
+    </style>
+    
+    <style name="TextAppearance.Audios.Display.Medium" parent="TextAppearance.Material3.DisplayMedium">
+        <item name="android:textSize">32sp</item>
+        <item name="android:textColor">?attr/colorOnBackground</item>
         <item name="android:fontWeight" tools:targetApi="o">700</item>
+        <item name="android:letterSpacing">-0.015</item>
+        <item name="fontFamily">@font/google_sans_variable</item>
+    </style>
+    
+    <style name="TextAppearance.Audios.Display.Small" parent="TextAppearance.Material3.DisplaySmall">
+        <item name="android:textSize">28sp</item>
+        <item name="android:textColor">?attr/colorOnBackground</item>
+        <item name="android:fontWeight" tools:targetApi="o">600</item>
+        <item name="android:letterSpacing">-0.01</item>
+        <item name="fontFamily">@font/google_sans_variable</item>
+    </style>
+    
+    <!-- Headline Styles - Attention-grabbing -->
+    <style name="TextAppearance.Audios.Headline.Large" parent="TextAppearance.Material3.HeadlineLarge">
+        <item name="android:textSize">24sp</item>
+        <item name="android:textColor">?attr/colorOnSurface</item>
+        <item name="android:fontWeight" tools:targetApi="o">700</item>
+        <item name="fontFamily">@font/google_sans_variable</item>
+    </style>
+    
+    <style name="TextAppearance.Audios.Headline.Medium" parent="TextAppearance.Material3.HeadlineMedium">
+        <item name="android:textSize">20sp</item>
+        <item name="android:textColor">?attr/colorOnSurface</item>
+        <item name="android:fontWeight" tools:targetApi="o">600</item>
+        <item name="fontFamily">@font/google_sans_variable</item>
+    </style>
+    
+    <style name="TextAppearance.Audios.Headline.Small" parent="TextAppearance.Material3.HeadlineSmall">
+        <item name="android:textSize">18sp</item>
+        <item name="android:textColor">?attr/colorOnSurface</item>
+        <item name="android:fontWeight" tools:targetApi="o">600</item>
+        <item name="fontFamily">@font/google_sans_variable</item>
+    </style>
+    
+    <!-- Title Styles - Clear Hierarchy -->
+    <style name="TextAppearance.Audios.Title.Large" parent="TextAppearance.Material3.TitleLarge">
+        <item name="android:textSize">22sp</item>
+        <item name="android:textColor">?attr/colorOnSurface</item>
+        <item name="android:fontWeight" tools:targetApi="o">500</item>
+        <item name="fontFamily">@font/google_sans_variable</item>
+    </style>
+    
+    <style name="TextAppearance.Audios.Title.Medium" parent="TextAppearance.Material3.TitleMedium">
+        <item name="android:textSize">18sp</item>
+        <item name="android:textColor">?attr/colorOnSurface</item>
+        <item name="android:fontWeight" tools:targetApi="o">500</item>
+        <item name="fontFamily">@font/google_sans_variable</item>
+    </style>
+    
+    <style name="TextAppearance.Audios.Title.Small" parent="TextAppearance.Material3.TitleSmall">
+        <item name="android:textSize">16sp</item>
+        <item name="android:textColor">?attr/colorOnSurfaceVariant</item>
+        <item name="android:fontWeight" tools:targetApi="o">500</item>
+        <item name="fontFamily">@font/google_sans_variable</item>
+    </style>
+    
+    <!-- Body Styles - Readable & Comfortable -->
+    <style name="TextAppearance.Audios.Body.Large" parent="TextAppearance.Material3.BodyLarge">
+        <item name="android:textSize">16sp</item>
+        <item name="android:textColor">?attr/colorOnSurface</item>
+        <item name="android:fontWeight" tools:targetApi="o">400</item>
+        <item name="android:lineSpacingExtra">2dp</item>
+        <item name="fontFamily">@font/google_sans_variable</item>
+    </style>
+    
+    <style name="TextAppearance.Audios.Body.Medium" parent="TextAppearance.Material3.BodyMedium">
+        <item name="android:textSize">14sp</item>
+        <item name="android:textColor">?attr/colorOnSurface</item>
+        <item name="android:fontWeight" tools:targetApi="o">400</item>
+        <item name="android:lineSpacingExtra">1dp</item>
+        <item name="fontFamily">@font/google_sans_variable</item>
+    </style>
+    
+    <style name="TextAppearance.Audios.Body.Small" parent="TextAppearance.Material3.BodySmall">
+        <item name="android:textSize">12sp</item>
+        <item name="android:textColor">?attr/colorOnSurfaceVariant</item>
+        <item name="android:fontWeight" tools:targetApi="o">400</item>
+        <item name="fontFamily">@font/google_sans_variable</item>
+    </style>
+    
+    <!-- Label Styles - Functional Text -->
+    <style name="TextAppearance.Audios.Label.Large" parent="TextAppearance.Material3.LabelLarge">
+        <item name="android:textSize">14sp</item>
+        <item name="android:textColor">?attr/colorOnSurfaceVariant</item>
+        <item name="android:fontWeight" tools:targetApi="o">500</item>
+        <item name="android:letterSpacing">0.01</item>
+        <item name="fontFamily">@font/google_sans_variable</item>
+    </style>
+    
+    <style name="TextAppearance.Audios.Label.Medium" parent="TextAppearance.Material3.LabelMedium">
+        <item name="android:textSize">12sp</item>
+        <item name="android:textColor">?attr/colorOnSurfaceVariant</item>
+        <item name="android:fontWeight" tools:targetApi="o">500</item>
+        <item name="android:letterSpacing">0.015</item>
+        <item name="fontFamily">@font/google_sans_variable</item>
+    </style>
+    
+    <style name="TextAppearance.Audios.Label.Small" parent="TextAppearance.Material3.LabelSmall">
+        <item name="android:textSize">11sp</item>
+        <item name="android:textColor">?attr/colorOnSurfaceVariant</item>
+        <item name="android:fontWeight" tools:targetApi="o">500</item>
+        <item name="android:letterSpacing">0.02</item>
+        <item name="fontFamily">@font/google_sans_variable</item>
+    </style>
+    
+    <!-- ===== 2024-2025 Modern Component Styles ===== -->
+    
+    <!-- Enhanced Button Styles -->
+    <style name="Widget.Audios.Button" parent="Widget.Material3.Button">
+        <item name="android:minHeight">56dp</item>
+        <item name="android:textAppearance">@style/TextAppearance.Audios.Label.Large</item>
+        <item name="android:textColor">?attr/colorOnPrimary</item>
+        <item name="backgroundTint">?attr/colorPrimary</item>
+        <item name="cornerRadius">20dp</item>
+        <item name="android:elevation">3dp</item>
+        <item name="rippleColor">@color/ripple_color</item>
+        <item name="android:fontWeight" tools:targetApi="o">600</item>
+    </style>
+    
+    <style name="Widget.Audios.Button.Text" parent="Widget.Material3.Button.TextButton">
+        <item name="android:textAppearance">@style/TextAppearance.Audios.Label.Large</item>
+        <item name="android:textColor">?attr/colorPrimary</item>
+        <item name="cornerRadius">16dp</item>
+        <item name="rippleColor">@color/ripple_color</item>
+        <item name="android:fontWeight" tools:targetApi="o">500</item>
+    </style>
+    
+    <style name="Widget.Audios.Button.Outlined" parent="Widget.Material3.Button.OutlinedButton">
+        <item name="android:minHeight">52dp</item>
+        <item name="android:textAppearance">@style/TextAppearance.Audios.Label.Large</item>
+        <item name="android:textColor">?attr/colorPrimary</item>
+        <item name="strokeColor">?attr/colorOutline</item>
+        <item name="strokeWidth">1.5dp</item>
+        <item name="cornerRadius">18dp</item>
+        <item name="rippleColor">@color/ripple_color</item>
+        <item name="android:fontWeight" tools:targetApi="o">500</item>
+    </style>
+    
+    <!-- Glassmorphism Card Styles -->
+    <style name="Widget.Audios.Card.Glass" parent="Widget.Material3.CardView.Filled">
+        <item name="cardCornerRadius">24dp</item>
+        <item name="cardElevation">8dp</item>
+        <item name="cardBackgroundColor">@color/glass_surface_light</item>
+        <item name="strokeColor">@color/glass_border_light</item>
+        <item name="strokeWidth">1dp</item>
+        <item name="shapeAppearance">@style/ShapeAppearance.Audios.GlassCard</item>
+    </style>
+    
+    <style name="Widget.Audios.Card.Hero" parent="Widget.Material3.CardView.Filled">
+        <item name="cardCornerRadius">32dp</item>
+        <item name="cardElevation">12dp</item>
+        <item name="cardBackgroundColor">?attr/colorSurfaceVariant</item>
+        <item name="strokeColor">?attr/colorOutlineVariant</item>
+        <item name="strokeWidth">0dp</item>
+        <item name="shapeAppearance">@style/ShapeAppearance.Audios.HeroCard</item>
+    </style>
+    
+    <!-- Modern FAB Style -->
+    <style name="Widget.Audios.FloatingActionButton" parent="Widget.Material3.FloatingActionButton.Primary">
+        <item name="shapeAppearance">@style/ShapeAppearance.Audios.MediumComponent</item>
+        <item name="backgroundTint">?attr/colorPrimary</item>
+        <item name="tint">?attr/colorOnPrimary</item>
+        <item name="rippleColor">@color/ripple_color</item>
+        <item name="elevation">6dp</item>
+        <item name="pressedTranslationZ">12dp</item>
+    </style>
+    
+    <!-- ===== Modern Splash & Dialog Themes ===== -->
+    
+    <!-- Enhanced Splash Theme -->
+    <style name="Theme.Audios.Splash" parent="Theme.Audios">
+        <item name="android:windowBackground">@drawable/splash_gradient_background</item>
+        <item name="android:windowSplashScreenBackground" tools:targetApi="31">?attr/colorPrimary</item>
+        <item name="android:windowSplashScreenAnimatedIcon" tools:targetApi="31">@drawable/ic_app_animated</item>
+    </style>
+    
+    <!-- Modern Dialog Theme -->
+    <style name="Theme.Audios.Dialog" parent="Theme.Material3.DayNight.Dialog">
+        <item name="colorPrimary">?attr/colorPrimary</item>
+        <item name="colorSecondary">?attr/colorSecondary</item>
+        <item name="colorSurface">?attr/colorSurface</item>
+        <item name="dialogCornerRadius">24dp</item>
+        <item name="android:windowElevation">8dp</item>
+        <item name="android:backgroundDimAmount">0.6</item>
+        <item name="android:windowBlurBehindEnabled" tools:targetApi="s">true</item>
+    </style>
+    
+    <!-- Modern Bottom Sheet Dialog Theme -->
+    <style name="Theme.Audios.BottomSheetDialog" parent="Theme.Material3.DayNight.BottomSheetDialog">
+        <item name="colorPrimary">?attr/colorPrimary</item>
+        <item name="colorSecondary">?attr/colorSecondary</item>
+        <item name="colorSurface">?attr/colorSurface</item>
+        <item name="bottomSheetStyle">@style/Widget.Audios.BottomSheet</item>
+        <item name="android:backgroundDimAmount">0.5</item>
+    </style>
+    
+    <style name="Widget.Audios.BottomSheet" parent="Widget.Material3.BottomSheet">
+        <item name="shapeAppearance">@style/ShapeAppearance.Audios.BottomSheet</item>
+        <item name="android:elevation">16dp</item>
+        <item name="android:background">?attr/colorSurface</item>
+    </style>
+    
+    <style name="ShapeAppearance.Audios.BottomSheet" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSizeTopLeft">28dp</item>
+        <item name="cornerSizeTopRight">28dp</item>
+    </style>
+    
+    <!-- ===== 2024-2025 Navigation & Tab Styles ===== -->
+    
+    <!-- Modern Bottom Navigation -->
+    <style name="Widget.Audios.BottomNavigationView" parent="Widget.Material3.BottomNavigationView">
+        <item name="android:background">?attr/colorSurface</item>
+        <item name="itemIconTint">@color/bottom_nav_color_selector</item>
+        <item name="itemTextColor">@color/bottom_nav_color_selector</item>
+        <item name="itemRippleColor">@color/ripple_color</item>
+        <item name="elevation">8dp</item>
+        <item name="android:paddingTop">8dp</item>
+        <item name="android:paddingBottom">8dp</item>
+    </style>
+    
+    <!-- Modern Tab Layout -->
+    <style name="Widget.Audios.TabLayout" parent="Widget.Material3.TabLayout">
+        <item name="android:background">?attr/colorSurface</item>
+        <item name="tabIndicatorColor">?attr/colorPrimary</item>
+        <item name="tabSelectedTextColor">?attr/colorPrimary</item>
+        <item name="tabTextColor">?attr/colorOnSurfaceVariant</item>
+        <item name="tabIndicatorHeight">3dp</item>
+        <item name="tabRippleColor">@color/ripple_color</item>
+        <item name="tabIndicatorAnimationMode">elastic</item>
+    </style>
+    
+    <!-- ===== iOS Style Text Appearances (Compatibility) ===== -->
+    
+    <!-- iOS Display Styles -->
+    <style name="TextAppearance.iOS.Display.Large" parent="TextAppearance.Material3.DisplayLarge">
+        <item name="android:textSize">32sp</item>
+        <item name="android:textColor">@color/ios_label</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
     </style>
     
     <style name="TextAppearance.iOS.Display.Medium" parent="TextAppearance.Material3.DisplayMedium">
         <item name="android:textSize">28sp</item>
         <item name="android:textColor">@color/ios_label</item>
-        <item name="android:fontWeight" tools:targetApi="o">700</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
     </style>
     
     <style name="TextAppearance.iOS.Display.Small" parent="TextAppearance.Material3.DisplaySmall">
-        <item name="android:textSize">22sp</item>
+        <item name="android:textSize">24sp</item>
         <item name="android:textColor">@color/ios_label</item>
-        <item name="android:fontWeight" tools:targetApi="o">600</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
     </style>
     
+    <!-- iOS Headline Styles -->
     <style name="TextAppearance.iOS.Headline.Large" parent="TextAppearance.Material3.HeadlineLarge">
-        <item name="android:textSize">20sp</item>
+        <item name="android:textSize">24sp</item>
         <item name="android:textColor">@color/ios_label</item>
-        <item name="android:fontWeight" tools:targetApi="o">600</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
     </style>
     
     <style name="TextAppearance.iOS.Headline.Medium" parent="TextAppearance.Material3.HeadlineMedium">
-        <item name="android:textSize">17sp</item>
+        <item name="android:textSize">20sp</item>
         <item name="android:textColor">@color/ios_label</item>
-        <item name="android:fontWeight" tools:targetApi="o">600</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
     </style>
     
     <style name="TextAppearance.iOS.Headline.Small" parent="TextAppearance.Material3.HeadlineSmall">
-        <item name="android:textSize">15sp</item>
+        <item name="android:textSize">18sp</item>
         <item name="android:textColor">@color/ios_label</item>
-        <item name="android:fontWeight" tools:targetApi="o">600</item>
+        <item name="android:fontFamily">sans-serif</item>
     </style>
     
-    <style name="TextAppearance.iOS.Title.Large" parent="TextAppearance.Material3.TitleLarge">
-        <item name="android:textSize">20sp</item>
-        <item name="android:textColor">@color/ios_label</item>
-        <item name="android:fontWeight" tools:targetApi="o">400</item>
-    </style>
-    
-    <style name="TextAppearance.iOS.Title.Medium" parent="TextAppearance.Material3.TitleMedium">
-        <item name="android:textSize">17sp</item>
-        <item name="android:textColor">@color/ios_label</item>
-        <item name="android:fontWeight" tools:targetApi="o">400</item>
-    </style>
-    
-    <style name="TextAppearance.iOS.Title.Small" parent="TextAppearance.Material3.TitleSmall">
-        <item name="android:textSize">15sp</item>
-        <item name="android:textColor">@color/ios_secondary_label</item>
-        <item name="android:fontWeight" tools:targetApi="o">400</item>
-    </style>
-    
+    <!-- iOS Body Styles -->
     <style name="TextAppearance.iOS.Body.Large" parent="TextAppearance.Material3.BodyLarge">
         <item name="android:textSize">17sp</item>
         <item name="android:textColor">@color/ios_label</item>
-        <item name="android:fontWeight" tools:targetApi="o">400</item>
+        <item name="android:fontFamily">sans-serif</item>
     </style>
     
     <style name="TextAppearance.iOS.Body.Medium" parent="TextAppearance.Material3.BodyMedium">
         <item name="android:textSize">15sp</item>
         <item name="android:textColor">@color/ios_label</item>
-        <item name="android:fontWeight" tools:targetApi="o">400</item>
+        <item name="android:fontFamily">sans-serif</item>
     </style>
     
     <style name="TextAppearance.iOS.Body.Small" parent="TextAppearance.Material3.BodySmall">
         <item name="android:textSize">13sp</item>
         <item name="android:textColor">@color/ios_secondary_label</item>
-        <item name="android:fontWeight" tools:targetApi="o">400</item>
+        <item name="android:fontFamily">sans-serif</item>
     </style>
     
+    <!-- iOS Label Styles -->
     <style name="TextAppearance.iOS.Label.Large" parent="TextAppearance.Material3.LabelLarge">
-        <item name="android:textSize">13sp</item>
-        <item name="android:textColor">@color/ios_secondary_label</item>
-        <item name="android:fontWeight" tools:targetApi="o">500</item>
+        <item name="android:textSize">16sp</item>
+        <item name="android:textColor">@color/ios_label</item>
+        <item name="android:fontFamily">sans-serif</item>
     </style>
     
     <style name="TextAppearance.iOS.Label.Medium" parent="TextAppearance.Material3.LabelMedium">
-        <item name="android:textSize">11sp</item>
-        <item name="android:textColor">@color/ios_tertiary_label</item>
-        <item name="android:fontWeight" tools:targetApi="o">500</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:textColor">@color/ios_secondary_label</item>
+        <item name="android:fontFamily">sans-serif</item>
     </style>
     
     <style name="TextAppearance.iOS.Label.Small" parent="TextAppearance.Material3.LabelSmall">
-        <item name="android:textSize">10sp</item>
+        <item name="android:textSize">12sp</item>
         <item name="android:textColor">@color/ios_tertiary_label</item>
-        <item name="android:fontWeight" tools:targetApi="o">400</item>
+        <item name="android:fontFamily">sans-serif</item>
     </style>
     
-    <!-- iOS Style Buttons -->
-    <style name="Widget.iOS.Button" parent="Widget.Material3.Button">
-        <item name="android:minHeight">50dp</item>
-        <item name="android:textAppearance">@style/TextAppearance.iOS.Body.Large</item>
-        <item name="android:textColor">@color/white</item>
-        <item name="backgroundTint">@color/ios_system_blue</item>
-        <item name="cornerRadius">14dp</item>
-        <item name="android:elevation">0dp</item>
-        <item name="android:stateListAnimator">@null</item>
-    </style>
-    
-    <style name="Widget.iOS.Button.Text" parent="Widget.Material3.Button.TextButton">
-        <item name="android:textAppearance">@style/TextAppearance.iOS.Body.Large</item>
-        <item name="android:textColor">@color/ios_system_blue</item>
-        <item name="cornerRadius">0dp</item>
-        <item name="android:elevation">0dp</item>
-        <item name="android:stateListAnimator">@null</item>
-    </style>
-    
-    <style name="Widget.iOS.Button.Outlined" parent="Widget.Material3.Button.OutlinedButton">
-        <item name="android:minHeight">44dp</item>
-        <item name="android:textAppearance">@style/TextAppearance.iOS.Body.Large</item>
-        <item name="android:textColor">@color/ios_system_blue</item>
-        <item name="strokeColor">@color/ios_separator</item>
-        <item name="strokeWidth">0.5dp</item>
-        <item name="cornerRadius">10dp</item>
-        <item name="android:elevation">0dp</item>
-        <item name="android:stateListAnimator">@null</item>
-    </style>
-    
-    <!-- iOS Style Cards -->
-    <style name="Widget.iOS.Card" parent="Widget.Material3.CardView.Filled">
-        <item name="cardCornerRadius">14dp</item>
-        <item name="cardElevation">0dp</item>
-        <item name="cardBackgroundColor">@color/ios_system_background</item>
-        <item name="strokeColor">@color/ios_separator</item>
-        <item name="strokeWidth">0.5dp</item>
-    </style>
-    
-    <!-- Splash Theme -->
-    <style name="Theme.Audios.Splash" parent="Theme.Audios">
-        <item name="android:windowBackground">@drawable/splash_background</item>
-    </style>
-    
-    <!-- iOS Style Dialog Theme -->
-    <style name="Theme.iOS.Dialog" parent="Theme.Material3.DayNight.Dialog">
-        <item name="colorPrimary">@color/ios_system_blue</item>
-        <item name="colorSecondary">@color/ios_system_gray</item>
-        <item name="colorSurface">@color/ios_system_background</item>
-        <item name="dialogCornerRadius">14dp</item>
-        <item name="android:windowElevation">0dp</item>
-        <item name="android:backgroundDimAmount">0.4</item>
-    </style>
-    
-    <!-- iOS Style Bottom Sheet Dialog Theme -->
-    <style name="Theme.iOS.BottomSheetDialog" parent="Theme.Material3.DayNight.BottomSheetDialog">
-        <item name="colorPrimary">@color/ios_system_blue</item>
-        <item name="colorSecondary">@color/ios_system_gray</item>
-        <item name="colorSurface">@color/ios_system_background</item>
-        <item name="bottomSheetStyle">@style/Widget.iOS.BottomSheet</item>
-    </style>
-    
-    <style name="Widget.iOS.BottomSheet" parent="Widget.Material3.BottomSheet">
-        <item name="shapeAppearance">@style/ShapeAppearance.iOS.BottomSheet</item>
-        <item name="android:elevation">0dp</item>
-        <item name="android:background">@color/ios_system_background</item>
-    </style>
-    
-    <style name="ShapeAppearance.iOS.BottomSheet" parent="">
-        <item name="cornerFamily">rounded</item>
-        <item name="cornerSizeTopLeft">20dp</item>
-        <item name="cornerSizeTopRight">20dp</item>
-    </style>
 </resources>
