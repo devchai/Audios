@@ -33,14 +33,15 @@ public class AudioConversionManager {
         void onFFmpegManagerFailure(String message, String failureReason);
     }
     
-    // 출력 포맷 열거형 (FFmpegManager 호환)
+    // 출력 포맷 열거형 (M4A만 지원, WEBM 지원 제거)
     public enum OutputFormat {
-        MP3("mp3", "audio/mpeg", ".mp3"),
-        AAC("aac", "audio/mp4", ".aac"), 
-        WAV("wav", "audio/wav", ".wav"),
         M4A("m4a", "audio/mp4", ".m4a"),
-        FLAC("flac", "audio/flac", ".flac"),
-        OGG("ogg", "audio/ogg", ".ogg");
+        // 레거시 포맷들 (M4A로 변환됨)
+        MP3("mp3", "audio/mp4", ".m4a"),
+        AAC("aac", "audio/mp4", ".m4a"), 
+        WAV("wav", "audio/mp4", ".m4a"),
+        FLAC("flac", "audio/mp4", ".m4a"),
+        OGG("ogg", "audio/mp4", ".m4a");
         
         private final String format;
         private final String mimeType;
@@ -372,14 +373,11 @@ public class AudioConversionManager {
     }
     
     /**
-     * 지원되는 출력 포맷 목록 반환
+     * 지원되는 출력 포맷 목록 반환 (M4A만 지원)
      */
     public OutputFormat[] getSupportedFormats() {
         return new OutputFormat[]{
-            OutputFormat.M4A,  // Native API에서 완전 지원
-            OutputFormat.MP3,  // 호환성을 위해 유지 (M4A로 변환됨)
-            OutputFormat.AAC,  // 호환성을 위해 유지 (M4A로 변환됨)
-            OutputFormat.WAV,  // 호환성을 위해 유지 (M4A로 변환됨)
+            OutputFormat.M4A   // Native API 완전 지원
         };
     }
     
@@ -391,21 +389,12 @@ public class AudioConversionManager {
     }
     
     /**
-     * OutputFormat을 Native API 포맷으로 매핑
+     * OutputFormat을 Native API 포맷으로 매핑 (M4A만 지원)
      */
     private NativeAudioExtractorManager.AudioFormat mapToNativeFormat(OutputFormat format) {
-        // Native API는 현재 M4A와 WEBM만 지원
-        // 다른 포맷 요청시 M4A로 통일 (호환성 우선)
-        switch (format) {
-            case M4A:
-            case AAC:
-            case MP3:
-            case WAV:
-            case FLAC:
-            case OGG:
-            default:
-                return NativeAudioExtractorManager.AudioFormat.M4A; // 기본값 및 호환성
-        }
+        // Native API는 M4A만 지원하도록 단순화 (WEBM 지원 제거)
+        LoggerManager.logger("모든 요청 포맷을 M4A로 변환: " + format + " → M4A");
+        return NativeAudioExtractorManager.AudioFormat.M4A;
     }
     
     /**

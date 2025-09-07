@@ -36,9 +36,7 @@ public class ConvertFragment extends Fragment {
     // 현재 변환 설정 저장
     private ConversionSettings currentConversionSettings;
     
-    // Activity Result Launchers
-    private ActivityResultLauncher<String[]> videoFileLauncher;
-    private ActivityResultLauncher<String[]> audioFileLauncher;
+    // Activity Result Launchers (빠른 작업 제거로 단순화)
     private ActivityResultLauncher<String[]> generalFileLauncher;
     
     public static ConvertFragment newInstance() {
@@ -115,27 +113,7 @@ public class ConvertFragment extends Fragment {
     }
     
     private void setupActivityResultLaunchers() {
-        // 비디오 파일 선택 런처
-        videoFileLauncher = registerForActivityResult(
-            new ActivityResultContracts.OpenDocument(),
-            uri -> {
-                if (uri != null) {
-                    handleSelectedFile(uri, "video");
-                }
-            }
-        );
-        
-        // 오디오 파일 선택 런처
-        audioFileLauncher = registerForActivityResult(
-            new ActivityResultContracts.OpenDocument(),
-            uri -> {
-                if (uri != null) {
-                    handleSelectedFile(uri, "audio");
-                }
-            }
-        );
-        
-        // 일반 파일 선택 런처
+        // 모든 미디어 파일 선택 런처 (빠른 작업 제거로 단순화)
         generalFileLauncher = registerForActivityResult(
             new ActivityResultContracts.OpenDocument(),
             uri -> {
@@ -147,14 +125,8 @@ public class ConvertFragment extends Fragment {
     }
     
     private void setupUI() {
-        // 메인 파일 선택 버튼 클릭 리스너
+        // 메인 파일 선택 버튼 클릭 리스너 (빠른 작업 제거로 단순화)
         binding.btnSelectFileContainer.setOnClickListener(v -> selectFile());
-        
-        // 비디오→오디오 변환 옵션 클릭 리스너
-        binding.optionVideoToAudio.setOnClickListener(v -> selectVideoFile());
-        
-        // 오디오 포맷 변환 옵션 클릭 리스너
-        binding.optionAudioFormat.setOnClickListener(v -> selectAudioFile());
     }
     
     private void selectFile() {
@@ -162,15 +134,8 @@ public class ConvertFragment extends Fragment {
         generalFileLauncher.launch(new String[]{"video/*", "audio/*"});
     }
     
-    private void selectVideoFile() {
-        // 비디오 파일만 선택
-        videoFileLauncher.launch(new String[]{"video/*"});
-    }
-    
-    private void selectAudioFile() {
-        // 오디오 파일만 선택
-        audioFileLauncher.launch(new String[]{"audio/*"});
-    }
+    // 빠른 작업 제거로 selectVideoFile, selectAudioFile 메서드 삭제
+    // 모든 파일 선택은 selectFile() 메서드를 통해 통합 처리
     
     private void handleSelectedFile(Uri fileUri, String fileType) {
         try {
@@ -241,52 +206,24 @@ public class ConvertFragment extends Fragment {
     }
     
     private void setupSampleRateDropdown(DialogConversionSettingsBinding dialogBinding) {
-        String[] sampleRates = {"22050 Hz", "44100 Hz", "48000 Hz", "96000 Hz"};
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(requireContext(),
-                android.R.layout.simple_dropdown_item_1line, sampleRates);
-        dialogBinding.spinnerSampleRate.setAdapter(adapter);
-        dialogBinding.spinnerSampleRate.setText(sampleRates[1], false); // 44100 Hz 기본 선택
+        // Native API에서는 샘플레이트 설정이 무시되므로 제거
+        // UI 간소화로 사용자 혼란 방지
     }
     
     private void setupBitrateSlider(DialogConversionSettingsBinding dialogBinding) {
-        dialogBinding.sliderBitrate.addOnChangeListener((slider, value, fromUser) -> {
-            if (fromUser) {
-                dialogBinding.tvBitrateValue.setText((int) value + " kbps");
-            }
-        });
+        // Native API에서는 비트레이트 설정이 무시되므로 제거
+        // UI 간소화로 사용자 혼란 방지
     }
     
     private ConversionSettings getConversionSettingsFromDialog(DialogConversionSettingsBinding dialogBinding) {
         ConversionSettings settings = new ConversionSettings();
         
-        // 출력 포맷 설정
-        RadioButton selectedFormatButton = dialogBinding.getRoot().findViewById(
-                dialogBinding.radioGroupFormat.getCheckedRadioButtonId());
+        // M4A 포맷으로 고정 설정 (WEBM 지원 제거)
+        settings.setFormat(ConversionSettings.AudioFormat.M4A);
         
-        if (selectedFormatButton != null) {
-            String formatText = selectedFormatButton.getText().toString();
-            switch (formatText) {
-                case "MP3":
-                    settings.setFormat(ConversionSettings.AudioFormat.MP3);
-                    break;
-                case "WAV":
-                    settings.setFormat(ConversionSettings.AudioFormat.WAV);
-                    break;
-                case "AAC":
-                    settings.setFormat(ConversionSettings.AudioFormat.AAC);
-                    break;
-                default:
-                    settings.setFormat(ConversionSettings.AudioFormat.MP3);
-            }
-        }
-        
-        // 비트레이트 설정
-        settings.setBitrate((int) dialogBinding.sliderBitrate.getValue());
-        
-        // 샘플 레이트 설정
-        String sampleRateText = dialogBinding.spinnerSampleRate.getText().toString();
-        int sampleRate = Integer.parseInt(sampleRateText.split(" ")[0]);
-        settings.setSampleRate(sampleRate);
+        // Native API는 원본 품질을 유지하므로 기본값 사용
+        settings.setBitrate(128); // 기본값 (실제로는 원본 비트레이트 유지)
+        settings.setSampleRate(44100); // 기본값 (실제로는 원본 샘플레이트 유지)
         
         return settings;
     }
@@ -336,28 +273,14 @@ public class ConvertFragment extends Fragment {
     }
     
     private AudioConversionManager.OutputFormat convertToAudioConversionFormat(ConversionSettings.AudioFormat format) {
-        switch (format) {
-            case MP3:
-                return AudioConversionManager.OutputFormat.MP3;
-            case WAV:
-                return AudioConversionManager.OutputFormat.WAV;
-            case AAC:
-                return AudioConversionManager.OutputFormat.AAC;
-            default:
-                return AudioConversionManager.OutputFormat.MP3;
-        }
+        // M4A 포맷만 지원하므로 단순화 (WEBM 지원 제거)
+        return AudioConversionManager.OutputFormat.M4A;
     }
     
     private AudioConversionManager.AudioQuality convertToAudioConversionQuality(int bitrate) {
-        if (bitrate <= 96) {
-            return AudioConversionManager.AudioQuality.LOW;
-        } else if (bitrate <= 128) {
-            return AudioConversionManager.AudioQuality.MEDIUM;
-        } else if (bitrate <= 192) {
-            return AudioConversionManager.AudioQuality.HIGH;
-        } else {
-            return AudioConversionManager.AudioQuality.VERY_HIGH;
-        }
+        // Native API는 원본 품질을 유지하므로 MEDIUM을 기본값으로 사용
+        // 이 값은 로깅 목적으로만 사용되며 실제 변환에는 영향 없음
+        return AudioConversionManager.AudioQuality.MEDIUM;
     }
     
     

@@ -2,9 +2,7 @@ package com.devc.lab.audios.model;
 
 public class ConversionSettings {
     public enum AudioFormat {
-        MP3("mp3"),
-        WAV("wav"),
-        AAC("aac");
+        M4A("m4a");
         
         private final String extension;
         
@@ -25,7 +23,7 @@ public class ConversionSettings {
     
     public ConversionSettings() {
         // 기본 설정
-        this.format = AudioFormat.MP3;
+        this.format = AudioFormat.M4A;
         this.bitrate = 128;
         this.sampleRate = 44100;
     }

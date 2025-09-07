@@ -6,11 +6,9 @@
     <string name="tab_library">라이브러리</string>
     <string name="tab_edit">편집</string>
     
-    <!-- Convert Tab -->
+    <!-- Convert Tab (빠른 작업 제거로 단순화) -->
     <string name="btn_file_chooser">음원 추출할\n영상 파일 선택</string>
     <string name="select_file">파일 선택</string>
-    <string name="select_video_file">비디오 파일 선택</string>
-    <string name="select_audio_file">오디오 파일 선택</string>
     
     <!-- Conversion Settings -->
     <string name="conversion_settings">변환 설정</string>
