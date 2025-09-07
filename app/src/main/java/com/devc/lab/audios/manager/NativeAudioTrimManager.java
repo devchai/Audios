@@ -491,10 +491,13 @@ public class NativeAudioTrimManager {
     /**
      * ExecutorService 상태 확인 및 재생성
      */
-    private void ensureExecutorServiceReady() {
-        if (executorService == null || executorService.isShutdown()) {
-            LoggerManager.logger("🔄 ExecutorService 재생성");
+    private synchronized void ensureExecutorServiceReady() {
+        if (executorService == null || executorService.isShutdown() || executorService.isTerminated()) {
+            String previousState = executorService == null ? "null" : 
+                                 executorService.isShutdown() ? "shutdown" : "terminated";
+            LoggerManager.logger("🔄 ExecutorService 재생성 - 이전 상태: " + previousState);
             executorService = Executors.newSingleThreadExecutor();
+            LoggerManager.logger("✅ 새로운 ExecutorService 생성 완료");
         }
     }
     

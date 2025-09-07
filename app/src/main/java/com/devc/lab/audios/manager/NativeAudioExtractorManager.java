@@ -120,6 +120,9 @@ public class NativeAudioExtractorManager {
             return;
         }
         
+        // ExecutorService 상태 확인 및 재생성
+        ensureExecutorServiceAvailable();
+        
         currentTask = executorService.submit(() -> {
             performExtraction(inputPath, outputPath, format);
         });
@@ -138,6 +141,9 @@ public class NativeAudioExtractorManager {
             notifyError("다른 추출 작업이 진행 중입니다.");
             return;
         }
+        
+        // ExecutorService 상태 확인 및 재생성
+        ensureExecutorServiceAvailable();
         
         currentTask = executorService.submit(() -> {
             try {
@@ -471,6 +477,21 @@ public class NativeAudioExtractorManager {
         onProgressListener = null;
         onCompletionListener = null;
         onErrorListener = null;
+    }
+    
+    /**
+     * ExecutorService 상태 확인 및 재생성
+     * ThreadPoolExecutor가 종료된 경우 새로운 ExecutorService를 생성합니다.
+     */
+    private synchronized void ensureExecutorServiceAvailable() {
+        if (executorService == null || executorService.isShutdown() || executorService.isTerminated()) {
+            String previousState = executorService == null ? "null" : 
+                                 executorService.isShutdown() ? "shutdown" : "terminated";
+            LoggerManager.logger("ExecutorService 재생성 - 이전 상태: " + previousState);
+            
+            executorService = Executors.newSingleThreadExecutor();
+            LoggerManager.logger("새로운 ExecutorService 생성 완료");
+        }
     }
     
     /**
