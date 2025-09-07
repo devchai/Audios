@@ -15,6 +15,7 @@ import com.devc.lab.audios.adapter.MainViewPagerAdapter;
 import com.devc.lab.audios.ads.AdConstants;
 import com.devc.lab.audios.ads.SubAdlibAdViewAdmob;
 import com.devc.lab.audios.base.BaseActivity;
+import com.devc.lab.audios.fragment.LibraryFragment;
 import com.devc.lab.audios.databinding.ActivityMainBinding;
 import com.devc.lab.audios.manager.*;
 import com.devc.lab.audios.model.MainViewModel;
@@ -389,6 +390,41 @@ public class MainActivity extends BaseActivity<ActivityMainBinding> {
      */
     public ToastManager getToastManager() {
         return toastManager;
+    }
+    
+    /**
+     * 라이브러리 탭으로 전환
+     */
+    public void switchToLibraryTab() {
+        binding.viewPager.setCurrentItem(1, true);
+        LoggerManager.logger("라이브러리 탭으로 전환");
+    }
+    
+    /**
+     * 라이브러리 탭 새로고침 (편집된 파일 목록 업데이트)
+     */
+    public void refreshLibraryTab() {
+        try {
+            // FragmentManager를 통해 LibraryFragment 찾기
+            String libraryFragmentTag = "f" + MainViewPagerAdapter.TAB_LIBRARY;
+            LibraryFragment libraryFragment = (LibraryFragment) getSupportFragmentManager()
+                .findFragmentByTag(libraryFragmentTag);
+            
+            if (libraryFragment != null) {
+                // LibraryFragment의 새로고침 메서드 호출
+                libraryFragment.refresh();
+                LoggerManager.logger("📚 라이브러리 탭 새로고침 완료");
+            } else {
+                LoggerManager.logger("⚠️ LibraryFragment를 찾을 수 없습니다. 태그: " + libraryFragmentTag);
+                // 대안: 현재 페이지가 라이브러리 탭이면 직접 새로고침
+                if (binding.viewPager.getCurrentItem() == MainViewPagerAdapter.TAB_LIBRARY) {
+                    // ViewPager에서 현재 Fragment 새로고침 시도
+                    binding.viewPager.getAdapter().notifyDataSetChanged();
+                }
+            }
+        } catch (Exception e) {
+            LoggerManager.logger("❌ 라이브러리 탭 새로고침 실패: " + e.getMessage());
+        }
     }
     
     // Note: 기존의 onRequestPermissionsResult와 FFmpeg 콜백들은

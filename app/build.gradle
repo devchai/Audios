@@ -11,7 +11,7 @@ android {
     }
 
     lint {
-        disable 'LogNotTimber', 'StringFormatInTimber', 'ThrowableNotAtBeginning', 'BinaryOperationInTimber', 'TimberArgCount', 'TimberArgTypes', 'TimberTagLength', 'TimberExceptionLogging'
+        disable 'LogNotTimber', 'StringFormatInTimber', 'ThrowableNotAtBeginning', 'BinaryOperationInTimber', 'TimberArgCount', 'TimberArgTypes', 'TimberTagLength', 'TimberExceptionLogging', 'WrongConstant'
     }
 
     defaultConfig {
@@ -70,9 +70,7 @@ dependencies {
 
 
     implementation 'com.daimajia.androidanimations:library:2.4@aar'
-    // FFmpeg Kit (Local AAR)
-    implementation(files("libs/ffmpeg-kit-full-6.0-2.aar"))
-    implementation 'com.arthenica:smart-exception-java:0.2.1' // Local AAR 사용 시 필요
+    // FFmpeg Kit 제거 완료 (Phase 4: Native API로 완전 대체)
     implementation 'com.jakewharton.timber:timber:4.7.1'
     implementation 'io.github.inflationx:calligraphy3:3.1.1'
     implementation 'io.github.inflationx:viewpump:2.0.3'

@@ -9,12 +9,14 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import android.media.MediaMetadataRetriever;
+import com.devc.lab.audios.R;
 import com.devc.lab.audios.databinding.FragmentLibraryBinding;
 import com.devc.lab.audios.adapter.AudioFileAdapter;
 import com.devc.lab.audios.model.AudioFile;
 import com.devc.lab.audios.manager.FileManager;
 import com.devc.lab.audios.manager.ToastManager;
 import com.devc.lab.audios.manager.AudioPlayerManager;
+import com.devc.lab.audios.manager.LoggerManager;
 import com.google.android.material.tabs.TabLayout;
 import java.io.File;
 import java.util.ArrayList;
@@ -480,7 +482,7 @@ public class LibraryFragment extends Fragment implements AudioFileAdapter.OnItem
     }
     
     private void showFileOptionsMenu(AudioFile audioFile, int position) {
-        String[] options = {"재생", "공유", "이름 변경", "삭제"};
+        String[] options = {"재생", "공유", "다운로드 폴더로 복사", "이름 변경", "삭제"};
         
         androidx.appcompat.app.AlertDialog.Builder builder = 
                 new androidx.appcompat.app.AlertDialog.Builder(getContext());
@@ -493,10 +495,13 @@ public class LibraryFragment extends Fragment implements AudioFileAdapter.OnItem
                 case 1: // 공유
                     shareFile(audioFile);
                     break;
-                case 2: // 이름 변경
+                case 2: // 다운로드 폴더로 복사
+                    copyToDownloadsFolder(audioFile);
+                    break;
+                case 3: // 이름 변경
                     showRenameDialog(audioFile, position);
                     break;
-                case 3: // 삭제
+                case 4: // 삭제
                     showDeleteConfirmDialog(audioFile, position);
                     break;
             }
@@ -555,10 +560,20 @@ public class LibraryFragment extends Fragment implements AudioFileAdapter.OnItem
     }
     
     private void showDeleteConfirmDialog(AudioFile audioFile, int position) {
+        // 현재 재생 중인 파일인지 확인
+        boolean isCurrentlyPlaying = checkIfFileIsCurrentlyPlaying(audioFile.getFilePath());
+        
         androidx.appcompat.app.AlertDialog.Builder builder = 
                 new androidx.appcompat.app.AlertDialog.Builder(getContext());
         builder.setTitle("파일 삭제");
-        builder.setMessage("'" + audioFile.getDisplayName() + "' 파일을 삭제하시겠습니까?");
+        
+        // 재생 중인 파일이면 안내 메시지 추가
+        String message = "'" + audioFile.getDisplayName() + "' 파일을 삭제하시겠습니까?";
+        if (isCurrentlyPlaying) {
+            message += "\n\n※ 현재 재생 중인 파일입니다. 삭제하면 재생이 자동으로 정지됩니다.";
+        }
+        
+        builder.setMessage(message);
         builder.setPositiveButton("삭제", (dialog, which) -> {
             deleteFile(audioFile, position);
         });
@@ -599,13 +614,30 @@ public class LibraryFragment extends Fragment implements AudioFileAdapter.OnItem
     
     private void deleteFile(AudioFile audioFile, int position) {
         try {
-            File file = new File(audioFile.getFilePath());
+            String filePath = audioFile.getFilePath();
+            
+            // 삭제하려는 파일이 현재 재생 중인지 확인
+            boolean isCurrentlyPlaying = checkIfFileIsCurrentlyPlaying(filePath);
+            
+            if (isCurrentlyPlaying) {
+                // 재생 중인 파일이면 먼저 정지
+                stopCurrentPlayback(filePath);
+                toastManager.showToastShort("재생 중인 파일을 정지했습니다");
+            }
+            
+            // 파일 삭제 진행
+            File file = new File(filePath);
             boolean deleted = file.delete();
             
             if (deleted) {
                 // 어댑터에서 아이템 제거
                 adapter.removeAudioFile(position);
-                toastManager.showToastShort("파일이 삭제되었습니다");
+                
+                if (isCurrentlyPlaying) {
+                    toastManager.showToastShort("재생 중이던 파일이 삭제되었습니다");
+                } else {
+                    toastManager.showToastShort("파일이 삭제되었습니다");
+                }
                 
                 // 빈 상태 체크
                 updateEmptyState(adapter.getItemCount() == 0);
@@ -618,12 +650,164 @@ public class LibraryFragment extends Fragment implements AudioFileAdapter.OnItem
         }
     }
     
+    /**
+     * 지정된 파일이 현재 재생 중인지 확인
+     */
+    private boolean checkIfFileIsCurrentlyPlaying(String filePath) {
+        if (audioPlayerManager == null || filePath == null) {
+            return false;
+        }
+        
+        String currentPlayingPath = audioPlayerManager.getCurrentFilePath();
+        boolean isPlaying = audioPlayerManager.isCurrentlyPlaying();
+        
+        return filePath.equals(currentPlayingPath) && isPlaying;
+    }
+    
+    /**
+     * 현재 재생 중인 파일 정지 및 UI 상태 업데이트
+     */
+    private void stopCurrentPlayback(String filePath) {
+        if (audioPlayerManager == null || filePath == null) {
+            return;
+        }
+        
+        try {
+            // AudioPlayerManager를 통해 재생 정지
+            audioPlayerManager.stop();
+            
+            // 어댑터의 재생 상태 UI 업데이트 (재생 아이콘으로 변경)
+            adapter.updatePlaybackState(filePath, false);
+            
+            LoggerManager.logger("재생 중이던 파일 정지 완료: " + filePath);
+            
+        } catch (Exception e) {
+            LoggerManager.logger("재생 정지 실패: " + e.getMessage());
+        }
+    }
+    
     private String removeFileExtension(String fileName) {
         int lastDotIndex = fileName.lastIndexOf('.');
         if (lastDotIndex > 0) {
             return fileName.substring(0, lastDotIndex);
         }
         return fileName;
+    }
+    
+    /**
+     * 선택한 파일을 다운로드 폴더로 복사
+     */
+    private void copyToDownloadsFolder(AudioFile audioFile) {
+        if (audioFile == null || getContext() == null) {
+            toastManager.showToastShort("파일 정보를 가져올 수 없습니다");
+            return;
+        }
+        
+        // 파일 존재 여부 확인
+        File sourceFile = new File(audioFile.getFilePath());
+        if (!sourceFile.exists()) {
+            toastManager.showToastShort(getString(R.string.file_not_found));
+            return;
+        }
+        
+        // ProgressDialog 표시
+        androidx.appcompat.app.AlertDialog progressDialog = createProgressDialog(audioFile.getDisplayName());
+        progressDialog.show();
+        
+        // 백그라운드에서 파일 복사 실행
+        new Thread(() -> {
+            try {
+                // FileManager를 사용해서 MediaStore API로 Downloads 폴더에 저장
+                android.net.Uri savedUri = fileManager.saveToDownloadsWithMediaStore(
+                    getContext(), 
+                    audioFile.getFilePath(), 
+                    audioFile.getDisplayName()
+                );
+                
+                // UI 스레드에서 결과 처리
+                if (getActivity() != null) {
+                    getActivity().runOnUiThread(() -> {
+                        progressDialog.dismiss();
+                        
+                        if (savedUri != null) {
+                            // 복사 성공
+                            toastManager.showToastShort(getString(R.string.copy_success));
+                            showCopySuccessDialog(audioFile.getDisplayName());
+                        } else {
+                            // 복사 실패
+                            toastManager.showToastShort(getString(R.string.copy_failed, "알 수 없는 오류"));
+                        }
+                    });
+                }
+                
+            } catch (Exception e) {
+                // 오류 발생 시 UI 스레드에서 처리
+                if (getActivity() != null) {
+                    getActivity().runOnUiThread(() -> {
+                        progressDialog.dismiss();
+                        String errorMessage = e.getMessage() != null ? e.getMessage() : "알 수 없는 오류";
+                        toastManager.showToastShort(getString(R.string.copy_failed, errorMessage));
+                        LoggerManager.logger("다운로드 폴더 복사 실패: " + errorMessage);
+                    });
+                }
+            }
+        }).start();
+    }
+    
+    /**
+     * 파일 복사 진행상황을 표시하는 ProgressDialog 생성
+     */
+    private androidx.appcompat.app.AlertDialog createProgressDialog(String fileName) {
+        androidx.appcompat.app.AlertDialog.Builder builder = 
+                new androidx.appcompat.app.AlertDialog.Builder(getContext());
+        builder.setTitle(getString(R.string.copy_progress_title));
+        builder.setMessage(getString(R.string.copy_progress_message, fileName));
+        builder.setCancelable(false);
+        
+        // 진행률 표시를 위한 ProgressBar 추가
+        android.widget.ProgressBar progressBar = new android.widget.ProgressBar(getContext());
+        progressBar.setIndeterminate(true);
+        
+        android.widget.LinearLayout layout = new android.widget.LinearLayout(getContext());
+        layout.setOrientation(android.widget.LinearLayout.VERTICAL);
+        layout.setPadding(50, 50, 50, 50);
+        
+        android.widget.TextView messageView = new android.widget.TextView(getContext());
+        messageView.setText(getString(R.string.copy_progress_message, fileName));
+        messageView.setGravity(android.view.Gravity.CENTER);
+        
+        layout.addView(messageView);
+        layout.addView(progressBar);
+        
+        builder.setView(layout);
+        
+        return builder.create();
+    }
+    
+    /**
+     * 복사 성공 시 안내 다이얼로그 표시
+     */
+    private void showCopySuccessDialog(String fileName) {
+        androidx.appcompat.app.AlertDialog.Builder builder = 
+                new androidx.appcompat.app.AlertDialog.Builder(getContext());
+        builder.setTitle("복사 완료");
+        builder.setMessage("'" + fileName + "' 파일이 다운로드 폴더로 복사되었습니다.\n\n" +
+                          "📁 위치: 다운로드 폴더\n" + 
+                          "🎵 파일 관리자나 음악 앱에서 확인하실 수 있습니다.");
+        builder.setPositiveButton(getString(R.string.ok), null);
+        builder.show();
+    }
+    
+    /**
+     * 외부에서 호출 가능한 새로고침 메서드 (편집된 파일 업데이트용)
+     */
+    public void refresh() {
+        if (binding != null && adapter != null) {
+            LoggerManager.logger("📚 LibraryFragment 새로고침 시작");
+            loadFiles();
+        } else {
+            LoggerManager.logger("⚠️ LibraryFragment가 초기화되지 않아 새로고침 생략");
+        }
     }
     
     @Override

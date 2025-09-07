@@ -167,15 +167,7 @@
 
                 </LinearLayout>
 
-                <!-- Trim Action Button -->
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btn_apply_trim"
-                    style="@style/Widget.Material3.Button"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="자르기 적용"
-                    app:icon="@drawable/ic_cut"
-                    app:iconSize="20dp" />
+                <!-- 자르기 적용 버튼 제거됨 - 저장 버튼에 통합 -->
 
             </LinearLayout>
 
@@ -243,7 +235,9 @@
 
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- Edit Tools -->
+        <!-- Edit Tools - 임시 주석 처리 (전체 편집도구 영역 숨김) -->
+        <!-- TODO: 향후 편집도구 기능 완성 시 주석 해제 -->
+        <!--
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/card_edit_tools"
             android:layout_width="0dp"
@@ -269,35 +263,16 @@
                     android:textAppearance="?attr/textAppearanceTitleMedium"
                     android:textColor="?attr/colorOnSurface" />
 
-                <!-- 편집 도구 - 자르기 (개선된 디자인) -->
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btn_trim"
-                    style="@style/Widget.Material3.Button"
-                    android:layout_width="match_parent"
-                    android:layout_height="56dp"
-                    android:text="@string/trim"
-                    android:textSize="16sp"
-                    app:icon="@drawable/ic_cut"
-                    app:iconSize="24dp"
-                    app:iconGravity="textStart"
-                    app:cornerRadius="12dp" />
-
-                <!-- 합치기 버튼 임시 주석 처리 -->
-                <!--
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btn_merge"
                     style="@style/Widget.Material3.Button.OutlinedButton"
-                    android:layout_width="0dp"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="8dp"
-                    android:layout_weight="1"
+                    android:layout_marginBottom="8dp"
                     android:text="@string/merge"
                     app:icon="@drawable/ic_merge"
                     app:iconSize="20dp" />
-                -->
 
-                <!-- 볼륨, 효과 버튼 임시 주석 처리 -->
-                <!--
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -326,11 +301,11 @@
                         app:iconSize="20dp" />
 
                 </LinearLayout>
-                -->
 
             </LinearLayout>
 
         </com.google.android.material.card.MaterialCardView>
+        -->
 
         <!-- Action Buttons -->
         <LinearLayout
@@ -343,7 +318,7 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/card_edit_tools">
+            app:layout_constraintTop_toBottomOf="@id/card_player_controls">
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btn_cancel_edit"

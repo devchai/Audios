@@ -20,7 +20,7 @@ import com.devc.lab.audios.databinding.FragmentConvertBinding;
 import com.devc.lab.audios.databinding.DialogConversionSettingsBinding;
 import com.devc.lab.audios.manager.FileManager;
 import com.devc.lab.audios.manager.ToastManager;
-import com.devc.lab.audios.manager.FFmpegManager;
+import com.devc.lab.audios.manager.AudioConversionManager;
 import com.devc.lab.audios.manager.DialogManager;
 import com.devc.lab.audios.model.ConversionSettings;
 import com.devc.lab.audios.activity.MainActivity;
@@ -30,7 +30,7 @@ public class ConvertFragment extends Fragment {
     private FragmentConvertBinding binding;
     private FileManager fileManager;
     private ToastManager toastManager;
-    private FFmpegManager ffmpegManager;
+    private AudioConversionManager audioConversionManager;
     private DialogManager dialogManager;
     
     // 현재 변환 설정 저장
@@ -68,25 +68,25 @@ public class ConvertFragment extends Fragment {
     private void initManagers() {
         fileManager = new FileManager(getContext());
         toastManager = new ToastManager(getContext());
-        ffmpegManager = new FFmpegManager();
+        audioConversionManager = new AudioConversionManager();
         dialogManager = new DialogManager(getContext());
         
-        // FFmpegManager 콜백 설정
-        setupFFmpegCallbacks();
+        // AudioConversionManager 콜백 설정
+        setupAudioConversionCallbacks();
     }
     
-    private void setupFFmpegCallbacks() {
+    private void setupAudioConversionCallbacks() {
         // 변환 시작 콜백
-        ffmpegManager.setOnStartListener(() -> {
+        audioConversionManager.setOnStartListener(() -> {
             if (getActivity() != null) {
                 getActivity().runOnUiThread(() -> {
-                    com.devc.lab.audios.manager.LoggerManager.logger("FFmpeg 변환 시작");
+                    com.devc.lab.audios.manager.LoggerManager.logger("Native API 변환 시작");
                 });
             }
         });
         
         // 진행률 업데이트 콜백
-        ffmpegManager.setOnProgressListener(progress -> {
+        audioConversionManager.setOnProgressListener(progress -> {
             if (getActivity() != null) {
                 getActivity().runOnUiThread(() -> {
                     dialogManager.updateConversionProgress(progress);
@@ -96,7 +96,7 @@ public class ConvertFragment extends Fragment {
         });
         
         // 변환 완료 콜백
-        ffmpegManager.setOnCompletionListener((inputPath, outputPath) -> {
+        audioConversionManager.setOnCompletionListener((inputPath, outputPath) -> {
             if (getActivity() != null) {
                 getActivity().runOnUiThread(() -> {
                     dialogManager.dismissProgressDialog();
@@ -107,7 +107,7 @@ public class ConvertFragment extends Fragment {
         });
         
         // 변환 실패 콜백
-        ffmpegManager.setOnFailureListener((message, reason) -> {
+        audioConversionManager.setOnFailureListener((message, reason) -> {
             if (getActivity() != null) {
                 getActivity().runOnUiThread(() -> {
                     dialogManager.dismissProgressDialog();
@@ -230,7 +230,7 @@ public class ConvertFragment extends Fragment {
             ConversionSettings settings = getConversionSettingsFromDialog(dialogBinding);
             settings.setInputPath(fileUri.toString());
             
-            // 출력 파일명 생성 (경로는 FFmpegManager에서 자동 생성)
+            // 출력 파일명 생성 (경로는 AudioConversionManager에서 자동 생성)
             String outputFileName = generateOutputFileName(fileName, settings.getFormat());
             settings.setOutputPath(outputFileName); // 이제 파일명만 저장
             
@@ -318,13 +318,13 @@ public class ConvertFragment extends Fragment {
         
         com.devc.lab.audios.manager.LoggerManager.logger("Conversion Settings: " + settings.toString());
         
-        // FFmpegManager 출력 포맷 변환
-        FFmpegManager.OutputFormat outputFormat = convertToFFmpegFormat(settings.getFormat());
-        FFmpegManager.AudioQuality audioQuality = convertToFFmpegQuality(settings.getBitrate());
+        // AudioConversionManager 출력 포맷 변환
+        AudioConversionManager.OutputFormat outputFormat = convertToAudioConversionFormat(settings.getFormat());
+        AudioConversionManager.AudioQuality audioQuality = convertToAudioConversionQuality(settings.getBitrate());
         
         try {
-            // 실제 FFmpeg 변환 시작
-            ffmpegManager.extractAudioFromVideoUri(
+            // 실제 AudioConversion 변환 시작
+            audioConversionManager.extractAudioFromVideoUri(
                 fileUri, 
                 settings.getOutputPath(), // 파일명
                 outputFormat, 
@@ -339,28 +339,28 @@ public class ConvertFragment extends Fragment {
         }
     }
     
-    private FFmpegManager.OutputFormat convertToFFmpegFormat(ConversionSettings.AudioFormat format) {
+    private AudioConversionManager.OutputFormat convertToAudioConversionFormat(ConversionSettings.AudioFormat format) {
         switch (format) {
             case MP3:
-                return FFmpegManager.OutputFormat.MP3;
+                return AudioConversionManager.OutputFormat.MP3;
             case WAV:
-                return FFmpegManager.OutputFormat.WAV;
+                return AudioConversionManager.OutputFormat.WAV;
             case AAC:
-                return FFmpegManager.OutputFormat.AAC;
+                return AudioConversionManager.OutputFormat.AAC;
             default:
-                return FFmpegManager.OutputFormat.MP3;
+                return AudioConversionManager.OutputFormat.MP3;
         }
     }
     
-    private FFmpegManager.AudioQuality convertToFFmpegQuality(int bitrate) {
+    private AudioConversionManager.AudioQuality convertToAudioConversionQuality(int bitrate) {
         if (bitrate <= 96) {
-            return FFmpegManager.AudioQuality.LOW;
+            return AudioConversionManager.AudioQuality.LOW;
         } else if (bitrate <= 128) {
-            return FFmpegManager.AudioQuality.MEDIUM;
+            return AudioConversionManager.AudioQuality.MEDIUM;
         } else if (bitrate <= 192) {
-            return FFmpegManager.AudioQuality.HIGH;
+            return AudioConversionManager.AudioQuality.HIGH;
         } else {
-            return FFmpegManager.AudioQuality.VERY_HIGH;
+            return AudioConversionManager.AudioQuality.VERY_HIGH;
         }
     }
     
@@ -369,9 +369,9 @@ public class ConvertFragment extends Fragment {
     public void onDestroyView() {
         super.onDestroyView();
         
-        // FFmpegManager 리소스 정리
-        if (ffmpegManager != null) {
-            ffmpegManager.cleanup();
+        // AudioConversionManager 리소스 정리
+        if (audioConversionManager != null) {
+            audioConversionManager.cleanup();
         }
         
         binding = null;

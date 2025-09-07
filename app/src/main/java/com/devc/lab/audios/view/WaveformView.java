@@ -51,6 +51,13 @@ public class WaveformView extends View {
     private static final int HANDLE_WIDTH = 20;
     private static final int HANDLE_TOUCH_AREA = 60;
     
+    // 스크롤 관련 변수
+    private boolean isScrolling = false;
+    private float touchStartX = 0;
+    private float touchStartY = 0;
+    private float lastTouchX = 0;
+    private static final float SCROLL_THRESHOLD = 30f; // 스크롤 판단 임계값 (픽셀)
+    
     public interface OnTrimPositionChangeListener {
         void onTrimStartChanged(float position);
         void onTrimEndChanged(float position);
@@ -282,14 +289,15 @@ public class WaveformView extends View {
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         float x = event.getX();
+        float y = event.getY();
         float position = x / viewWidth;
         
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:
-                return handleTouchDown(x);
+                return handleTouchDown(x, y);
                 
             case MotionEvent.ACTION_MOVE:
-                return handleTouchMove(position);
+                return handleTouchMove(x, y, position);
                 
             case MotionEvent.ACTION_UP:
             case MotionEvent.ACTION_CANCEL:
@@ -299,23 +307,68 @@ public class WaveformView extends View {
         return super.onTouchEvent(event);
     }
     
-    private boolean handleTouchDown(float x) {
+    private boolean handleTouchDown(float x, float y) {
+        // 터치 시작점 저장
+        touchStartX = x;
+        touchStartY = y;
+        lastTouchX = x;
+        isScrolling = false;
+        
         float startX = trimStartPosition * viewWidth;
         float endX = trimEndPosition * viewWidth;
         
-        // 터치 영역 확인
+        // 터치 영역 확인 (스크롤이 아닐 때만)
         if (Math.abs(x - startX) < HANDLE_TOUCH_AREA) {
             isDraggingStart = true;
+            // trim handle 드래그 시 부모 뷰의 터치 이벤트 가로채기 방지
+            if (getParent() != null) {
+                getParent().requestDisallowInterceptTouchEvent(true);
+                LoggerManager.logger("시작 핸들 드래그 - 부모 터치 이벤트 차단");
+            }
             return true;
         } else if (Math.abs(x - endX) < HANDLE_TOUCH_AREA) {
             isDraggingEnd = true;
+            // trim handle 드래그 시 부모 뷰의 터치 이벤트 가로채기 방지
+            if (getParent() != null) {
+                getParent().requestDisallowInterceptTouchEvent(true);
+                LoggerManager.logger("끝 핸들 드래그 - 부모 터치 이벤트 차단");
+            }
             return true;
         }
         
-        return false;
+        // 파형 영역을 터치했을 때도 true 반환하여 이후 스크롤 감지 가능
+        return true;
     }
     
-    private boolean handleTouchMove(float position) {
+    private boolean handleTouchMove(float x, float y, float position) {
+        // 스크롤 감지
+        if (!isScrolling && !isDraggingStart && !isDraggingEnd) {
+            float deltaX = Math.abs(x - touchStartX);
+            float deltaY = Math.abs(y - touchStartY);
+            
+            // 수평 이동이 임계값을 초과하고, 수평 이동이 수직 이동보다 크면 스크롤로 판단
+            if (deltaX > SCROLL_THRESHOLD && deltaX > deltaY) {
+                isScrolling = true;
+                // 스크롤 모드에서는 부모가 터치 이벤트를 처리할 수 있도록 허용
+                if (getParent() != null) {
+                    getParent().requestDisallowInterceptTouchEvent(false);
+                }
+                LoggerManager.logger("스크롤 모드 활성화 - 부모 터치 이벤트 허용");
+            }
+        }
+        
+        // 스크롤 중일 때는 trim handle을 움직이지 않음
+        if (isScrolling) {
+            // 여기에 실제 스크롤 처리 로직을 추가할 수 있음
+            // 예: 파형 뷰 이동, 줌 등
+            float scrollDelta = x - lastTouchX;
+            lastTouchX = x;
+            // TODO: 스크롤 처리 구현
+            LoggerManager.logger("스크롤 중: " + scrollDelta);
+            return true;
+        }
+        
+        // 스크롤이 아닐 때만 trim handle 드래그 처리
         position = Math.max(0, Math.min(1, position)); // 0-1 범위로 제한
         
         if (isDraggingStart) {
@@ -338,8 +391,19 @@ public class WaveformView extends View {
     }
     
     private boolean handleTouchUp() {
+        if (isScrolling) {
+            LoggerManager.logger("스크롤 모드 종료");
+        }
+        
+        // 드래그 종료 시 부모 뷰의 터치 이벤트 처리 복원
+        if ((isDraggingStart || isDraggingEnd) && getParent() != null) {
+            getParent().requestDisallowInterceptTouchEvent(false);
+            LoggerManager.logger("드래그 종료 - 부모 터치 이벤트 복원");
+        }
+        
         isDraggingStart = false;
         isDraggingEnd = false;
+        isScrolling = false;
         return true;
     }
     

@@ -21,7 +21,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **IDE**: Android Studio Iguana
 
 ### 주요 라이브러리
-- FFmpeg Android (4.4): 미디어 변환 처리
+- Android Native API (MediaExtractor, MediaMuxer): 미디어 변환 처리 (Phase 4: FFmpeg 완전 대체)
 - Material Design 3: UI 컴포넌트
 - Timber: 로깅
 - Calligraphy3: 커스텀 폰트
@@ -63,7 +63,11 @@ app/src/main/java/com/devc/lab/audios/
 │   ├── BaseActivity   # Activity 기본 클래스
 │   └── AudiosApplication # Application 클래스
 ├── manager/           # 매니저 클래스 (싱글톤 패턴)
-│   ├── FFmpegManager  # FFmpeg 변환 처리
+│   ├── AudioConversionManager # 통합 오디오 변환 관리 (Phase 4: Native API 기반)
+│   ├── NativeMediaInfoManager # 미디어 정보 추출 (Native API)
+│   ├── NativeAudioExtractorManager # 오디오 추출 (Native API)
+│   ├── NativeAudioTrimManager # 오디오 자르기 (Native API)
+│   ├── AudioTrimManager # 오디오 편집 통합 관리
 │   ├── FileManager    # 파일 시스템 관리
 │   ├── PermissionManager # 권한 관리
 │   ├── DialogManager  # 다이얼로그 관리
@@ -91,8 +95,10 @@ View → ViewModel → Repository → Manager/DataSource
 
 ## 핵심 기능 구현 가이드
 
-### 1. 미디어 변환 (FFmpegManager)
-- FFmpeg 라이브러리를 통한 비디오/오디오 변환
+### 1. 미디어 변환 (AudioConversionManager)
+- Android Native API(MediaExtractor/MediaMuxer)를 통한 비디오/오디오 변환
+- Phase 4 완료: FFmpeg 완전 제거, Native API로 교체
+- NativeAudioExtractorManager, NativeAudioTrimManager 통합 관리
 - 백그라운드 서비스로 변환 진행
 - 진행률 콜백 처리
 
@@ -131,25 +137,36 @@ View → ViewModel → Repository → Manager/DataSource
 
 ## 개발 로드맵
 
-### Phase 1: MVP (완료 예정)
+### Phase 1: Native API 기반 구조 설정 (✅ 완료)
 - [x] 프로젝트 구조 설정
 - [x] 권한 관리 시스템
-- [ ] 파일 선택기 구현
-- [ ] FFmpeg 통합
-- [ ] 비디오→오디오 변환
-- [ ] 기본 플레이어
+- [x] NativeMediaInfoManager 구현 (미디어 메타데이터 추출)
 
-### Phase 2: 핵심 기능 확장
-- [ ] 다중 포맷 지원
-- [ ] 비트레이트 설정
-- [ ] 배치 변환
+### Phase 2: 오디오 추출 기능 (✅ 완료)  
+- [x] NativeAudioExtractorManager 구현
+- [x] MediaExtractor + MediaMuxer 기반 오디오 추출
+- [x] 비디오→오디오 변환 (M4A, WEBM 지원)
+- [x] 진행률 콜백 시스템
+
+### Phase 3: 오디오 편집 기능 (✅ 완료)
+- [x] NativeAudioTrimManager 구현  
+- [x] 시간 기반 오디오 자르기
+- [x] 비율 기반 오디오 자르기
+- [x] AudioTrimManager 통합 관리
+
+### Phase 4: FFmpeg 완전 제거 및 통합 (✅ 완료)
+- [x] AudioConversionManager 통합 관리자 구현
+- [x] FFmpegManager → AudioConversionManager 교체
+- [x] FFmpeg Kit 종속성 완전 제거
+- [x] Native API 기반으로 완전 전환
+- [x] 빌드 검증 및 테스트 완료
+
+### 향후 계획: UI/UX 개선 및 출시
+- [ ] 파일 선택기 UI 구현
+- [ ] 기본 미디어 플레이어 구현
+- [ ] 다크 모드 지원
 - [ ] 파형 시각화
-- [ ] 오디오 편집 (자르기, 합치기)
-
-### Phase 3: 최적화 및 출시
-- [ ] 성능 최적화
-- [ ] 다크 모드
-- [ ] 클라우드 백업
+- [ ] 배치 변환 기능
 - [ ] 출시 준비
 
 ## 성능 목표
@@ -165,11 +182,14 @@ View → ViewModel → Repository → Manager/DataSource
 
 ## 주의사항
 - Scoped Storage 정책으로 인해 API 29 이상에서 파일 접근 방식 변경
-- FFmpeg 라이브러리 크기로 인한 APK 크기 관리 필요
+- ✅ Phase 4 완료: FFmpeg 완전 제거로 APK 크기 대폭 감소
 - 백그라운드 작업 시 배터리 최적화 고려
-- 다양한 미디어 코덱 호환성 테스트 필수
+- Android Native API 특성상 지원 포맷 제한 (M4A, WEBM 중심)
+- MediaExtractor/MediaMuxer 호환성 테스트 필수
 
 ## 디버깅 팁
 - Timber 로그 확인: `LoggerManager` 통해 상세 로그 출력
-- FFmpeg 명령어 디버깅: `FFmpegManager`의 명령어 로그 확인
+- Native API 디버깅: `AudioConversionManager`의 상세 로그 확인
+- 오디오 추출 디버깅: `NativeAudioExtractorManager` 로그 모니터링
+- 오디오 편집 디버깅: `NativeAudioTrimManager` 로그 확인
 - 권한 문제: `PermissionManager` 로그 확인

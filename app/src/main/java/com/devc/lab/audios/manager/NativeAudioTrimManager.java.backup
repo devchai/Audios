@@ -1,0 +1,2188 @@
+package com.devc.lab.audios.manager;
+
+import android.content.Context;
+import android.media.MediaExtractor;
+import android.media.MediaFormat;
+import android.media.MediaMuxer;
+import android.net.Uri;
+import android.os.Handler;
+import android.os.Looper;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.ByteBuffer;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+
+/**
+ * Android Native API 기반 오디오 자르기 관리자
+ * MediaExtractor + MediaMuxer를 사용하여 오디오 파일을 시간 기반으로 자르기
+ * FFmpeg 종속성을 제거하고 성능을 향상시키기 위한 Phase 3 구현
+ */
+public class NativeAudioTrimManager {
+    
+    private static NativeAudioTrimManager instance;
+    private Context context;
+    
+    // 콜백 인터페이스들
+    private OnTrimStartListener onStartListener;
+    private OnTrimProgressListener onProgressListener;
+    private OnTrimCompletionListener onCompletionListener;
+    private OnTrimErrorListener onErrorListener;
+    
+    // 스레드 관리
+    private ExecutorService executorService;
+    private Handler mainHandler;
+    private Future<?> currentTask;
+    private volatile boolean isTrimming = false;
+    
+    // MediaMuxer 상태 추적 (단순화)
+    private enum MuxerState {
+        CREATED,    // 생성됨
+        STARTED,    // 시작됨
+        STOPPED     // 정지됨
+    }
+    
+    private volatile MuxerState muxerState = MuxerState.CREATED;
+    private volatile boolean muxerNeedsStop = false; // stop() 호출 필요 여부
+    
+    // 진행률 추적
+    private long totalDurationUs = 0;
+    private long processedDurationUs = 0;
+    
+    // 콜백 인터페이스 정의
+    public interface OnTrimStartListener {
+        void onTrimStart();
+    }
+    
+    public interface OnTrimProgressListener {
+        void onTrimProgress(int progress);
+    }
+    
+    public interface OnTrimCompletionListener {
+        void onTrimComplete(String outputPath);
+    }
+    
+    public interface OnTrimErrorListener {
+        void onTrimError(String error);
+    }
+    
+    /**
+     * 지원되는 오디오 출력 포맷
+     */
+    public enum AudioFormat {
+        M4A("audio/mp4", ".m4a", MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4),
+        WEBM("audio/webm", ".webm", MediaMuxer.OutputFormat.MUXER_OUTPUT_WEBM);
+        
+        private final String mimeType;
+        private final String extension;
+        private final int muxerFormat;
+        
+        AudioFormat(String mimeType, String extension, int muxerFormat) {
+            this.mimeType = mimeType;
+            this.extension = extension;
+            this.muxerFormat = muxerFormat;
+        }
+        
+        public String getMimeType() { return mimeType; }
+        public String getExtension() { return extension; }
+        public int getMuxerFormat() { return muxerFormat; }
+    }
+    
+    private NativeAudioTrimManager() {
+        executorService = Executors.newSingleThreadExecutor();
+        mainHandler = new Handler(Looper.getMainLooper());
+    }
+    
+    public static synchronized NativeAudioTrimManager getInstance() {
+        if (instance == null) {
+            instance = new NativeAudioTrimManager();
+        }
+        return instance;
+    }
+    
+    public void init(Context context) {
+        this.context = context.getApplicationContext();
+        LoggerManager.logger("NativeAudioTrimManager 초기화 완료");
+    }
+    
+    /**
+     * 오디오 파일 자르기
+     * @param sourceUri 원본 파일 URI
+     * @param startTimeMs 시작 시간 (밀리초)
+     * @param endTimeMs 끝 시간 (밀리초)
+     * @param outputFileName 출력 파일명
+     */
+    public void trimAudio(Uri sourceUri, long startTimeMs, long endTimeMs, String outputFileName) {
+        LoggerManager.logger("==================== 🎵 AUDIO TRIM START ====================");
+        LoggerManager.logger("📋 입력 파라미터:");
+        LoggerManager.logger("   → 원본 URI: " + (sourceUri != null ? sourceUri.toString() : "NULL"));
+        LoggerManager.logger("   → 시작 시간: " + startTimeMs + "ms");
+        LoggerManager.logger("   → 끝 시간: " + endTimeMs + "ms"); 
+        LoggerManager.logger("   → 출력 파일명: " + (outputFileName != null ? outputFileName : "NULL"));
+        LoggerManager.logger("   → 자르기 길이: " + (endTimeMs - startTimeMs) + "ms");
+        
+        // 파라미터 검증
+        if (sourceUri == null || outputFileName == null) {
+            LoggerManager.logger("❌ 파라미터 검증 실패: sourceUri 또는 outputFileName이 null");
+            notifyError("입력 파라미터가 null입니다.");
+            return;
+        }
+        
+        if (startTimeMs >= endTimeMs) {
+            LoggerManager.logger("❌ 파라미터 검증 실패: 시작 시간(" + startTimeMs + ") >= 끝 시간(" + endTimeMs + ")");
+            notifyError("시작 시간이 끝 시간보다 크거나 같습니다.");
+            return;
+        }
+        
+        if (isTrimming) {
+            LoggerManager.logger("⚠️ 다른 자르기 작업이 진행 중: isTrimming = true");
+            notifyError("다른 자르기 작업이 진행 중입니다.");
+            return;
+        }
+        
+        LoggerManager.logger("✅ 파라미터 검증 통과 - 자르기 작업 시작");
+        
+        // ExecutorService 상태 확인 및 재생성
+        ensureExecutorServiceReady();
+        
+        currentTask = executorService.submit(() -> {
+            try {
+                // 🎯 지능적 포맷 선택: 입력 포맷에 따라 최적의 출력 포맷 결정
+                AudioFormat optimalFormat = determineOptimalOutputFormat(sourceUri);
+                LoggerManager.logger("🎯 선택된 출력 포맷: " + optimalFormat.name());
+                
+                performTrimming(sourceUri, startTimeMs, endTimeMs, outputFileName, optimalFormat);
+            } catch (InterruptedException e) {
+                LoggerManager.logger("ℹ️ 오디오 자르기 작업이 인터럽트되었습니다");
+                // 인터럽트 상태 복원
+                Thread.currentThread().interrupt();
+                notifyError("자르기 작업이 취소되었습니다.");
+            }
+        });
+    }
+    
+    /**
+     * 오디오 파일 자르기 (비율 기반)
+     * @param sourceUri 원본 파일 URI
+     * @param startRatio 시작 위치 비율 (0.0 ~ 1.0)
+     * @param endRatio 끝 위치 비율 (0.0 ~ 1.0)
+     * @param durationMs 전체 길이 (밀리초)
+     * @param outputFileName 출력 파일명
+     */
+    public void trimAudioByRatio(Uri sourceUri, float startRatio, float endRatio, 
+                                 long durationMs, String outputFileName) {
+        long startTimeMs = (long) (startRatio * durationMs);
+        long endTimeMs = (long) (endRatio * durationMs);
+        
+        trimAudio(sourceUri, startTimeMs, endTimeMs, outputFileName);
+    }
+    
+    /**
+     * 입력 포맷을 분석하여 최적의 출력 포맷 결정 (호환성 우선)
+     */
+    private AudioFormat determineOptimalOutputFormat(Uri sourceUri) {
+        MediaExtractor formatAnalyzer = null;
+        File tempFile = null;
+        
+        try {
+            LoggerManager.logger("🔍 입력 포맷 분석 시작: " + sourceUri.toString());
+            
+            // 임시 파일로 변환 (분석용)
+            tempFile = createTempFileFromUri(sourceUri);
+            if (tempFile == null) {
+                LoggerManager.logger("⚠️ 임시 파일 생성 실패 - 기본 M4A 포맷 사용");
+                return AudioFormat.M4A;
+            }
+            
+            formatAnalyzer = new MediaExtractor();
+            formatAnalyzer.setDataSource(tempFile.getAbsolutePath());
+            
+            // 오디오 트랙 찾기
+            int audioTrackIndex = findAudioTrack(formatAnalyzer);
+            if (audioTrackIndex < 0) {
+                LoggerManager.logger("⚠️ 오디오 트랙 없음 - 기본 M4A 포맷 사용");
+                return AudioFormat.M4A;
+            }
+            
+            // 오디오 포맷 분석
+            MediaFormat audioFormat = formatAnalyzer.getTrackFormat(audioTrackIndex);
+            String inputMime = audioFormat.getString(MediaFormat.KEY_MIME);
+            
+            LoggerManager.logger("📊 입력 오디오 분석 결과:");
+            LoggerManager.logger("   → MIME 타입: " + inputMime);
+            
+            if (audioFormat.containsKey(MediaFormat.KEY_SAMPLE_RATE)) {
+                LoggerManager.logger("   → 샘플레이트: " + audioFormat.getInteger(MediaFormat.KEY_SAMPLE_RATE) + "Hz");
+            }
+            if (audioFormat.containsKey(MediaFormat.KEY_CHANNEL_COUNT)) {
+                LoggerManager.logger("   → 채널 수: " + audioFormat.getInteger(MediaFormat.KEY_CHANNEL_COUNT));
+            }
+            if (audioFormat.containsKey(MediaFormat.KEY_BIT_RATE)) {
+                LoggerManager.logger("   → 비트레이트: " + audioFormat.getInteger(MediaFormat.KEY_BIT_RATE) + "bps");
+            }
+            
+            // 🎯 포맷별 최적 선택 로직
+            AudioFormat selectedFormat = selectOptimalFormat(inputMime);
+            
+            LoggerManager.logger("✅ 포맷 분석 완료:");
+            LoggerManager.logger("   → 입력: " + inputMime);
+            LoggerManager.logger("   → 출력: " + selectedFormat.name() + " (" + selectedFormat.getMimeType() + ")");
+            LoggerManager.logger("   → 선택 이유: " + getFormatSelectionReason(inputMime, selectedFormat));
+            
+            return selectedFormat;
+            
+        } catch (IOException e) {
+            LoggerManager.logger("❌ 포맷 분석 중 IOException: " + e.getMessage());
+            LoggerManager.logger("   → 기본 M4A 포맷으로 대체");
+            return AudioFormat.M4A;
+        } catch (Exception e) {
+            LoggerManager.logger("❌ 포맷 분석 중 예외: " + e.getClass().getSimpleName() + " - " + e.getMessage());
+            LoggerManager.logger("   → 기본 M4A 포맷으로 대체");
+            return AudioFormat.M4A;
+        } finally {
+            // 리소스 정리
+            if (formatAnalyzer != null) {
+                try {
+                    formatAnalyzer.release();
+                } catch (Exception e) {
+                    LoggerManager.logger("⚠️ formatAnalyzer 해제 실패: " + e.getMessage());
+                }
+            }
+            
+            if (tempFile != null && tempFile.exists()) {
+                boolean deleted = tempFile.delete();
+                LoggerManager.logger("🧹 분석용 임시 파일 삭제: " + (deleted ? "성공" : "실패"));
+            }
+        }
+    }
+    
+    /**
+     * 입력 MIME 타입에 따른 최적 출력 포맷 선택
+     */
+    private AudioFormat selectOptimalFormat(String inputMime) {
+        if (inputMime == null) {
+            LoggerManager.logger("   → MIME 타입 null - 기본 M4A 선택");
+            return AudioFormat.M4A;
+        }
+        
+        // 🎵 포맷별 호환성 우선 순위
+        switch (inputMime) {
+            // AAC 계열 (M4A와 완벽 호환)
+            case "audio/mp4a-latm":
+            case "audio/aac":
+                LoggerManager.logger("   → AAC 계열 감지 - M4A 최적");
+                return AudioFormat.M4A;
+                
+            // MP3 (M4A 컨테이너에서 지원)
+            case "audio/mpeg":
+            case "audio/mp3":
+                LoggerManager.logger("   → MP3 감지 - M4A 호환 가능");
+                return AudioFormat.M4A;
+                
+            // WAV/PCM (M4A로 변환 권장)
+            case "audio/wav":
+            case "audio/x-wav":
+            case "audio/raw":
+            case "audio/pcm":
+                LoggerManager.logger("   → PCM 계열 감지 - M4A 변환 권장");
+                return AudioFormat.M4A;
+                
+            // Vorbis/Opus (WEBM과 호환)
+            case "audio/vorbis":
+            case "audio/opus":
+                LoggerManager.logger("   → Vorbis/Opus 감지 - WEBM 최적");
+                return AudioFormat.WEBM;
+                
+            // FLAC (M4A로 변환)
+            case "audio/flac":
+                LoggerManager.logger("   → FLAC 감지 - M4A 변환 권장");
+                return AudioFormat.M4A;
+                
+            // 기타 또는 알 수 없는 포맷
+            default:
+                LoggerManager.logger("   → 알 수 없는 포맷 (" + inputMime + ") - 범용 M4A 선택");
+                return AudioFormat.M4A;
+        }
+    }
+    
+    /**
+     * 포맷 선택 이유 설명
+     */
+    private String getFormatSelectionReason(String inputMime, AudioFormat selectedFormat) {
+        if (inputMime == null) {
+            return "입력 포맷 불명으로 기본 M4A 선택";
+        }
+        
+        switch (selectedFormat) {
+            case M4A:
+                if (inputMime.contains("aac") || inputMime.contains("mp4a")) {
+                    return "AAC 네이티브 호환성 (변환 없음)";
+                } else if (inputMime.contains("mpeg") || inputMime.contains("mp3")) {
+                    return "MP3→M4A 컨테이너 호환성";
+                } else if (inputMime.contains("wav") || inputMime.contains("pcm")) {
+                    return "PCM→AAC 고품질 변환";
+                } else {
+                    return "범용 호환성 (Android 표준)";
+                }
+                
+            case WEBM:
+                if (inputMime.contains("vorbis") || inputMime.contains("opus")) {
+                    return "Vorbis/Opus 네이티브 호환성";
+                } else {
+                    return "WEBM 컨테이너 최적화";
+                }
+                
+            default:
+                return "기본 선택";
+        }
+    }
+    
+    /**
+     * 트리밍 프로세스의 중간 상태를 관리하는 클래스
+     */
+    private static class TrimProcessState {
+        File tempInputFile;
+        File tempOutputFile;
+    }
+    
+    /**
+     * 오디오 트랙 정보를 담는 클래스
+     */
+    private static class AudioTrackInfo {
+        int audioTrackIndex;
+        MediaFormat audioFormat;
+        
+        AudioTrackInfo(int trackIndex, MediaFormat format) {
+            this.audioTrackIndex = trackIndex;
+            this.audioFormat = format;
+        }
+    }
+    
+    /**
+     * MediaMuxer 설정 결과를 담는 클래스
+     */
+    private static class MuxerSetupResult {
+        MediaMuxer muxer;
+        int trackIndex;
+        
+        MuxerSetupResult(MediaMuxer muxer, int trackIndex) {
+            this.muxer = muxer;
+            this.trackIndex = trackIndex;
+        }
+    }
+
+    /**
+     * 실제 오디오 자르기 수행 (사용자 접근 가능한 Downloads 폴더 저장)
+     */
+    private void performTrimming(Uri sourceUri, long startTimeMs, long endTimeMs, 
+                                String outputFileName, AudioFormat format) throws InterruptedException {
+        LoggerManager.logger("🔧 === 자르기 수행 시작 ===");
+        
+        // 상태 초기화 (단순화)
+        muxerState = MuxerState.CREATED;
+        muxerNeedsStop = false;
+        
+        LoggerManager.logger("🎯 초기 상태 설정:");
+        LoggerManager.logger("   → MediaMuxer 상태: " + muxerState);
+        LoggerManager.logger("   → 출력 포맷: " + format.name() + " (" + format.getMimeType() + ")");
+        
+        // 중간 상태를 관리하기 위한 결과 객체들
+        TrimProcessState processState = new TrimProcessState();
+        MediaExtractor extractor = null;
+        MediaMuxer muxer = null;
+        
+        try {
+            isTrimming = true;
+            LoggerManager.logger("🚀 자르기 작업 시작 - isTrimming = true");
+            notifyStart();
+            
+            // STEP 1: URI를 임시 파일로 복사
+            processState.tempInputFile = createTempInputFile(sourceUri);
+            
+            // STEP 2: 임시 출력 디렉토리 설정
+            processState.tempOutputFile = setupTempOutputDirectory(outputFileName, format);
+            
+            // STEP 3: MediaExtractor 설정
+            extractor = setupMediaExtractor(processState.tempInputFile);
+            
+            // STEP 4: 오디오 트랙 선택 및 포맷 분석
+            AudioTrackInfo audioTrackInfo = analyzeAudioTrack(extractor, startTimeMs, endTimeMs, format);
+            
+            // STEP 5: MediaMuxer 설정 및 트랙 추가
+            MuxerSetupResult muxerResult = setupMediaMuxer(processState.tempOutputFile, audioTrackInfo.audioFormat, format);
+            muxer = muxerResult.muxer;
+            
+            // STEP 6: 오디오 데이터 자르기 및 복사
+            boolean copySuccess = copyAndTrimAudioData(extractor, muxer, muxerResult.trackIndex, startTimeMs * 1000, endTimeMs * 1000);
+            
+            // STEP 7: 임시 파일 검증
+            validateTrimmedFile(processState.tempOutputFile, copySuccess);
+            
+            // STEP 8: 편집 전용 폴더로 파일 이동
+            String finalOutputPath = moveToFinalDestination(processState.tempOutputFile, processState.tempOutputFile.getName());
+            
+            LoggerManager.logger("==================== 🎉 AUDIO TRIM SUCCESS ====================");
+            LoggerManager.logger("🎉 전체 자르기 프로세스 성공적으로 완료!");
+            LoggerManager.logger("   → 최종 출력 파일: " + finalOutputPath);
+            
+            // 최종 파일 정보 표시
+            File finalFile = new File(finalOutputPath);
+            if (finalFile.exists()) {
+                LoggerManager.logger("📊 최종 파일 정보:");
+                LoggerManager.logger("   → 크기: " + finalFile.length() + " bytes (" + (finalFile.length()/1024) + " KB)");
+                LoggerManager.logger("   → 위치: " + finalFile.getParent());
+                LoggerManager.logger("   → 파일명: " + finalFile.getName());
+                LoggerManager.logger("   → 라이브러리 접근: " + (finalOutputPath.contains("Edited") ? "✅ 가능" : "❌ 제한됨"));
+            }
+            notifyCompletion(finalOutputPath);
+            
+        } catch (InterruptedException e) {
+            LoggerManager.logger("==================== ⚠️ AUDIO TRIM INTERRUPTED ====================");
+            LoggerManager.logger("ℹ️ 오디오 자르기 작업이 인터럽트되었습니다");
+            LoggerManager.logger("   → 예외: " + e.getClass().getSimpleName());
+            LoggerManager.logger("   → 메시지: " + e.getMessage());
+            LoggerManager.logger("   → 현재 상태: " + muxerState);
+            
+            // 인터럽트 상태 복원
+            Thread.currentThread().interrupt();
+            LoggerManager.logger("   → Thread 인터럽트 상태 복원 완료");
+            
+            // 인터럽트 상황에서 상태 정리
+            if (muxerState == MuxerState.STARTED) {
+                muxerState = MuxerState.STOPPED;
+                LoggerManager.logger("   → MediaMuxer 상태 변경: STARTED → STOPPED (인터럽트 처리)");
+            }
+            
+            LoggerManager.logger("🚫 자르기 작업 취소 처리 완료");
+            notifyError("자르기 작업이 취소되었습니다.");
+            
+        } catch (IOException e) {
+            LoggerManager.logger("==================== ❌ AUDIO TRIM IO ERROR ====================");
+            LoggerManager.logger("❌ 파일 입출력 오류 발생");
+            LoggerManager.logger("   → 예외 타입: IOException");
+            LoggerManager.logger("   → 오류 메시지: " + e.getMessage());
+            LoggerManager.logger("   → 현재 상태: " + muxerState);
+            LoggerManager.logger("   → 가능한 원인:");
+            LoggerManager.logger("     - 저장 공간 부족");
+            LoggerManager.logger("     - 파일 권한 문제");
+            LoggerManager.logger("     - 디스크 오류");
+            LoggerManager.logger("     - URI 접근 실패");
+            
+            // 스택 트레이스를 로그로 출력 (디버깅용)
+            e.printStackTrace();
+            
+            // IO 오류 상황에서 상태 정리
+            if (muxerState == MuxerState.STARTED) {
+                muxerState = MuxerState.STOPPED;
+                LoggerManager.logger("   → MediaMuxer 상태 변경: STARTED → STOPPED (IO 오류)");
+            }
+            
+            notifyError("파일 처리 중 오류가 발생했습니다: " + e.getMessage());
+            
+        } catch (IllegalStateException e) {
+            LoggerManager.logger("==================== ❌ AUDIO TRIM STATE ERROR ====================");
+            LoggerManager.logger("❌ MediaMuxer/MediaExtractor 상태 오류 발생");
+            LoggerManager.logger("   → 예외 타입: IllegalStateException");
+            LoggerManager.logger("   → 오류 메시지: " + e.getMessage());
+            LoggerManager.logger("   → 현재 Muxer 상태: " + muxerState);
+            LoggerManager.logger("   → 가능한 원인:");
+            LoggerManager.logger("     - MediaMuxer 상태 불일치");
+            LoggerManager.logger("     - 오디오 트랙 호환성 문제");
+            LoggerManager.logger("     - 잘못된 MediaFormat");
+            
+            e.printStackTrace();
+            
+            muxerState = MuxerState.STOPPED;
+            LoggerManager.logger("   → MediaMuxer 상태를 STOPPED로 변경");
+            
+            notifyError("미디어 처리 상태 오류: " + e.getMessage());
+            
+        } catch (Exception e) {
+            LoggerManager.logger("==================== ❌ AUDIO TRIM UNEXPECTED ERROR ====================");
+            LoggerManager.logger("❌ 예상치 못한 오류 발생");
+            LoggerManager.logger("   → 예외 타입: " + e.getClass().getSimpleName());
+            LoggerManager.logger("   → 오류 메시지: " + e.getMessage());
+            LoggerManager.logger("   → 현재 상태: " + muxerState);
+            
+            // 상세한 스택 트레이스
+            LoggerManager.logger("📋 스택 트레이스:");
+            e.printStackTrace();
+            
+            // 예외 발생 시 상태 정리
+            if (muxerState == MuxerState.STARTED) {
+                muxerState = MuxerState.STOPPED;
+                LoggerManager.logger("   → MediaMuxer 상태 변경: STARTED → STOPPED (예외 처리)");
+            }
+            
+            LoggerManager.logger("🔍 디버깅 정보:");
+            LoggerManager.logger("   → isTrimming: " + isTrimming);
+            LoggerManager.logger("   → muxerNeedsStop: " + muxerNeedsStop);
+            
+            notifyError("오디오 자르기 실패: " + e.getMessage());
+            
+        } finally {
+            LoggerManager.logger("==================== 🧹 CLEANUP PROCESS START ====================");
+            LoggerManager.logger("🧹 리소스 정리 시작...");
+            LoggerManager.logger("   → 최종 상태: " + muxerState);
+            
+            // MediaMuxer 정리 (단순화)
+            if (muxer != null) {
+                LoggerManager.logger("🎬 MediaMuxer 정리 중...");
+                LoggerManager.logger("   → 정리 시작 상태: " + muxerState);
+                cleanupMediaMuxer(muxer);
+            } else {
+                LoggerManager.logger("ℹ️ MediaMuxer가 null - 정리 생략");
+            }
+            
+            if (extractor != null) {
+                LoggerManager.logger("🎵 MediaExtractor 정리 중...");
+                try {
+                    extractor.release();
+                    LoggerManager.logger("   → MediaExtractor 정리 성공");
+                } catch (Exception e) {
+                    LoggerManager.logger("   → MediaExtractor 정리 실패: " + e.getClass().getSimpleName() + " - " + e.getMessage());
+                }
+            } else {
+                LoggerManager.logger("ℹ️ MediaExtractor가 null - 정리 생략");
+            }
+            
+            // 임시 파일 정리
+            LoggerManager.logger("📁 임시 파일 정리 중...");
+            int deletedFiles = 0;
+            
+            if (processState.tempInputFile != null && processState.tempInputFile.exists()) {
+                boolean deleted = processState.tempInputFile.delete();
+                if (deleted) {
+                    deletedFiles++;
+                    LoggerManager.logger("   → 임시 입력 파일 삭제 성공: " + processState.tempInputFile.getName());
+                } else {
+                    LoggerManager.logger("   → 임시 입력 파일 삭제 실패: " + processState.tempInputFile.getName());
+                }
+            } else if (processState.tempInputFile != null) {
+                LoggerManager.logger("   → 임시 입력 파일이 이미 존재하지 않음: " + processState.tempInputFile.getName());
+            }
+            
+            if (processState.tempOutputFile != null && processState.tempOutputFile.exists()) {
+                // 임시 출력 파일 삭제 (성공적으로 이동되었다면)
+                boolean deleted = processState.tempOutputFile.delete();
+                if (deleted) {
+                    deletedFiles++;
+                    LoggerManager.logger("   → 임시 출력 파일 삭제 성공: " + processState.tempOutputFile.getName());
+                } else {
+                    LoggerManager.logger("   → 임시 출력 파일 삭제 실패: " + processState.tempOutputFile.getName());
+                }
+            } else if (processState.tempOutputFile != null) {
+                LoggerManager.logger("   → 임시 출력 파일이 이미 존재하지 않음: " + processState.tempOutputFile.getName());
+            }
+            
+            LoggerManager.logger("📊 임시 파일 정리 결과: " + deletedFiles + "개 파일 삭제");
+            
+            // 상태 플래그 초기화 (단순화)
+            boolean prevIsTrimming = isTrimming;
+            isTrimming = false;
+            muxerNeedsStop = false;
+            
+            LoggerManager.logger("🔄 상태 플래그 초기화:");
+            LoggerManager.logger("   → isTrimming: " + prevIsTrimming + " → false");
+            LoggerManager.logger("   → muxerNeedsStop: " + muxerNeedsStop + " → false");
+            
+            LoggerManager.logger("✅ 리소스 정리 완료 - 다음 작업 준비됨");
+            LoggerManager.logger("==================== 🧹 CLEANUP PROCESS END ====================");
+        }
+    }
+    
+    /**
+     * MediaFormat 상세 정보 로깅
+     */
+    private void logDetailedAudioFormat(MediaFormat format) {
+        try {
+            LoggerManager.logger("=== 오디오 포맷 상세 정보 ===");
+            
+            // 기본 정보
+            String mime = format.getString(MediaFormat.KEY_MIME);
+            LoggerManager.logger("MIME 타입: " + mime);
+            
+            // 오디오 속성들
+            if (format.containsKey(MediaFormat.KEY_SAMPLE_RATE)) {
+                LoggerManager.logger("샘플레이트: " + format.getInteger(MediaFormat.KEY_SAMPLE_RATE) + "Hz");
+            }
+            
+            if (format.containsKey(MediaFormat.KEY_CHANNEL_COUNT)) {
+                LoggerManager.logger("채널 수: " + format.getInteger(MediaFormat.KEY_CHANNEL_COUNT));
+            }
+            
+            if (format.containsKey(MediaFormat.KEY_BIT_RATE)) {
+                LoggerManager.logger("비트레이트: " + format.getInteger(MediaFormat.KEY_BIT_RATE) + "bps");
+            }
+            
+            if (format.containsKey(MediaFormat.KEY_DURATION)) {
+                long durationUs = format.getLong(MediaFormat.KEY_DURATION);
+                LoggerManager.logger("길이: " + (durationUs / 1000) + "ms");
+            }
+            
+            if (format.containsKey(MediaFormat.KEY_MAX_INPUT_SIZE)) {
+                LoggerManager.logger("최대 입력 크기: " + format.getInteger(MediaFormat.KEY_MAX_INPUT_SIZE) + " bytes");
+            }
+            
+            // 전체 포맷 정보
+            LoggerManager.logger("전체 포맷: " + format.toString());
+            LoggerManager.logger("========================");
+            
+        } catch (Exception e) {
+            LoggerManager.logger("MediaFormat 정보 추출 실패: " + e.getMessage());
+        }
+    }
+    
+    /**
+     * MediaMuxer에 트랙 추가 (단순화된 호환성 검증)
+     */
+    private int addTrackWithCompatibilityCheck(MediaMuxer muxer, MediaFormat audioFormat, AudioFormat outputFormat) {
+        try {
+            LoggerManager.logger("🎯 MediaMuxer 트랙 추가 (단순화된 방식)");
+            
+            String inputMime = audioFormat.getString(MediaFormat.KEY_MIME);
+            LoggerManager.logger("   → 입력 MIME: " + inputMime);
+            LoggerManager.logger("   → 출력 포맷: " + outputFormat.name() + " (" + outputFormat.getMimeType() + ")");
+            
+            // 🚀 1단계: 원본 MediaFormat 그대로 사용 (가장 안전한 방법)
+            try {
+                LoggerManager.logger("   → 1단계: 원본 MediaFormat 그대로 시도");
+                int trackIndex = muxer.addTrack(audioFormat);
+                LoggerManager.logger("✅ 원본 포맷으로 트랙 추가 성공 - 인덱스: " + trackIndex);
+                LoggerManager.logger("   → 데이터 변환 없이 직접 복사 가능 (최적 성능)");
+                return trackIndex;
+                
+            } catch (IllegalArgumentException e) {
+                LoggerManager.logger("   ⚠️ 1단계 실패 (포맷 비호환): " + e.getMessage());
+                
+                // IllegalArgumentException은 포맷 호환성 문제를 의미
+                // 이 경우에만 2단계 시도
+                
+            } catch (Exception e) {
+                LoggerManager.logger("   ❌ 1단계 실패 (기타 오류): " + e.getClass().getSimpleName() + " - " + e.getMessage());
+                // 기타 오류는 근본적인 문제이므로 바로 실패 처리
+                return -1;
+            }
+            
+            // 🔧 2단계: 최소한의 안전한 수정만 적용
+            LoggerManager.logger("   → 2단계: 안전한 MediaFormat 수정 시도");
+            MediaFormat safeFormat = createSafeMediaFormat(audioFormat, outputFormat);
+            
+            if (safeFormat != null) {
+                try {
+                    int trackIndex = muxer.addTrack(safeFormat);
+                    LoggerManager.logger("✅ 안전한 포맷으로 트랙 추가 성공 - 인덱스: " + trackIndex);
+                    LoggerManager.logger("   → 최소한의 포맷 조정으로 호환성 확보");
+                    return trackIndex;
+                    
+                } catch (Exception e) {
+                    LoggerManager.logger("   ❌ 2단계도 실패: " + e.getMessage());
+                }
+            } else {
+                LoggerManager.logger("   ⚠️ 안전한 MediaFormat 생성 불가");
+            }
+            
+            // 모든 시도 실패
+            LoggerManager.logger("❌ 모든 트랙 추가 시도 실패");
+            LoggerManager.logger("   → 원인: " + inputMime + " ↔ " + outputFormat.getMimeType() + " 포맷 비호환");
+            LoggerManager.logger("   → 권장: 다른 출력 포맷 사용 또는 원본 포맷 확인");
+            
+            return -1;
+            
+        } catch (Exception e) {
+            LoggerManager.logger("❌ 트랙 추가 프로세스 전체 실패: " + e.getClass().getSimpleName() + " - " + e.getMessage());
+            return -1;
+        }
+    }
+    
+    /**
+     * 안전한 MediaFormat 생성 (최소한의 검증된 수정만)
+     */
+    private MediaFormat createSafeMediaFormat(MediaFormat originalFormat, AudioFormat outputFormat) {
+        try {
+            LoggerManager.logger("🔧 안전한 MediaFormat 생성 시도");
+            
+            String originalMime = originalFormat.getString(MediaFormat.KEY_MIME);
+            if (originalMime == null) {
+                LoggerManager.logger("   ❌ 원본 MIME 타입이 null");
+                return null;
+            }
+            
+            // 기본적으로 원본 포맷을 복사
+            MediaFormat safeFormat = new MediaFormat();
+            
+            // 필수 메타데이터만 복사 (안전한 값들)
+            try {
+                // MIME 타입 (원본 유지가 가장 안전)
+                safeFormat.setString(MediaFormat.KEY_MIME, originalMime);
+                LoggerManager.logger("   → MIME 타입: " + originalMime + " (원본 유지)");
+                
+                // 샘플레이트 (필수)
+                if (originalFormat.containsKey(MediaFormat.KEY_SAMPLE_RATE)) {
+                    int sampleRate = originalFormat.getInteger(MediaFormat.KEY_SAMPLE_RATE);
+                    safeFormat.setInteger(MediaFormat.KEY_SAMPLE_RATE, sampleRate);
+                    LoggerManager.logger("   → 샘플레이트: " + sampleRate + "Hz");
+                }
+                
+                // 채널 수 (필수)
+                if (originalFormat.containsKey(MediaFormat.KEY_CHANNEL_COUNT)) {
+                    int channels = originalFormat.getInteger(MediaFormat.KEY_CHANNEL_COUNT);
+                    safeFormat.setInteger(MediaFormat.KEY_CHANNEL_COUNT, channels);
+                    LoggerManager.logger("   → 채널 수: " + channels);
+                }
+                
+                // 비트레이트 (있는 경우에만)
+                if (originalFormat.containsKey(MediaFormat.KEY_BIT_RATE)) {
+                    int bitRate = originalFormat.getInteger(MediaFormat.KEY_BIT_RATE);
+                    safeFormat.setInteger(MediaFormat.KEY_BIT_RATE, bitRate);
+                    LoggerManager.logger("   → 비트레이트: " + bitRate + "bps");
+                }
+                
+                // 최대 입력 크기 (있는 경우에만)
+                if (originalFormat.containsKey(MediaFormat.KEY_MAX_INPUT_SIZE)) {
+                    int maxInputSize = originalFormat.getInteger(MediaFormat.KEY_MAX_INPUT_SIZE);
+                    safeFormat.setInteger(MediaFormat.KEY_MAX_INPUT_SIZE, maxInputSize);
+                    LoggerManager.logger("   → 최대 입력 크기: " + maxInputSize + " bytes");
+                }
+                
+                LoggerManager.logger("✅ 안전한 MediaFormat 생성 완료");
+                LoggerManager.logger("   → 원본 메타데이터 보존으로 최대 호환성 확보");
+                
+                return safeFormat;
+                
+            } catch (Exception e) {
+                LoggerManager.logger("   ❌ MediaFormat 생성 중 오류: " + e.getMessage());
+                return null;
+            }
+            
+        } catch (Exception e) {
+            LoggerManager.logger("❌ 안전한 MediaFormat 생성 실패: " + e.getMessage());
+            return null;
+        }
+    }
+    
+
+    /**
+     * 오디오 트랙 인덱스 찾기
+     */
+    private int findAudioTrack(MediaExtractor extractor) {
+        int trackCount = extractor.getTrackCount();
+        LoggerManager.logger("총 트랙 수: " + trackCount);
+        
+        for (int i = 0; i < trackCount; i++) {
+            MediaFormat format = extractor.getTrackFormat(i);
+            String mime = format.getString(MediaFormat.KEY_MIME);
+            LoggerManager.logger("트랙 " + i + " MIME: " + mime);
+            
+            if (mime != null && mime.startsWith("audio/")) {
+                LoggerManager.logger("오디오 트랙 발견: 인덱스 " + i);
+                return i;
+            }
+        }
+        
+        return -1;
+    }
+    
+    /**
+     * MediaMuxer 정리 (단순화된 방식)
+     */
+    private void cleanupMediaMuxer(MediaMuxer muxer) {
+        if (muxer == null) {
+            LoggerManager.logger("ℹ️ MediaMuxer가 null - 정리 불필요");
+            return;
+        }
+        
+        try {
+            LoggerManager.logger("🔧 MediaMuxer 정리 시작 (상태: " + muxerState + ")");
+            
+            // Step 1: 필요시 stop() 호출 (파일 완성을 위한 핵심 단계)
+            if (muxerNeedsStop && muxerState == MuxerState.STARTED) {
+                try {
+                    LoggerManager.logger("   → stop() 호출 중 - 파일 완성을 위한 중요 단계");
+                    
+                    long stopStartTime = System.currentTimeMillis();
+                    muxer.stop();
+                    long stopDuration = System.currentTimeMillis() - stopStartTime;
+                    
+                    muxerState = MuxerState.STOPPED;
+                    LoggerManager.logger("   ✅ stop() 성공 (" + stopDuration + "ms)");
+                    
+                    // stop() 호출 후 상태 확인 완료
+                    LoggerManager.logger("   → MediaMuxer stop() 완료로 파일 헤더 및 메타데이터 완성");
+                    
+                } catch (IllegalStateException e) {
+                    // MediaMuxer가 이미 정지되었거나 내부적으로 완료된 상황
+                    LoggerManager.logger("   ℹ️ stop() 불필요 (이미 정지됨): " + e.getMessage());
+                    muxerState = MuxerState.STOPPED;
+                } catch (Exception e) {
+                    LoggerManager.logger("   ⚠️ stop() 실패: " + e.getClass().getSimpleName() + " - " + e.getMessage());
+                    LoggerManager.logger("   → stop() 실패는 파일 생성 실패를 의미할 수 있음");
+                    LoggerManager.logger("   → 가능한 원인: 데이터 부족, 포맷 오류, 디스크 공간 부족");
+                    muxerState = MuxerState.STOPPED; // 어쨌든 정지 상태로 처리
+                }
+            } else {
+                LoggerManager.logger("   → stop() 호출 불필요 (상태: " + muxerState + ", needsStop: " + muxerNeedsStop + ")");
+                if (muxerState != MuxerState.STARTED) {
+                    LoggerManager.logger("   ⚠️ MediaMuxer가 STARTED 상태가 아님 - 파일이 완성되지 않았을 수 있음");
+                }
+            }
+            
+            // Step 2: release() 호출
+            try {
+                LoggerManager.logger("   → release() 호출 중...");
+                muxer.release();
+                LoggerManager.logger("   ✅ release() 성공");
+            } catch (Exception e) {
+                LoggerManager.logger("   ⚠️ release() 실패: " + e.getClass().getSimpleName() + " - " + e.getMessage());
+                // release() 실패는 치명적이지 않음
+            }
+            
+            // 상태 리셋
+            muxerNeedsStop = false;
+            LoggerManager.logger("✅ MediaMuxer 정리 완료");
+            
+        } catch (Exception e) {
+            LoggerManager.logger("❌ MediaMuxer 정리 중 예외: " + e.getClass().getSimpleName() + " - " + e.getMessage());
+            // 예외가 발생해도 상태는 리셋
+            muxerState = MuxerState.STOPPED;
+            muxerNeedsStop = false;
+        }
+    }
+    
+    /**
+     * 오디오 트랙 데이터 자르기 및 복사 (개선된 오류 처리)
+     */
+    private boolean trimAndCopyAudioTrack(MediaExtractor extractor, MediaMuxer muxer, 
+                                         int muxerTrackIndex, long startTimeUs, long endTimeUs) 
+                                         throws InterruptedException {
+        
+        ByteBuffer buffer = ByteBuffer.allocate(256 * 1024); // 256KB 버퍼
+        android.media.MediaCodec.BufferInfo bufferInfo = new android.media.MediaCodec.BufferInfo();
+        
+        boolean copySuccess = true; // 복사 성공 여부 추적
+        
+        // 시작 위치로 탐색
+        extractor.seekTo(startTimeUs, MediaExtractor.SEEK_TO_PREVIOUS_SYNC);
+        
+        // 정확한 시작 시간까지 이동
+        while (extractor.getSampleTime() < startTimeUs && extractor.getSampleTime() >= 0) {
+            extractor.advance();
+        }
+        
+        int sampleCount = 0;
+        long lastProgressTime = 0;
+        long trimDurationUs = endTimeUs - startTimeUs;
+        
+        LoggerManager.logger("🎵 오디오 샘플 데이터 자르기 시작:");
+        LoggerManager.logger("   → 자르기 구간: " + startTimeUs + " ~ " + endTimeUs + " μs");
+        LoggerManager.logger("   → 예상 자르기 길이: " + trimDurationUs + " μs (" + (trimDurationUs/1000) + "ms)");
+        LoggerManager.logger("   → 대상 MediaMuxer 트랙: " + muxerTrackIndex);
+        LoggerManager.logger("   → 버퍼 크기: 256KB");
+        
+        while (true) {
+            // Thread 인터럽트 체크
+            if (Thread.currentThread().isInterrupted()) {
+                LoggerManager.logger("ℹ️ Thread 인터럽트 감지 - 자르기 중단");
+                throw new InterruptedException("오디오 자르기 작업이 인터럽트되었습니다");
+            }
+            
+            long sampleTimeUs = extractor.getSampleTime();
+            
+            // 종료 조건 확인
+            if (sampleTimeUs < 0 || sampleTimeUs > endTimeUs) {
+                break;
+            }
+            
+            int sampleSize = extractor.readSampleData(buffer, 0);
+            if (sampleSize < 0) {
+                break;
+            }
+            
+            // 샘플 정보 설정 (시간 오프셋 조정)
+            long adjustedTimeUs = sampleTimeUs - startTimeUs;
+            bufferInfo.presentationTimeUs = adjustedTimeUs;
+            bufferInfo.flags = extractor.getSampleFlags();
+            bufferInfo.size = sampleSize;
+            bufferInfo.offset = 0;
+            
+            // 첫 번째 샘플에 대한 상세 로깅
+            if (sampleCount == 0) {
+                LoggerManager.logger("🎵 첫 번째 샘플 발견:");
+                LoggerManager.logger("   → 원본 시간: " + sampleTimeUs + " μs (" + (sampleTimeUs/1000) + "ms)");
+                LoggerManager.logger("   → 조정된 시간: " + adjustedTimeUs + " μs (" + (adjustedTimeUs/1000) + "ms)");
+                LoggerManager.logger("   → 샘플 크기: " + sampleSize + " bytes");
+                LoggerManager.logger("   → 샘플 플래그: " + bufferInfo.flags);
+            }
+            
+            // MediaMuxer에 샘플 쓰기 (향상된 오류 처리)
+            try {
+                muxer.writeSampleData(muxerTrackIndex, buffer, bufferInfo);
+                
+                // 첫 번째와 마지막 샘플에 대한 상세 로깅
+                if (sampleCount == 0) {
+                    LoggerManager.logger("🎵 첫 번째 샘플 쓰기 성공:");
+                    LoggerManager.logger("   → 샘플 크기: " + sampleSize + " bytes");
+                    LoggerManager.logger("   → 타임스탬프: " + bufferInfo.presentationTimeUs + " μs");
+                    LoggerManager.logger("   → 플래그: " + bufferInfo.flags);
+                } else if (sampleCount % 1000 == 0) {
+                    LoggerManager.logger("🔄 진행 중 - 샘플 " + sampleCount + " 처리 완료 (" + (sampleTimeUs/1000) + "ms)");
+                }
+                
+            } catch (IllegalArgumentException e) {
+                LoggerManager.logger("❌ writeSampleData 실패 - IllegalArgumentException: " + e.getMessage());
+                LoggerManager.logger("   → 샘플 " + sampleCount + "에서 포맷 관련 오류 발생");
+                LoggerManager.logger("   → 샘플 정보: 크기=" + sampleSize + ", 시간=" + sampleTimeUs + "μs, 플래그=" + bufferInfo.flags);
+                LoggerManager.logger("   → MediaMuxer 트랙 인덱스: " + muxerTrackIndex);
+                LoggerManager.logger("   → 상세 디버깅 정보:");
+                LoggerManager.logger("     * 조정된 타임스탬프: " + adjustedTimeUs + "μs");
+                LoggerManager.logger("     * 버퍼 위치: " + bufferInfo.offset);
+                LoggerManager.logger("     * 스택 트레이스: " + android.util.Log.getStackTraceString(e));
+                LoggerManager.logger("   → 가능한 원인: 포맷 호환성, 트랙 설정, 타임스탬프 문제");
+                LoggerManager.logger("   → 복구 시도: 현재까지 처리된 " + sampleCount + "개 샘플로 파일 완성");
+                copySuccess = false;
+                break;
+            } catch (IllegalStateException e) {
+                LoggerManager.logger("❌ writeSampleData 실패 - IllegalStateException: " + e.getMessage());
+                LoggerManager.logger("   → 샘플 " + sampleCount + "에서 상태 관련 오류 발생");
+                LoggerManager.logger("   → MediaMuxer 상태: " + muxerState);
+                LoggerManager.logger("   → 상세 디버깅 정보:");
+                LoggerManager.logger("     * MediaMuxer 트랙 인덱스: " + muxerTrackIndex);
+                LoggerManager.logger("     * muxerNeedsStop: " + muxerNeedsStop);
+                LoggerManager.logger("     * 현재 샘플 크기: " + sampleSize + " bytes");
+                LoggerManager.logger("     * 스택 트레이스: " + android.util.Log.getStackTraceString(e));
+                LoggerManager.logger("   → 가능한 원인: MediaMuxer 상태 불일치, start() 호출 누락");
+                LoggerManager.logger("   → 복구 시도: 현재까지 처리된 " + sampleCount + "개 샘플로 파일 완성");
+                copySuccess = false;
+                break;
+            } catch (Exception e) {
+                LoggerManager.logger("❌ writeSampleData 실패 - " + e.getClass().getSimpleName() + ": " + e.getMessage());
+                LoggerManager.logger("   → 샘플 " + sampleCount + "에서 예상치 못한 오류 발생");
+                LoggerManager.logger("   → 상세 정보: 크기=" + sampleSize + ", 시간=" + sampleTimeUs + "μs");
+                LoggerManager.logger("   → 시스템 정보:");
+                LoggerManager.logger("     * 사용 가능한 메모리: " + (Runtime.getRuntime().freeMemory() / 1024 / 1024) + " MB");
+                LoggerManager.logger("     * 버퍼 정보: 위치=" + bufferInfo.offset + ", 크기=" + bufferInfo.size);
+                LoggerManager.logger("     * 스택 트레이스: " + android.util.Log.getStackTraceString(e));
+                LoggerManager.logger("   → 복구 시도: 현재까지 처리된 " + sampleCount + "개 샘플로 파일 완성");
+                copySuccess = false;
+                break; // 오류 발생 시 루프 종료
+            }
+            
+            // 진행률 업데이트 (100ms마다)
+            processedDurationUs = sampleTimeUs - startTimeUs;
+            long currentTime = System.currentTimeMillis();
+            if (currentTime - lastProgressTime > 100) {
+                updateTrimProgress(processedDurationUs, trimDurationUs);
+                lastProgressTime = currentTime;
+            }
+            
+            sampleCount++;
+            extractor.advance();
+        }
+        
+        LoggerManager.logger("🎵 오디오 샘플 처리 완료:");
+        LoggerManager.logger("   → 총 처리된 샘플 수: " + sampleCount);
+        LoggerManager.logger("   → 처리 성공: " + copySuccess);
+        LoggerManager.logger("   → 마지막 샘플 시간: " + (processedDurationUs/1000) + "ms");
+        LoggerManager.logger("   → 전체 진행률: " + (trimDurationUs > 0 ? (processedDurationUs * 100 / trimDurationUs) + "%" : "계산 불가"));
+        
+        if (copySuccess) {
+            LoggerManager.logger("   ✅ 모든 오디오 데이터가 MediaMuxer에 성공적으로 전송됨");
+            LoggerManager.logger("   → 이제 MediaMuxer.stop() 호출로 파일을 완성해야 함");
+        } else {
+            LoggerManager.logger("   ❌ 데이터 전송 실패 - 파일이 완성되지 않음");
+            if (sampleCount == 0) {
+                LoggerManager.logger("   → 샘플을 전혀 처리하지 못함 - MediaExtractor 문제 가능성");
+                LoggerManager.logger("   → 가능한 원인:");
+                LoggerManager.logger("     * 원본 파일이 손상됨");
+                LoggerManager.logger("     * 지원되지 않는 오디오 포맷");
+                LoggerManager.logger("     * seekTo() 실패로 시작 위치를 찾지 못함");
+                LoggerManager.logger("     * 자르기 구간이 파일 범위를 초과함");
+            } else {
+                LoggerManager.logger("   → 샘플 " + sampleCount + "개 처리 후 중단됨 - MediaMuxer 오류 가능성");
+                LoggerManager.logger("   → 부분 처리 상세 정보:");
+                LoggerManager.logger("     * 처리된 샘플 수: " + sampleCount);
+                LoggerManager.logger("     * 처리된 시간: " + (processedDurationUs/1000) + "ms");
+                LoggerManager.logger("     * 전체 대비 진행률: " + (trimDurationUs > 0 ? (processedDurationUs * 100 / trimDurationUs) + "%" : "계산 불가"));
+                LoggerManager.logger("     * 강제 완성 시도: MediaMuxer.stop()으로 부분 파일 생성");
+                LoggerManager.logger("   → 가능한 원인:");
+                LoggerManager.logger("     * MediaMuxer 내부 버퍼 오버플로우");
+                LoggerManager.logger("     * 디스크 공간 부족");
+                LoggerManager.logger("     * 타임스탬프 불일치 문제");
+                LoggerManager.logger("     * 샘플 데이터 형식 오류");
+            }
+        }
+        
+        // 성공한 경우에만 최종 진행률 100%
+        if (copySuccess) {
+            notifyProgress(100);
+        }
+        
+        return copySuccess;
+    }
+    
+    /**
+     * 자르기 진행률 계산 및 콜백
+     */
+    private void updateTrimProgress(long processedUs, long totalUs) {
+        if (totalUs > 0) {
+            int progress = (int) ((processedUs * 100) / totalUs);
+            progress = Math.min(Math.max(progress, 0), 100);
+            notifyProgress(progress);
+        }
+    }
+    
+    /**
+     * URI에서 임시 파일 생성
+     */
+    private File createTempFileFromUri(Uri uri) {
+        try {
+            // 임시 디렉토리
+            File tempDir = new File(context.getCacheDir(), "temp_audio_trimmer");
+            if (!tempDir.exists()) {
+                tempDir.mkdirs();
+            }
+            
+            // 임시 파일
+            File tempFile = new File(tempDir, "temp_trim_" + System.currentTimeMillis() + ".tmp");
+            
+            // URI에서 파일로 복사
+            try (InputStream inputStream = context.getContentResolver().openInputStream(uri);
+                 FileOutputStream outputStream = new FileOutputStream(tempFile)) {
+                
+                if (inputStream == null) {
+                    LoggerManager.logger("URI에서 InputStream을 열 수 없음");
+                    return null;
+                }
+                
+                byte[] buffer = new byte[8 * 1024];
+                int bytesRead;
+                
+                while ((bytesRead = inputStream.read(buffer)) != -1) {
+                    outputStream.write(buffer, 0, bytesRead);
+                }
+                
+                outputStream.flush();
+                LoggerManager.logger("임시 파일 생성 완료: " + tempFile.getAbsolutePath());
+                return tempFile;
+                
+            } catch (IOException e) {
+                LoggerManager.logger("임시 파일 생성 실패: " + e.getMessage());
+                if (tempFile.exists()) {
+                    tempFile.delete();
+                }
+                return null;
+            }
+            
+        } catch (Exception e) {
+            LoggerManager.logger("임시 파일 생성 중 오류: " + e.getMessage());
+            return null;
+        }
+    }
+    
+    /**
+     * 자르기 취소 (단순화)
+     */
+    public void cancelTrimming() {
+        try {
+            if (currentTask != null && !currentTask.isDone()) {
+                LoggerManager.logger("ℹ️ 오디오 자르기 취소 요청");
+                boolean cancelled = currentTask.cancel(true);
+                LoggerManager.logger("✅ 자르기 작업 취소 " + (cancelled ? "성공" : "실패 또는 이미 완료"));
+            } else {
+                LoggerManager.logger("ℹ️ 취소할 작업이 없음");
+            }
+        } catch (Exception e) {
+            LoggerManager.logger("❌ 자르기 취소 실패: " + e.getClass().getSimpleName() + " - " + e.getMessage());
+        }
+    }
+    
+    /**
+     * 현재 자르기 중인지 확인
+     */
+    public boolean isTrimming() {
+        return isTrimming;
+    }
+    
+    /**
+     * 최종 출력 파일 검증 (강화된 검증 + 실제 오디오 데이터 검증)
+     */
+    private boolean verifyFinalOutputFile(String outputPath) {
+        try {
+            if (outputPath == null || outputPath.isEmpty()) {
+                LoggerManager.logger("❌ 출력 파일 경로가 null 또는 비어있음");
+                return false;
+            }
+            
+            File outputFile = new File(outputPath);
+            
+            // 파일 존재 여부 확인
+            if (!outputFile.exists()) {
+                LoggerManager.logger("❌ 출력 파일이 존재하지 않음: " + outputPath);
+                return false;
+            }
+            
+            // 파일 크기 확인 (0바이트 파일 방지)
+            long fileSize = outputFile.length();
+            if (fileSize <= 0) {
+                LoggerManager.logger("❌ 출력 파일 크기가 0바이트: " + outputPath);
+                return false;
+            }
+            
+            // 파일 읽기 권한 확인
+            if (!outputFile.canRead()) {
+                LoggerManager.logger("❌ 출력 파일 읽기 권한 없음: " + outputPath);
+                return false;
+            }
+            
+            // 최소 크기 검증 (1KB 미만이면 비정상일 가능성)
+            if (fileSize < 1024) {
+                LoggerManager.logger("⚠️ 출력 파일이 매우 작음 (1KB 미만): " + fileSize + " bytes");
+                // 작지만 존재하므로 일단 성공으로 처리
+            }
+            
+            LoggerManager.logger("✅ 기본 파일 검증 성공");
+            LoggerManager.logger("   → 파일 경로: " + outputPath);
+            LoggerManager.logger("   → 파일 크기: " + fileSize + " bytes (" + (fileSize / 1024) + " KB)");
+            LoggerManager.logger("   → 마지막 수정: " + new java.util.Date(outputFile.lastModified()));
+            
+            // 🎵 실제 오디오 데이터 검증 (핵심 추가 기능)
+            boolean audioValidation = verifyAudioDataIntegrity(outputPath);
+            if (!audioValidation) {
+                LoggerManager.logger("❌ 오디오 데이터 검증 실패: 파일이 손상되었거나 재생 불가능합니다");
+                return false;
+            }
+            
+            LoggerManager.logger("✅ 완전한 파일 검증 성공 - 재생 가능한 오디오 파일");
+            return true;
+            
+        } catch (Exception e) {
+            LoggerManager.logger("❌ 출력 파일 검증 중 예외 발생: " + e.getClass().getSimpleName() + " - " + e.getMessage());
+            return false;
+        }
+    }
+    
+    /**
+     * 실제 오디오 데이터 무결성 검증 (MediaExtractor 기반)
+     */
+    private boolean verifyAudioDataIntegrity(String filePath) {
+        MediaExtractor verifyExtractor = null;
+        try {
+            LoggerManager.logger("🎵 오디오 데이터 무결성 검증 시작: " + filePath);
+            
+            verifyExtractor = new MediaExtractor();
+            verifyExtractor.setDataSource(filePath);
+            
+            // 트랙 수 확인
+            int trackCount = verifyExtractor.getTrackCount();
+            LoggerManager.logger("   → 검출된 트랙 수: " + trackCount);
+            
+            if (trackCount == 0) {
+                LoggerManager.logger("❌ 트랙이 없는 파일");
+                return false;
+            }
+            
+            // 오디오 트랙 찾기
+            int audioTrackIndex = -1;
+            MediaFormat audioFormat = null;
+            
+            for (int i = 0; i < trackCount; i++) {
+                MediaFormat format = verifyExtractor.getTrackFormat(i);
+                String mime = format.getString(MediaFormat.KEY_MIME);
+                LoggerManager.logger("   → 트랙 " + i + " MIME: " + mime);
+                
+                if (mime != null && mime.startsWith("audio/")) {
+                    audioTrackIndex = i;
+                    audioFormat = format;
+                    LoggerManager.logger("   ✅ 오디오 트랙 발견: 인덱스 " + audioTrackIndex);
+                    break;
+                }
+            }
+            
+            // 오디오 트랙이 없으면 실패
+            if (audioTrackIndex < 0) {
+                LoggerManager.logger("❌ 오디오 트랙이 없습니다");
+                return false;
+            }
+            
+            // 오디오 트랙 선택 및 메타데이터 검증
+            verifyExtractor.selectTrack(audioTrackIndex);
+            
+            // 필수 메타데이터 검증
+            String mimeType = audioFormat.getString(MediaFormat.KEY_MIME);
+            boolean hasSampleRate = audioFormat.containsKey(MediaFormat.KEY_SAMPLE_RATE);
+            boolean hasChannelCount = audioFormat.containsKey(MediaFormat.KEY_CHANNEL_COUNT);
+            boolean hasDuration = audioFormat.containsKey(MediaFormat.KEY_DURATION);
+            
+            LoggerManager.logger("📊 오디오 메타데이터 분석:");
+            LoggerManager.logger("   → MIME 타입: " + mimeType);
+            if (hasSampleRate) {
+                LoggerManager.logger("   → 샘플레이트: " + audioFormat.getInteger(MediaFormat.KEY_SAMPLE_RATE) + "Hz");
+            } else {
+                LoggerManager.logger("   ⚠️ 샘플레이트 정보 없음");
+            }
+            if (hasChannelCount) {
+                LoggerManager.logger("   → 채널 수: " + audioFormat.getInteger(MediaFormat.KEY_CHANNEL_COUNT));
+            } else {
+                LoggerManager.logger("   ⚠️ 채널 정보 없음");
+            }
+            if (hasDuration) {
+                long durationUs = audioFormat.getLong(MediaFormat.KEY_DURATION);
+                LoggerManager.logger("   → 길이: " + (durationUs / 1000) + "ms (" + (durationUs / 1000000) + "초)");
+                
+                // 길이가 0이면 문제 있음
+                if (durationUs <= 0) {
+                    LoggerManager.logger("❌ 오디오 길이가 0 또는 음수: " + durationUs);
+                    return false;
+                }
+            } else {
+                LoggerManager.logger("   ⚠️ 길이 정보 없음");
+            }
+            
+            // 실제 샘플 데이터 검증 (첫 몇 개 샘플 읽기 시도)
+            ByteBuffer sampleBuffer = ByteBuffer.allocate(1024);
+            int validSamples = 0;
+            int maxSamplesToCheck = 10;
+            
+            LoggerManager.logger("🔍 실제 샘플 데이터 검증 시작 (최대 " + maxSamplesToCheck + "개)");
+            
+            while (validSamples < maxSamplesToCheck) {
+                long sampleTime = verifyExtractor.getSampleTime();
+                if (sampleTime < 0) {
+                    LoggerManager.logger("   → 샘플 종료 감지 (시간: " + sampleTime + ")");
+                    break;
+                }
+                
+                int sampleSize = verifyExtractor.readSampleData(sampleBuffer, 0);
+                if (sampleSize < 0) {
+                    LoggerManager.logger("   → 샘플 데이터 읽기 종료");
+                    break;
+                }
+                
+                if (sampleSize > 0) {
+                    validSamples++;
+                    LoggerManager.logger("   → 샘플 " + validSamples + ": " + sampleSize + " bytes (시간: " + (sampleTime / 1000) + "ms)");
+                }
+                
+                if (!verifyExtractor.advance()) {
+                    LoggerManager.logger("   → MediaExtractor advance 종료");
+                    break;
+                }
+                
+                sampleBuffer.clear();
+            }
+            
+            LoggerManager.logger("📋 샘플 검증 결과: " + validSamples + "개 유효 샘플 확인");
+            
+            // 최소 1개의 유효한 샘플이 있어야 함
+            if (validSamples == 0) {
+                LoggerManager.logger("❌ 유효한 오디오 샘플이 없습니다");
+                return false;
+            }
+            
+            // 필수 메타데이터 확인
+            if (mimeType == null) {
+                LoggerManager.logger("❌ MIME 타입 정보가 없습니다");
+                return false;
+            }
+            
+            LoggerManager.logger("✅ 오디오 데이터 무결성 검증 완료");
+            LoggerManager.logger("   → 유효한 " + mimeType + " 포맷");
+            LoggerManager.logger("   → " + validSamples + "개 샘플 확인");
+            LoggerManager.logger("   → 재생 가능한 오디오 파일로 판정");
+            
+            return true;
+            
+        } catch (IOException e) {
+            LoggerManager.logger("❌ 오디오 검증 중 IOException: " + e.getMessage());
+            return false;
+        } catch (Exception e) {
+            LoggerManager.logger("❌ 오디오 검증 중 예외: " + e.getClass().getSimpleName() + " - " + e.getMessage());
+            return false;
+        } finally {
+            if (verifyExtractor != null) {
+                try {
+                    verifyExtractor.release();
+                    LoggerManager.logger("   → 검증용 MediaExtractor 해제 완료");
+                } catch (Exception e) {
+                    LoggerManager.logger("   ⚠️ 검증용 MediaExtractor 해제 실패: " + e.getMessage());
+                }
+            }
+        }
+    }
+    
+    /**
+     * 콜백 알림 메서드들
+     */
+    private void notifyStart() {
+        if (onStartListener != null) {
+            mainHandler.post(() -> onStartListener.onTrimStart());
+        }
+    }
+    
+    private void notifyProgress(int progress) {
+        if (onProgressListener != null) {
+            mainHandler.post(() -> onProgressListener.onTrimProgress(progress));
+        }
+    }
+    
+    private void notifyCompletion(String outputPath) {
+        if (onCompletionListener != null) {
+            mainHandler.post(() -> onCompletionListener.onTrimComplete(outputPath));
+        }
+    }
+    
+    private void notifyError(String error) {
+        if (onErrorListener != null) {
+            mainHandler.post(() -> onErrorListener.onTrimError(error));
+        }
+    }
+    
+    /**
+     * 리스너 설정 메서드들
+     */
+    public void setOnStartListener(OnTrimStartListener listener) {
+        this.onStartListener = listener;
+    }
+    
+    public void setOnProgressListener(OnTrimProgressListener listener) {
+        this.onProgressListener = listener;
+    }
+    
+    public void setOnCompletionListener(OnTrimCompletionListener listener) {
+        this.onCompletionListener = listener;
+    }
+    
+    public void setOnErrorListener(OnTrimErrorListener listener) {
+        this.onErrorListener = listener;
+    }
+    
+    /**
+     * 모든 리스너 제거
+     */
+    public void clearListeners() {
+        onStartListener = null;
+        onProgressListener = null;
+        onCompletionListener = null;
+        onErrorListener = null;
+    }
+    
+    /**
+     * 임시 파일을 편집 전용 디렉토리로 이동 (라이브러리 연동)
+     * FileManager의 getEditedDirectory() 활용
+     */
+    private String moveToEditedDirectory(File tempFile, String fileName) {
+        try {
+            LoggerManager.logger("📁 편집 전용 디렉토리로 파일 이동 시작: " + fileName);
+            
+            // FileManager를 통해 편집 디렉토리 경로 가져오기
+            FileManager fileManager = new FileManager(context);
+            File editedDir = fileManager.getEditedDirectory(context);
+            
+            // 편집 디렉토리가 존재하지 않으면 생성
+            if (!editedDir.exists()) {
+                boolean dirCreated = editedDir.mkdirs();
+                LoggerManager.logger("   → 편집 디렉토리 생성: " + (dirCreated ? "성공" : "실패"));
+                if (!dirCreated) {
+                    LoggerManager.logger("❌ 편집 디렉토리 생성 실패: " + editedDir.getAbsolutePath());
+                    return null;
+                }
+            }
+            
+            // 최종 대상 파일 경로 생성
+            File destFile = new File(editedDir, fileName);
+            
+            // 중복 파일명 처리
+            if (destFile.exists()) {
+                String uniquePath = fileManager.getUniqueFileName(destFile.getAbsolutePath());
+                destFile = new File(uniquePath);
+                LoggerManager.logger("   → 중복 파일명 처리: " + destFile.getName());
+            }
+            
+            // 파일 복사
+            boolean copySuccess = copyFileToDestination(tempFile, destFile);
+            
+            if (copySuccess) {
+                String finalPath = destFile.getAbsolutePath();
+                LoggerManager.logger("✅ 편집 폴더 이동 완료: " + finalPath);
+                LoggerManager.logger("   → 파일 크기: " + destFile.length() + " bytes");
+                LoggerManager.logger("   → 라이브러리 위치: /Audios/Edited/" + destFile.getName());
+                return finalPath;
+            } else {
+                LoggerManager.logger("❌ 편집 폴더로 파일 복사 실패");
+                return null;
+            }
+            
+        } catch (Exception e) {
+            LoggerManager.logger("❌ 편집 폴더 이동 실패: " + e.getMessage());
+            return null;
+        }
+    }
+    
+    /**
+     * 파일 복사 헬퍼 메서드
+     */
+    private boolean copyFileToDestination(File sourceFile, File destFile) {
+        try (java.io.FileInputStream inputStream = new java.io.FileInputStream(sourceFile);
+             java.io.FileOutputStream outputStream = new java.io.FileOutputStream(destFile)) {
+            
+            byte[] buffer = new byte[8 * 1024]; // 8KB 버퍼
+            int bytesRead;
+            long totalBytes = 0;
+            
+            while ((bytesRead = inputStream.read(buffer)) != -1) {
+                outputStream.write(buffer, 0, bytesRead);
+                totalBytes += bytesRead;
+            }
+            
+            outputStream.flush();
+            LoggerManager.logger("   → 파일 복사 완료: " + totalBytes + " bytes");
+            return true;
+            
+        } catch (java.io.IOException e) {
+            LoggerManager.logger("   → 파일 복사 실패: " + e.getMessage());
+            return false;
+        }
+    }
+    
+    /**
+     * MediaStore API를 사용하여 Downloads 폴더에 저장 (Android 10+)
+     */
+    private String moveToDownloadsWithMediaStore(File sourceFile, String fileName) {
+        try {
+            android.content.ContentValues values = new android.content.ContentValues();
+            values.put(android.provider.MediaStore.MediaColumns.DISPLAY_NAME, fileName);
+            values.put(android.provider.MediaStore.MediaColumns.RELATIVE_PATH, 
+                      android.os.Environment.DIRECTORY_DOWNLOADS + "/Audios");
+            
+            // MIME 타입 설정
+            String mimeType = getMimeTypeFromFileName(fileName);
+            values.put(android.provider.MediaStore.MediaColumns.MIME_TYPE, mimeType);
+            
+            // API 29+에서 파일 대기 상태로 설정
+            values.put(android.provider.MediaStore.MediaColumns.IS_PENDING, 1);
+            
+            // MediaStore에 파일 등록
+            android.net.Uri externalUri = context.getContentResolver().insert(
+                android.provider.MediaStore.Downloads.EXTERNAL_CONTENT_URI, values);
+            
+            if (externalUri == null) {
+                throw new java.io.IOException("MediaStore URI 생성 실패");
+            }
+            
+            // 파일 내용 복사
+            try (java.io.FileInputStream inputStream = new java.io.FileInputStream(sourceFile);
+                 java.io.OutputStream outputStream = context.getContentResolver().openOutputStream(externalUri)) {
+                
+                if (outputStream == null) {
+                    throw new java.io.IOException("OutputStream 생성 실패");
+                }
+                
+                byte[] buffer = new byte[8 * 1024];
+                int bytesRead;
+                long totalBytes = 0;
+                
+                while ((bytesRead = inputStream.read(buffer)) != -1) {
+                    outputStream.write(buffer, 0, bytesRead);
+                    totalBytes += bytesRead;
+                }
+                
+                outputStream.flush();
+                LoggerManager.logger("📁 MediaStore 파일 복사 완료: " + totalBytes + " bytes");
+            }
+            
+            // 대기 상태 해제 (파일 완성)
+            values.clear();
+            values.put(android.provider.MediaStore.MediaColumns.IS_PENDING, 0);
+            context.getContentResolver().update(externalUri, values, null, null);
+            
+            // 실제 파일 경로 추출 시도
+            String realPath = getRealPathFromMediaStoreUri(externalUri);
+            if (realPath != null) {
+                LoggerManager.logger("✅ Downloads/Audios 폴더 저장 완료: " + realPath);
+                return realPath;
+            } else {
+                LoggerManager.logger("✅ Downloads/Audios 폴더 저장 완료 (URI): " + externalUri.toString());
+                return "/storage/emulated/0/Download/Audios/" + fileName; // 사용자 안내용 경로
+            }
+            
+        } catch (Exception e) {
+            LoggerManager.logger("❌ MediaStore 저장 실패: " + e.getMessage());
+            return null;
+        }
+    }
+    
+    /**
+     * 레거시 방식으로 Downloads 폴더에 저장 (Android 9 이하)
+     */
+    private String moveToDownloadsLegacy(File sourceFile, String fileName) {
+        try {
+            File downloadsDir = android.os.Environment.getExternalStoragePublicDirectory(
+                android.os.Environment.DIRECTORY_DOWNLOADS);
+            File audiosDir = new File(downloadsDir, "Audios");
+            
+            if (!audiosDir.exists()) {
+                audiosDir.mkdirs();
+            }
+            
+            File destFile = new File(audiosDir, fileName);
+            
+            // 파일 복사
+            try (java.io.FileInputStream inputStream = new java.io.FileInputStream(sourceFile);
+                 java.io.FileOutputStream outputStream = new java.io.FileOutputStream(destFile)) {
+                
+                byte[] buffer = new byte[8 * 1024];
+                int bytesRead;
+                
+                while ((bytesRead = inputStream.read(buffer)) != -1) {
+                    outputStream.write(buffer, 0, bytesRead);
+                }
+                
+                outputStream.flush();
+            }
+            
+            // 미디어 스캔 요청 (갤러리 인식)
+            android.content.Intent mediaScanIntent = new android.content.Intent(
+                android.content.Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
+            mediaScanIntent.setData(android.net.Uri.fromFile(destFile));
+            context.sendBroadcast(mediaScanIntent);
+            
+            LoggerManager.logger("✅ Downloads/Audios 폴더 저장 완료 (레거시): " + destFile.getAbsolutePath());
+            return destFile.getAbsolutePath();
+            
+        } catch (Exception e) {
+            LoggerManager.logger("❌ 레거시 저장 실패: " + e.getMessage());
+            return null;
+        }
+    }
+    
+    /**
+     * 파일명에서 MIME 타입 추출
+     */
+    private String getMimeTypeFromFileName(String fileName) {
+        if (fileName == null) return "audio/mpeg";
+        
+        String extension = fileName.toLowerCase();
+        if (extension.endsWith(".m4a")) return "audio/mp4";
+        if (extension.endsWith(".webm")) return "audio/webm";
+        if (extension.endsWith(".mp3")) return "audio/mpeg";
+        if (extension.endsWith(".wav")) return "audio/wav";
+        if (extension.endsWith(".aac")) return "audio/aac";
+        
+        return "audio/mpeg"; // 기본값
+    }
+    
+    /**
+     * MediaStore URI에서 실제 파일 경로 추출
+     */
+    private String getRealPathFromMediaStoreUri(android.net.Uri uri) {
+        try {
+            String[] projection = {android.provider.MediaStore.MediaColumns.DATA};
+            android.database.Cursor cursor = context.getContentResolver().query(
+                uri, projection, null, null, null);
+                
+            if (cursor != null && cursor.moveToFirst()) {
+                int columnIndex = cursor.getColumnIndexOrThrow(
+                    android.provider.MediaStore.MediaColumns.DATA);
+                String path = cursor.getString(columnIndex);
+                cursor.close();
+                return path;
+            }
+            
+            if (cursor != null) {
+                cursor.close();
+            }
+            
+        } catch (Exception e) {
+            LoggerManager.logger("실제 경로 추출 실패: " + e.getMessage());
+        }
+        
+        return null;
+    }
+    
+    /**
+     * ExecutorService 상태 확인 및 재생성 (RejectedExecutionException 방지)
+     */
+    private void ensureExecutorServiceReady() {
+        if (executorService == null || executorService.isShutdown() || executorService.isTerminated()) {
+            LoggerManager.logger("🔄 ExecutorService 재생성 필요");
+            LoggerManager.logger("   → 현재 상태: " + (executorService == null ? "null" : 
+                (executorService.isShutdown() ? "shutdown" : 
+                (executorService.isTerminated() ? "terminated" : "active"))));
+            
+            executorService = Executors.newSingleThreadExecutor();
+            LoggerManager.logger("✅ ExecutorService 재생성 완료 - 새로운 작업 준비됨");
+        } else {
+            LoggerManager.logger("ℹ️ ExecutorService 상태 정상 - 기존 인스턴스 사용");
+        }
+    }
+    
+    /**
+     * 리소스 정리
+     */
+    public void cleanup() {
+        try {
+            // 진행 중인 작업 취소
+            cancelTrimming();
+            
+            // ExecutorService 종료
+            if (executorService != null && !executorService.isShutdown()) {
+                executorService.shutdown();
+            }
+            
+            // 임시 파일 정리
+            if (context != null) {
+                // 입력용 임시 파일 정리
+                File tempInputDir = new File(context.getCacheDir(), "temp_audio_trimmer");
+                clearTempDirectory(tempInputDir);
+                
+                // 출력용 임시 파일 정리
+                File tempOutputDir = new File(context.getCacheDir(), "temp_output");
+                clearTempDirectory(tempOutputDir);
+            }
+            
+            LoggerManager.logger("NativeAudioTrimManager 리소스 정리 완료");
+            
+        } catch (Exception e) {
+            LoggerManager.logger("NativeAudioTrimManager 리소스 정리 실패: " + e.getMessage());
+        }
+    }
+    
+    /**
+     * 임시 디렉토리 정리
+     */
+    private void clearTempDirectory(File tempDir) {
+        try {
+            if (tempDir.exists()) {
+                File[] tempFiles = tempDir.listFiles();
+                if (tempFiles != null) {
+                    for (File file : tempFiles) {
+                        file.delete();
+                    }
+                }
+                tempDir.delete();
+            }
+        } catch (Exception e) {
+            LoggerManager.logger("임시 디렉토리 정리 실패: " + tempDir.getName() + " - " + e.getMessage());
+        }
+    }
+    
+    // ================ 리팩토링된 개별 STEP 메서드들 ================
+    
+    /**
+     * STEP 1: URI를 임시 파일로 복사 (Scoped Storage 호환)
+     */
+    private File createTempInputFile(Uri sourceUri) throws IOException {
+        LoggerManager.logger("📁 STEP 1: URI를 임시 파일로 복사 중...");
+        LoggerManager.logger("   → 원본 URI: " + sourceUri.toString());
+        
+        long startTime = System.currentTimeMillis();
+        File tempInputFile = createTempFileFromUri(sourceUri);
+        long copyTime = System.currentTimeMillis() - startTime;
+        
+        if (tempInputFile == null) {
+            LoggerManager.logger("❌ STEP 1 실패: 임시 파일 생성 실패");
+            throw new IOException("URI를 임시 파일로 복사할 수 없습니다.");
+        }
+        
+        LoggerManager.logger("✅ STEP 1 완료: 임시 입력 파일 생성 성공");
+        LoggerManager.logger("   → 임시 파일 경로: " + tempInputFile.getAbsolutePath());
+        LoggerManager.logger("   → 파일 크기: " + tempInputFile.length() + " bytes");
+        LoggerManager.logger("   → 복사 시간: " + copyTime + "ms");
+        
+        return tempInputFile;
+    }
+    
+    /**
+     * STEP 2: 임시 출력 디렉토리 설정
+     */
+    private File setupTempOutputDirectory(String outputFileName, AudioFormat format) throws IOException {
+        LoggerManager.logger("📂 STEP 2: 임시 출력 디렉토리 설정 중...");
+        File tempOutputDir = new File(context.getCacheDir(), "temp_output");
+        LoggerManager.logger("   → 임시 출력 디렉토리: " + tempOutputDir.getAbsolutePath());
+        
+        // 파일 시스템 상태 상세 확인
+        LoggerManager.logger("🔍 파일 시스템 상태 확인:");
+        LoggerManager.logger("   → Cache 디렉토리: " + context.getCacheDir().getAbsolutePath());
+        LoggerManager.logger("   → Cache 디렉토리 존재: " + context.getCacheDir().exists());
+        LoggerManager.logger("   → Cache 디렉토리 쓰기 가능: " + context.getCacheDir().canWrite());
+        LoggerManager.logger("   → Cache 디렉토리 사용 가능 공간: " + context.getCacheDir().getFreeSpace() + " bytes (" + (context.getCacheDir().getFreeSpace()/1024/1024) + " MB)");
+        
+        if (!tempOutputDir.exists()) {
+            LoggerManager.logger("   → temp_output 디렉토리가 존재하지 않음 - 생성 시도");
+            boolean dirCreated = tempOutputDir.mkdirs();
+            LoggerManager.logger("   → 디렉토리 생성: " + (dirCreated ? "성공" : "실패"));
+            
+            if (!dirCreated) {
+                LoggerManager.logger("❌ STEP 2 실패: 임시 출력 디렉토리 생성 실패");
+                LoggerManager.logger("   → 가능한 원인:");
+                LoggerManager.logger("     - 저장 공간 부족: 사용 가능 공간 " + (context.getCacheDir().getFreeSpace()/1024/1024) + "MB");
+                LoggerManager.logger("     - 권한 문제: Cache 디렉토리 쓰기 권한 " + context.getCacheDir().canWrite());
+                LoggerManager.logger("     - 시스템 오류: 파일 시스템 문제");
+                throw new IOException("임시 출력 디렉토리를 생성할 수 없습니다.");
+            }
+        } else {
+            LoggerManager.logger("   → 디렉토리 이미 존재함");
+            LoggerManager.logger("   → 기존 디렉토리 쓰기 가능: " + tempOutputDir.canWrite());
+            
+            // 기존 파일 목록 확인
+            File[] existingFiles = tempOutputDir.listFiles();
+            if (existingFiles != null) {
+                LoggerManager.logger("   → 기존 임시 파일 수: " + existingFiles.length + "개");
+                if (existingFiles.length > 10) {
+                    LoggerManager.logger("   ⚠️ 임시 파일이 많음 - 정리 권장");
+                }
+            } else {
+                LoggerManager.logger("   ⚠️ 디렉토리 파일 목록 조회 실패");
+            }
+        }
+        
+        // 파일명 처리 및 검증
+        String fileName = processFileName(outputFileName, format);
+        File tempOutputFile = new File(tempOutputDir, fileName);
+        String tempOutputPath = tempOutputFile.getAbsolutePath();
+        
+        LoggerManager.logger("✅ STEP 2 완료: 임시 출력 파일 경로 생성");
+        LoggerManager.logger("   → 임시 출력 파일: " + tempOutputPath);
+        LoggerManager.logger("   → 전체 경로 길이: " + tempOutputPath.length() + " chars");
+        
+        return tempOutputFile;
+    }
+    
+    /**
+     * 파일명 처리 및 검증 헬퍼 메서드
+     */
+    private String processFileName(String outputFileName, AudioFormat format) {
+        String fileName = outputFileName;
+        LoggerManager.logger("   → 원본 파일명: " + outputFileName);
+        
+        // 한글 파일명 인코딩 검증
+        LoggerManager.logger("🔤 한글 파일명 처리 분석:");
+        try {
+            byte[] utf8Bytes = fileName.getBytes("UTF-8");
+            String utf8Test = new String(utf8Bytes, "UTF-8");
+            LoggerManager.logger("   → UTF-8 인코딩 테스트: " + utf8Test.equals(fileName) + " (원본과 동일)");
+            LoggerManager.logger("   → UTF-8 바이트 수: " + utf8Bytes.length + " bytes");
+            LoggerManager.logger("   → 문자 수: " + fileName.length() + " chars");
+            
+            // 특수문자 포함 여부 확인
+            boolean hasSpecialChars = !fileName.matches("^[a-zA-Z0-9가-힣._-]+$");
+            LoggerManager.logger("   → 특수문자 포함: " + hasSpecialChars);
+            if (hasSpecialChars) {
+                LoggerManager.logger("   → 파일명에 특수문자 포함 - 파일 시스템 호환성 주의 필요");
+            }
+        } catch (Exception e) {
+            LoggerManager.logger("   ⚠️ 파일명 인코딩 검증 실패: " + e.getMessage());
+        }
+        
+        // 기존 확장자 제거
+        int lastDotIndex = fileName.lastIndexOf('.');
+        if (lastDotIndex > 0) {
+            fileName = fileName.substring(0, lastDotIndex);
+            LoggerManager.logger("   → 확장자 제거: " + outputFileName + " → " + fileName);
+        }
+        
+        // 새로운 확장자 추가
+        fileName += format.getExtension();
+        LoggerManager.logger("   → 최종 파일명: " + fileName);
+        
+        // 파일명 길이 확인 (파일 시스템 제한)
+        if (fileName.length() > 100) {
+            LoggerManager.logger("   ⚠️ 파일명이 매우 김 (" + fileName.length() + "자) - 일부 파일시스템에서 문제 가능");
+        }
+        
+        return fileName;
+    }
+    
+    /**
+     * STEP 3: MediaExtractor 설정
+     */
+    private MediaExtractor setupMediaExtractor(File tempInputFile) throws IOException, IllegalStateException {
+        LoggerManager.logger("🎵 STEP 3: MediaExtractor 설정 중...");
+        
+        try {
+            MediaExtractor extractor = new MediaExtractor();
+            LoggerManager.logger("   → MediaExtractor 인스턴스 생성 완료");
+            
+            extractor.setDataSource(tempInputFile.getAbsolutePath());
+            LoggerManager.logger("   → 데이터 소스 설정 완료: " + tempInputFile.getAbsolutePath());
+            
+            LoggerManager.logger("✅ STEP 3 완료: MediaExtractor 설정 성공");
+            return extractor;
+            
+        } catch (IOException e) {
+            LoggerManager.logger("❌ STEP 3 실패: MediaExtractor 설정 중 IOException: " + e.getMessage());
+            throw e;
+        } catch (Exception e) {
+            LoggerManager.logger("❌ STEP 3 실패: MediaExtractor 설정 중 예외: " + e.getClass().getSimpleName() + " - " + e.getMessage());
+            throw e;
+        }
+    }
+    
+    /**
+     * STEP 4: 오디오 트랙 선택 및 포맷 분석
+     */
+    private AudioTrackInfo analyzeAudioTrack(MediaExtractor extractor, long startTimeMs, long endTimeMs, AudioFormat format) throws IllegalStateException {
+        LoggerManager.logger("🎯 STEP 4: 오디오 트랙 선택 및 포맷 분석 중...");
+        
+        try {
+            // 오디오 트랙 찾기
+            LoggerManager.logger("   → 오디오 트랙 검색 중...");
+            int audioTrackIndex = findAudioTrack(extractor);
+            
+            if (audioTrackIndex < 0) {
+                LoggerManager.logger("❌ STEP 4 실패: 오디오 트랙을 찾을 수 없음");
+                throw new IllegalStateException("오디오 트랙을 찾을 수 없습니다.");
+            }
+            LoggerManager.logger("   → 오디오 트랙 인덱스: " + audioTrackIndex);
+            
+            extractor.selectTrack(audioTrackIndex);
+            LoggerManager.logger("   → 오디오 트랙 " + audioTrackIndex + " 선택 완료");
+            
+            MediaFormat audioFormat = extractor.getTrackFormat(audioTrackIndex);
+            LoggerManager.logger("   → MediaFormat 추출 완료");
+            
+            // 총 기간 계산 (진행률용)
+            if (audioFormat.containsKey(MediaFormat.KEY_DURATION)) {
+                totalDurationUs = audioFormat.getLong(MediaFormat.KEY_DURATION);
+                LoggerManager.logger("   → 오디오 총 길이: " + totalDurationUs + " μs (" + (totalDurationUs/1000) + " ms)");
+            } else {
+                totalDurationUs = 0;
+                LoggerManager.logger("⚠️ 주의: 오디오 길이 정보를 찾을 수 없음 - 진행률 표시 제한됨");
+            }
+            
+            processedDurationUs = 0;
+            LoggerManager.logger("   → 처리된 길이 초기화: 0 μs");
+            
+            // 자르기 구간 로깅
+            logTrimSegment(startTimeMs, endTimeMs);
+            
+            // 출력 포맷 정보 로깅
+            logOutputFormat(format);
+            
+            // 오디오 포맷 상세 정보 로깅
+            LoggerManager.logger("📊 입력 오디오 포맷 상세 분석:");
+            logDetailedAudioFormat(audioFormat);
+            
+            LoggerManager.logger("✅ STEP 4 완료: 오디오 분석 및 설정 성공");
+            
+            return new AudioTrackInfo(audioTrackIndex, audioFormat);
+            
+        } catch (Exception e) {
+            LoggerManager.logger("❌ STEP 4 실패: 오디오 트랙 선택/분석 중 예외: " + e.getClass().getSimpleName() + " - " + e.getMessage());
+            throw e;
+        }
+    }
+    
+    /**
+     * 자르기 구간 정보 로깅 헬퍼 메서드
+     */
+    private void logTrimSegment(long startTimeMs, long endTimeMs) {
+        long trimStartUs = startTimeMs * 1000;
+        long trimEndUs = endTimeMs * 1000;
+        long trimDurationUs = trimEndUs - trimStartUs;
+        
+        LoggerManager.logger("📏 자르기 구간 분석:");
+        LoggerManager.logger("   → 시작: " + startTimeMs + "ms (" + trimStartUs + " μs)");
+        LoggerManager.logger("   → 끝: " + endTimeMs + "ms (" + trimEndUs + " μs)");
+        LoggerManager.logger("   → 자를 길이: " + (endTimeMs - startTimeMs) + "ms (" + trimDurationUs + " μs)");
+        
+        if (totalDurationUs > 0) {
+            double trimRatio = (double)trimDurationUs / totalDurationUs * 100;
+            LoggerManager.logger("   → 전체 대비 비율: " + String.format("%.1f%%", trimRatio));
+        }
+    }
+    
+    /**
+     * 출력 포맷 정보 로깅 헬퍼 메서드
+     */
+    private void logOutputFormat(AudioFormat format) {
+        LoggerManager.logger("🎵 출력 포맷 설정:");
+        LoggerManager.logger("   → 포맷: " + format.name());
+        LoggerManager.logger("   → MIME 타입: " + format.getMimeType()); 
+        LoggerManager.logger("   → 확장자: " + format.getExtension());
+    }
+    
+    /**
+     * STEP 5: MediaMuxer 설정 및 트랙 추가
+     */
+    private MuxerSetupResult setupMediaMuxer(File tempOutputFile, MediaFormat audioFormat, AudioFormat format) throws Exception {
+        LoggerManager.logger("🎬 STEP 5: MediaMuxer 설정 및 트랙 추가 중...");
+        String tempOutputPath = tempOutputFile.getAbsolutePath();
+        LoggerManager.logger("   → 임시 출력 파일: " + tempOutputPath);
+        LoggerManager.logger("   → Muxer 포맷: " + format.getMuxerFormat() + " (" + format.name() + ")");
+        
+        // MediaMuxer 생성 전 파일 상태 확인
+        logPreMuxerFileState(tempOutputFile, tempOutputPath);
+        
+        try {
+            LoggerManager.logger("🔨 MediaMuxer 인스턴스 생성 시도...");
+            MediaMuxer muxer = new MediaMuxer(tempOutputPath, format.getMuxerFormat());
+            LoggerManager.logger("   ✅ MediaMuxer 인스턴스 생성 성공");
+            
+            // MediaMuxer 생성 후 파일 상태 확인
+            logPostMuxerCreationState(tempOutputFile);
+            
+            // 포맷 호환성 검증 및 트랙 추가
+            LoggerManager.logger("   → 포맷 호환성 검증 및 트랙 추가 시작...");
+            int muxerTrackIndex = addTrackWithCompatibilityCheck(muxer, audioFormat, format);
+            
+            if (muxerTrackIndex < 0) {
+                LoggerManager.logger("❌ STEP 5 실패: MediaMuxer 트랙 추가 실패 (인덱스: " + muxerTrackIndex + ")");
+                throw new IllegalStateException("MediaMuxer에 오디오 트랙을 추가할 수 없습니다. 포맷 호환성을 확인해주세요.");
+            }
+            LoggerManager.logger("   → 트랙 추가 성공 (트랙 인덱스: " + muxerTrackIndex + ")");
+            
+            // 트랙 추가 후 파일 상태 확인
+            logPostTrackAdditionState(tempOutputFile);
+            
+            // MediaMuxer 시작
+            startMediaMuxer(muxer, tempOutputFile);
+            
+            LoggerManager.logger("✅ STEP 5 완료: MediaMuxer 설정 및 시작 성공");
+            return new MuxerSetupResult(muxer, muxerTrackIndex);
+            
+        } catch (IOException e) {
+            LoggerManager.logger("❌ STEP 5 실패: MediaMuxer 생성 중 IOException: " + e.getMessage());
+            throw e;
+        } catch (Exception e) {
+            LoggerManager.logger("❌ STEP 5 실패: MediaMuxer 설정 중 예외: " + e.getClass().getSimpleName() + " - " + e.getMessage());
+            throw e;
+        }
+    }
+    
+    /**
+     * MediaMuxer 생성 전 파일 상태 로깅 헬퍼 메서드
+     */
+    private void logPreMuxerFileState(File tempOutputFile, String tempOutputPath) {
+        LoggerManager.logger("📋 MediaMuxer 생성 전 파일 상태:");
+        LoggerManager.logger("   → 출력 파일 경로: " + tempOutputPath);
+        LoggerManager.logger("   → 출력 파일 존재: " + tempOutputFile.exists());
+        if (tempOutputFile.getParentFile() != null) {
+            LoggerManager.logger("   → 부모 디렉토리 존재: " + tempOutputFile.getParentFile().exists());
+            LoggerManager.logger("   → 부모 디렉토리 쓰기 가능: " + tempOutputFile.getParentFile().canWrite());
+        }
+    }
+    
+    /**
+     * MediaMuxer 생성 후 파일 상태 로깅 헬퍼 메서드
+     */
+    private void logPostMuxerCreationState(File tempOutputFile) {
+        LoggerManager.logger("📋 MediaMuxer 생성 후 파일 상태:");
+        LoggerManager.logger("   → 출력 파일 존재: " + tempOutputFile.exists());
+        if (tempOutputFile.exists()) {
+            LoggerManager.logger("   → 출력 파일 크기: " + tempOutputFile.length() + " bytes");
+            LoggerManager.logger("   → 출력 파일 읽기 가능: " + tempOutputFile.canRead());
+            LoggerManager.logger("   → 출력 파일 쓰기 가능: " + tempOutputFile.canWrite());
+        }
+    }
+    
+    /**
+     * 트랙 추가 후 파일 상태 로깅 헬퍼 메서드
+     */
+    private void logPostTrackAdditionState(File tempOutputFile) {
+        LoggerManager.logger("📋 트랙 추가 후 파일 상태:");
+        LoggerManager.logger("   → 출력 파일 존재: " + tempOutputFile.exists());
+        if (tempOutputFile.exists()) {
+            LoggerManager.logger("   → 출력 파일 크기: " + tempOutputFile.length() + " bytes");
+        }
+    }
+    
+    /**
+     * MediaMuxer 시작 헬퍼 메서드
+     */
+    private void startMediaMuxer(MediaMuxer muxer, File tempOutputFile) {
+        LoggerManager.logger("   → MediaMuxer 시작 중...");
+        try {
+            muxer.start();
+            muxerState = MuxerState.STARTED;
+            muxerNeedsStop = true; // start()가 성공하면 나중에 stop() 필요
+            LoggerManager.logger("   ✅ MediaMuxer 시작 성공");
+            LoggerManager.logger("   → 상태: " + muxerState);
+            
+            // MediaMuxer 시작 후 파일 상태 확인
+            LoggerManager.logger("📋 MediaMuxer 시작 후 파일 상태:");
+            LoggerManager.logger("   → 출력 파일 존재: " + tempOutputFile.exists());
+            if (tempOutputFile.exists()) {
+                LoggerManager.logger("   → 출력 파일 크기: " + tempOutputFile.length() + " bytes");
+                LoggerManager.logger("   → 파일 헤더가 생성됨 (MediaMuxer 준비 완료)");
+            }
+            
+        } catch (Exception e) {
+            LoggerManager.logger("❌ MediaMuxer 시작 중 예외: " + e.getClass().getSimpleName() + " - " + e.getMessage());
+            LoggerManager.logger("   → MediaMuxer 시작 실패 원인 분석:");
+            LoggerManager.logger("     - 파일 경로 문제: " + tempOutputFile.getAbsolutePath());
+            if (tempOutputFile.getParentFile() != null) {
+                LoggerManager.logger("     - 디스크 공간 문제: " + (tempOutputFile.getParentFile().getFreeSpace()/1024/1024) + "MB 남음");
+                LoggerManager.logger("     - 권한 문제: 쓰기 권한 " + tempOutputFile.getParentFile().canWrite());
+            }
+            muxerState = MuxerState.STOPPED; // 시작 실패 시 정지 상태로 설정
+            throw new RuntimeException("MediaMuxer 시작 실패", e);
+        }
+    }
+    
+    /**
+     * STEP 6: 오디오 데이터 자르기 및 복사
+     */
+    private boolean copyAndTrimAudioData(MediaExtractor extractor, MediaMuxer muxer, int muxerTrackIndex, long startTimeUs, long endTimeUs) throws InterruptedException {
+        LoggerManager.logger("🔄 STEP 6: 오디오 데이터 자르기 및 복사 시작...");
+        LoggerManager.logger("   → 자르기 구간: " + startTimeUs + " ~ " + endTimeUs + " μs");
+        LoggerManager.logger("   → 대상 트랙: " + muxerTrackIndex);
+        
+        long copyStartTime = System.currentTimeMillis();
+        boolean copySuccess = trimAndCopyAudioTrack(extractor, muxer, muxerTrackIndex, startTimeUs, endTimeUs);
+        long copyDuration = System.currentTimeMillis() - copyStartTime;
+        
+        if (!copySuccess) {
+            LoggerManager.logger("❌ STEP 6 실패: 오디오 데이터 복사 실패");
+            LoggerManager.logger("⚠️ 부분 데이터라도 파일 완성을 시도합니다 (MediaMuxer.stop() 강제 호출)");
+            
+            // 핵심 수정: copySuccess=false여도 MediaMuxer.stop() 호출해서 파일 완성
+            try {
+                if (muxerState == MuxerState.STARTED && muxerNeedsStop) {
+                    LoggerManager.logger("🔧 강제 MediaMuxer.stop() 호출 - 부분 데이터라도 파일 완성");
+                    muxer.stop();
+                    muxerState = MuxerState.STOPPED;
+                    muxerNeedsStop = false;
+                    LoggerManager.logger("✅ 강제 stop() 성공 - 파일 헤더 완성됨");
+                }
+            } catch (Exception stopEx) {
+                LoggerManager.logger("❌ 강제 stop() 실패: " + stopEx.getMessage());
+            }
+            
+            LoggerManager.logger("🔍 부분 완성된 파일 검증 시도...");
+        }
+        
+        // STEP 6 완료 상태에 따른 로깅
+        if (copySuccess) {
+            LoggerManager.logger("✅ STEP 6 완료: 오디오 데이터 복사 성공");
+            LoggerManager.logger("   → 복사 시간: " + copyDuration + "ms");
+            LoggerManager.logger("   → 처리된 데이터: " + processedDurationUs + " μs");
+            
+            // 데이터 쓰기 완료
+            LoggerManager.logger("🎯 오디오 데이터 쓰기 완료 - MediaMuxer 정지 준비");
+            LoggerManager.logger("   → 처리된 데이터: " + processedDurationUs + " μs");
+            LoggerManager.logger("   → 현재 상태: " + muxerState);
+        } else {
+            LoggerManager.logger("⚠️ STEP 6 부분 완료: 오디오 데이터 복사 중 오류 발생했으나 강제 완성 시도");
+            LoggerManager.logger("   → 복사 시간: " + copyDuration + "ms");
+            LoggerManager.logger("   → 현재 상태: " + muxerState);
+            LoggerManager.logger("   → 검증 통과시 계속 진행, 실패시 작업 중단");
+        }
+        
+        return copySuccess;
+    }
+    
+    /**
+     * STEP 7: 임시 파일 생성 및 품질 검증
+     */
+    private void validateTrimmedFile(File tempOutputFile, boolean copySuccess) throws IOException {
+        LoggerManager.logger("📋 STEP 7: 임시 파일 검증 시작...");
+        String tempOutputPath = tempOutputFile.getAbsolutePath();
+        LoggerManager.logger("   → 검증 대상: " + tempOutputPath);
+        
+        // MediaMuxer 정지 전 마지막 파일 상태 확인
+        logPreValidationFileState(tempOutputFile);
+        
+        boolean tempFileVerification = verifyFinalOutputFile(tempOutputPath);
+        if (!tempFileVerification) {
+            if (copySuccess) {
+                // copySuccess=true인데 검증 실패 → 치명적 오류
+                LoggerManager.logger("❌ STEP 7 실패: 임시 파일 검증 실패 (완전 복사였으나 검증 실패)");
+                logValidationFailureDetails(tempOutputPath, tempOutputFile, true);
+                throw new IOException("임시 파일이 정상적으로 생성되지 않았습니다: " + tempOutputPath);
+            } else {
+                // copySuccess=false인데 검증 실패 → 예상된 상황, 경고로 처리
+                LoggerManager.logger("⚠️ STEP 7 경고: 부분 완성 파일 검증 실패 (예상된 상황)");
+                logValidationFailureDetails(tempOutputPath, tempOutputFile, false);
+                LoggerManager.logger("   → 이 경우 원본 데이터 문제 또는 호환성 문제일 가능성 높음");
+                throw new IOException("오디오 자르기 실패: 원본 파일 호환성 문제 또는 데이터 손상 가능성");
+            }
+        }
+        
+        LoggerManager.logger("✅ STEP 7 완료: 임시 파일 검증 성공");
+        LoggerManager.logger("   → 파일 크기: " + tempOutputFile.length() + " bytes");
+        LoggerManager.logger("   → 파일 위치: " + tempOutputPath);
+        LoggerManager.logger("   → 검증 결과: 재생 가능한 오디오 파일 확인됨");
+    }
+    
+    /**
+     * 검증 전 파일 상태 로깅 헬퍼 메서드
+     */
+    private void logPreValidationFileState(File tempOutputFile) {
+        LoggerManager.logger("📋 MediaMuxer 정지 전 최종 파일 상태:");
+        LoggerManager.logger("   → 파일 존재: " + tempOutputFile.exists());
+        if (tempOutputFile.exists()) {
+            LoggerManager.logger("   → 파일 크기: " + tempOutputFile.length() + " bytes");
+            LoggerManager.logger("   → 파일 마지막 수정: " + new java.util.Date(tempOutputFile.lastModified()));
+            LoggerManager.logger("   → 파일 읽기 가능: " + tempOutputFile.canRead());
+        } else {
+            LoggerManager.logger("   ❌ 임시 출력 파일이 존재하지 않음!");
+            LoggerManager.logger("   → MediaMuxer가 파일을 생성하지 못했거나 다른 위치에 생성됨");
+            if (tempOutputFile.getParentFile() != null) {
+                LoggerManager.logger("   → 부모 디렉토리 확인: " + tempOutputFile.getParentFile().exists());
+            }
+            
+            // 같은 디렉토리의 다른 파일들 확인
+            if (tempOutputFile.getParentFile() != null) {
+                File[] files = tempOutputFile.getParentFile().listFiles();
+                if (files != null) {
+                    LoggerManager.logger("   → 같은 디렉토리의 파일들:");
+                    for (File f : files) {
+                        LoggerManager.logger("     - " + f.getName() + " (" + f.length() + " bytes)");
+                    }
+                } else {
+                    LoggerManager.logger("   → 디렉토리 목록 조회 실패");
+                }
+            }
+        }
+    }
+    
+    /**
+     * 검증 실패 상세 정보 로깅 헬퍼 메서드
+     */
+    private void logValidationFailureDetails(String tempOutputPath, File tempOutputFile, boolean copyWasSuccess) {
+        LoggerManager.logger("   → 파일 검증 실패 상세 분석:");
+        LoggerManager.logger("     - 파일 경로: " + tempOutputPath);
+        LoggerManager.logger("     - 파일 존재 여부: " + tempOutputFile.exists());
+        LoggerManager.logger("     - 파일 크기: " + (tempOutputFile.exists() ? tempOutputFile.length() + " bytes" : "N/A"));
+        LoggerManager.logger("     - MediaMuxer 상태: " + muxerState);
+        LoggerManager.logger("     - 데이터 복사 상태: " + (copyWasSuccess ? "성공" : "부분 실패"));
+        
+        if (copyWasSuccess) {
+            LoggerManager.logger("     - 가능한 원인:");
+            LoggerManager.logger("       * MediaMuxer.stop() 미호출 또는 실패");
+            LoggerManager.logger("       * 디스크 공간 부족");
+            LoggerManager.logger("       * 파일 시스템 오류");
+            LoggerManager.logger("       * 한글 파일명 인코딩 문제");
+            LoggerManager.logger("       * 권한 문제");
+        }
+    }
+    
+    /**
+     * STEP 8: 편집 전용 폴더로 파일 이동 (라이브러리 연동)
+     */
+    private String moveToFinalDestination(File tempOutputFile, String fileName) {
+        LoggerManager.logger("🚀 STEP 8: 편집 전용 폴더로 파일 이동 시작...");
+        String tempOutputPath = tempOutputFile.getAbsolutePath();
+        LoggerManager.logger("   → 원본 위치: " + tempOutputPath);
+        LoggerManager.logger("   → 대상 위치: /Audios/Edited/");
+        LoggerManager.logger("   → 최종 파일명: " + fileName);
+        
+        String finalOutputPath = moveToEditedDirectory(tempOutputFile, fileName);
+        if (finalOutputPath == null) {
+            LoggerManager.logger("⚠️ STEP 8 실패: 편집 폴더 이동 실패");
+            LoggerManager.logger("   → 임시 파일 위치에서 완료 처리 시도...");
+            // 대안: 임시 파일 위치에서 완료
+            finalOutputPath = tempOutputPath;
+        } else {
+            LoggerManager.logger("✅ STEP 8 완료: 편집 폴더 이동 성공!");
+            LoggerManager.logger("   → 최종 위치: " + finalOutputPath);
+        }
+        
+        return finalOutputPath;
+    }
+}

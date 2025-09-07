@@ -20,7 +20,13 @@ import com.google.android.material.slider.Slider;
 import com.devc.lab.audios.R;
 import com.devc.lab.audios.databinding.FragmentEditBinding;
 import com.devc.lab.audios.activity.MainActivity;
-import com.devc.lab.audios.manager.*;
+import com.devc.lab.audios.manager.FileManager;
+import com.devc.lab.audios.manager.ToastManager;
+import com.devc.lab.audios.manager.AudioConversionManager;
+import com.devc.lab.audios.manager.DialogManager;
+import com.devc.lab.audios.manager.AudioTrimManager;
+import com.devc.lab.audios.manager.LoggerManager;
+import com.devc.lab.audios.manager.NativeAudioTrimManager;
 import com.devc.lab.audios.model.EditViewModel;
 import com.devc.lab.audios.model.MainViewModel;
 import com.devc.lab.audios.view.WaveformView;
@@ -39,7 +45,7 @@ public class EditFragment extends Fragment {
     // Manager 클래스들
     private FileManager fileManager;
     private ToastManager toastManager;
-    private FFmpegManager ffmpegManager;
+    private AudioConversionManager audioConversionManager;
     private DialogManager dialogManager;
     private AudioTrimManager audioTrimManager;
     // LoggerManager는 static 메서드를 사용하므로 인스턴스 변수 불필요
@@ -93,7 +99,7 @@ public class EditFragment extends Fragment {
     private void initManagers() {
         fileManager = new FileManager(getContext());
         toastManager = new ToastManager(getContext());
-        ffmpegManager = new FFmpegManager();
+        audioConversionManager = new AudioConversionManager();
         dialogManager = new DialogManager(getContext());
         audioTrimManager = AudioTrimManager.getInstance();
         audioTrimManager.init(getContext());
@@ -101,20 +107,23 @@ public class EditFragment extends Fragment {
         
         progressHandler = new Handler(Looper.getMainLooper());
         
-        // FFmpegManager 콜백 설정
-        setupFFmpegCallbacks();
+        // AudioConversionManager 콜백 설정
+        setupAudioConversionCallbacks();
+        
+        // AudioTrimManager 콜백 설정 (자르기 작업용)
+        setupAudioTrimCallbacks();
     }
     
-    private void setupFFmpegCallbacks() {
-        ffmpegManager.setOnStartListener(() -> {
+    private void setupAudioConversionCallbacks() {
+        audioConversionManager.setOnStartListener(() -> {
             if (getActivity() != null) {
                 getActivity().runOnUiThread(() -> {
-                    LoggerManager.logger("FFmpeg 편집 시작");
+                    LoggerManager.logger("Native API 편집 시작");
                 });
             }
         });
         
-        ffmpegManager.setOnProgressListener(progress -> {
+        audioConversionManager.setOnProgressListener(progress -> {
             if (getActivity() != null) {
                 getActivity().runOnUiThread(() -> {
                     dialogManager.updateProgress(progress);
@@ -123,7 +132,7 @@ public class EditFragment extends Fragment {
             }
         });
         
-        ffmpegManager.setOnCompletionListener((inputPath, outputPath) -> {
+        audioConversionManager.setOnCompletionListener((inputPath, outputPath) -> {
             if (getActivity() != null) {
                 getActivity().runOnUiThread(() -> {
                     dialogManager.dismissProgressDialog();
@@ -133,15 +142,62 @@ public class EditFragment extends Fragment {
             }
         });
         
-//         ffmpegManager.setOnErrorListener(error -> {
-//             if (getActivity() != null) {
-//                 getActivity().runOnUiThread(() -> {
-//                     dialogManager.dismissProgressDialog();
-//                     toastManager.showToastLong("편집 중 오류가 발생했습니다: " + error);
-//                     LoggerManager.logger("편집 오류: " + error);
-//                 });
-//             }
-//         });
+        audioConversionManager.setOnFailureListener((message, reason) -> {
+            if (getActivity() != null) {
+                getActivity().runOnUiThread(() -> {
+                    dialogManager.dismissProgressDialog();
+                    toastManager.showToastLong("편집 중 오류가 발생했습니다: " + message);
+                    LoggerManager.logger("편집 오류: " + message + " - " + reason);
+                });
+            }
+        });
+    }
+    
+    /**
+     * AudioTrimManager 콜백 설정 (자르기 작업 전용)
+     */
+    private void setupAudioTrimCallbacks() {
+        audioTrimManager.setOnStartListener(() -> {
+            if (getActivity() != null) {
+                getActivity().runOnUiThread(() -> {
+                    dialogManager.showProgressDialog();
+                    LoggerManager.logger("🎵 오디오 자르기 시작");
+                });
+            }
+        });
+        
+        audioTrimManager.setOnProgressListener(progress -> {
+            if (getActivity() != null) {
+                getActivity().runOnUiThread(() -> {
+                    dialogManager.updateProgress(progress);
+                    LoggerManager.logger("🎵 자르기 진행률: " + progress + "%");
+                });
+            }
+        });
+        
+        audioTrimManager.setOnCompletionListener(outputPath -> {
+            if (getActivity() != null) {
+                getActivity().runOnUiThread(() -> {
+                    dialogManager.dismissProgressDialog();
+                    
+                    // 성공 완료 다이얼로그 표시
+                    String message = "자르기 완료! 파일이 편집 폴더에 저장되었습니다.";
+                    showCompletionDialog(message);
+                    
+                    LoggerManager.logger("✅ 자르기 완료: " + outputPath);
+                });
+            }
+        });
+        
+        audioTrimManager.setOnErrorListener(error -> {
+            if (getActivity() != null) {
+                getActivity().runOnUiThread(() -> {
+                    dialogManager.dismissProgressDialog();
+                    toastManager.showToastLong("자르기 중 오류가 발생했습니다: " + error);
+                    LoggerManager.logger("❌ 자르기 오류: " + error);
+                });
+            }
+        });
     }
     
     private void setupActivityResultLaunchers() {
@@ -159,8 +215,7 @@ public class EditFragment extends Fragment {
         // 파일 선택 버튼 클릭 리스너
         binding.btnSelectFileToEdit.setOnClickListener(v -> selectFileToEdit());
         
-        // 편집 도구 버튼들 클릭 리스너
-        binding.btnTrim.setOnClickListener(v -> trimAudio());
+        // 편집 도구 버튼들 클릭 리스너 (자르기 버튼 제거됨)
         // 임시 주석 처리된 버튼들의 리스너
         // binding.btnMerge.setOnClickListener(v -> mergeAudio());
         // binding.btnVolume.setOnClickListener(v -> adjustVolume());
@@ -319,7 +374,7 @@ public class EditFragment extends Fragment {
     }
     
     private void setEditToolsEnabled(boolean enabled) {
-        binding.btnTrim.setEnabled(enabled);
+        // 자르기 버튼 제거로 인해 편집 도구 활성화/비활성화 로직 업데이트
         // 임시 주석 처리된 버튼들 비활성화/활성화 제외
         // binding.btnMerge.setEnabled(enabled);
         // binding.btnVolume.setEnabled(enabled);
@@ -352,10 +407,8 @@ public class EditFragment extends Fragment {
     }
     
     private void setupTrimControls() {
-        // 자르기 적용 버튼
-        binding.btnApplyTrim.setOnClickListener(v -> {
-            editViewModel.performTrim();
-        });
+        // 자르기 적용 버튼이 제거되어 더 이상 필요 없음
+        // 자르기 기능은 저장 버튼에서 통합 처리됨
     }
     
     private void observeViewModel() {
@@ -404,10 +457,28 @@ public class EditFragment extends Fragment {
             }
         });
         
-        // 상태 메시지 관찰
+        // 상태 메시지 관찰 (개선된 사용자 피드백)
         editViewModel.getStatusMessage().observe(getViewLifecycleOwner(), message -> {
             if (message != null && !message.isEmpty()) {
-                toastManager.showToastShort(message);
+                // 🎯 메시지 유형에 따른 적절한 처리
+                if (message.contains("완료")) {
+                    dialogManager.dismissProgressDialog();
+                    
+                    // 🎉 성공 다이얼로그로 파일 위치 안내 (라이브러리 연동)
+                    showCompletionDialog(message);
+                    
+                    // 라이브러리 새로고침 요청
+                    requestLibraryRefresh();
+                    
+                    LoggerManager.logger("✅ 사용자에게 성공 메시지 표시: " + message);
+                } else if (message.contains("오류") || message.contains("실패")) {
+                    dialogManager.dismissProgressDialog();
+                    toastManager.showToastLong(message);
+                    LoggerManager.logger("❌ 사용자에게 오류 메시지 표시: " + message);
+                } else {
+                    // 진행 상황 메시지는 토스트 없이 로그만
+                    LoggerManager.logger("ℹ️ 진행 상황: " + message);
+                }
             }
         });
         
@@ -424,16 +495,11 @@ public class EditFragment extends Fragment {
         binding.tvTrimDuration.setText(editViewModel.getTrimDurationText());
     }
     
-    private void trimAudio() {
-        if (selectedFileUri == null) {
-            toastManager.showToastShort("먼저 파일을 선택해주세요");
-            return;
-        }
-        
-        // ViewModel을 통해 자르기 실행
-        editViewModel.performTrim();
-    }
+    // trimAudio() 메서드 제거됨 - 자르기 기능이 저장 버튼에 통합됨
     
+    // 편집 도구 메서드들 - 임시 주석 처리 (편집도구 영역 숨김)
+    // TODO: 향후 편집도구 기능 완성 시 주석 해제
+    /*
     private void mergeAudio() {
         if (selectedFileUri == null) {
             toastManager.showToastShort("먼저 파일을 선택해주세요");
@@ -508,6 +574,7 @@ public class EditFragment extends Fragment {
         
         LoggerManager.logger("오디오 효과 다이얼로그 표시");
     }
+    */
     
     private void saveEditedFile() {
         if (selectedFileUri == null) {
@@ -515,7 +582,7 @@ public class EditFragment extends Fragment {
             return;
         }
         
-        // 저장 확인 다이얼로그
+        // 자르기 + 저장 확인 다이얼로그
         showSaveDialog();
     }
     
@@ -524,22 +591,69 @@ public class EditFragment extends Fragment {
         
         MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(getContext());
         
-        builder.setTitle("편집 파일 저장")
-               .setMessage("편집된 오디오 파일을 저장하시겠습니까?")
-               .setPositiveButton("저장", (dialog, which) -> {
-                   performSave();
+        String trimInfo = editViewModel.getTrimTimeText();
+        String trimDuration = editViewModel.getTrimDurationText();
+        
+        builder.setTitle("오디오 자르기 및 저장")
+               .setMessage("설정된 자르기 구간으로 오디오를 편집하고 저장하시겠습니까?\n\n" +
+                          "자르기 구간: " + trimInfo + "\n" +
+                          "편집 후 길이: " + trimDuration)
+               .setPositiveButton("자르기 및 저장", (dialog, which) -> {
+                   performTrimAndSave();
                })
                .setNegativeButton("취소", (dialog, which) -> dialog.dismiss())
                .show();
     }
     
-    private void performSave() {
+    /**
+     * 자르기 적용 후 저장 수행 (통합 기능) - 개선된 버전
+     */
+    private void performTrimAndSave() {
         try {
             if (selectedFileUri == null) {
                 toastManager.showToastLong("선택된 파일이 없습니다");
                 return;
             }
             
+            // 자르기 위치 검증
+            Float startPos = editViewModel.getTrimStartPosition().getValue();
+            Float endPos = editViewModel.getTrimEndPosition().getValue();
+            
+            if (startPos == null || endPos == null) {
+                toastManager.showToastLong("자르기 위치를 설정해주세요");
+                return;
+            }
+            
+            if (Math.abs(startPos - 0f) < 0.001f && Math.abs(endPos - 1f) < 0.001f) {
+                // 전체 구간이 선택된 경우 단순 복사
+                performSimpleSave();
+                return;
+            }
+            
+            // 진행 상태 표시
+            dialogManager.showProgressDialog();
+            toastManager.showToastShort("자르기 및 저장을 시작합니다...");
+            
+            // 🔧 수정: 중복 콜백 설정 제거 - EditViewModel의 기본 콜백 사용
+            // setupTrimManagerCallbacksForSave(); // 제거됨
+            
+            // ViewModel을 통해 자르기 실행 (기존 콜백 체인 활용)
+            editViewModel.performTrim();
+            
+            LoggerManager.logger("자르기 및 저장 작업 시작 (" + startPos + " ~ " + endPos + ") - ViewModel 콜백 체인 사용");
+            
+        } catch (Exception e) {
+            dialogManager.dismissProgressDialog();
+            toastManager.showToastLong("자르기 및 저장 중 오류가 발생했습니다: " + e.getMessage());
+            LoggerManager.logger("자르기 및 저장 오류: " + e.getMessage());
+        }
+    }
+    
+    /**
+     * 자르기 없이 단순 저장 (전체 구간 선택 시)
+     */
+    private void performSimpleSave() {
+        try {
             // URI에서 파일명 추출
             String originalFileName = fileManager.getFileName(getContext(), selectedFileUri);
             if (originalFileName == null || originalFileName.isEmpty()) {
@@ -564,8 +678,8 @@ public class EditFragment extends Fragment {
             boolean success = copyUriToFile(selectedFileUri, outputFile);
             
             if (success) {
-                toastManager.showToastLong("편집된 파일이 저장되었습니다: " + outputFile.getName());
-                LoggerManager.logger("파일 저장 완료: " + outputFile.getAbsolutePath());
+                toastManager.showToastLong("파일이 저장되었습니다: " + outputFile.getName());
+                LoggerManager.logger("단순 저장 완료: " + outputFile.getAbsolutePath());
             } else {
                 toastManager.showToastLong("파일 저장에 실패했습니다");
             }
@@ -575,6 +689,10 @@ public class EditFragment extends Fragment {
             LoggerManager.logger("저장 오류: " + e.getMessage());
         }
     }
+    
+    // 🗑️ 제거됨: 중복 콜백 설정 방지를 위해 삭제
+    // setupTrimManagerCallbacksForSave() 메서드는 더 이상 사용하지 않음
+    // EditViewModel의 기본 콜백 체인을 통해 통합 처리
     
     /**
      * URI에서 파일로 데이터 복사 (Scoped Storage 호환)
@@ -764,6 +882,14 @@ public class EditFragment extends Fragment {
     public void onDestroyView() {
         super.onDestroyView();
         
+        // 진행중인 자르기 작업 취소 (다른 Fragment 간섭 방지를 위해 cleanup은 호출하지 않음)
+        try {
+            NativeAudioTrimManager.getInstance().cancelTrimming();
+            LoggerManager.logger("EditFragment 종료 - 자르기 작업 취소 완료");
+        } catch (Exception e) {
+            LoggerManager.logger("EditFragment 종료 - 자르기 취소 실패: " + e.getMessage());
+        }
+        
         // 미디어 플레이어 정리
         stopPlayback();
         
@@ -771,6 +897,61 @@ public class EditFragment extends Fragment {
         stopProgressUpdate();
         
         binding = null;
+    }
+    
+    /**
+     * 라이브러리 새로고침 요청 (편집된 파일 목록 업데이트)
+     */
+    private void requestLibraryRefresh() {
+        try {
+            if (getActivity() instanceof MainActivity) {
+                MainActivity mainActivity = (MainActivity) getActivity();
+                // LibraryFragment의 새로고침 메서드 호출
+                mainActivity.refreshLibraryTab();
+                LoggerManager.logger("📚 라이브러리 새로고침 요청 완료");
+            } else {
+                LoggerManager.logger("⚠️ MainActivity가 아니므로 라이브러리 새로고침 생략");
+            }
+        } catch (Exception e) {
+            LoggerManager.logger("❌ 라이브러리 새로고침 요청 실패: " + e.getMessage());
+        }
+    }
+    
+    /**
+     * 자르기 완료 다이얼로그 표시 (파일 위치 안내 및 확인 기능)
+     */
+    private void showCompletionDialog(String message) {
+        if (getContext() == null) return;
+        
+        MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(getContext());
+        
+        builder.setTitle("🎉 자르기 완료!")
+               .setMessage(message + "\n\n" +
+                          "📁 파일 위치: 라이브러리 > 편집된 파일\n" +
+                          "🎵 라이브러리 탭에서 편집된 파일을 확인하실 수 있습니다.")
+               .setPositiveButton("확인", (dialog, which) -> {
+                   dialog.dismiss();
+                   toastManager.showToastShort("라이브러리 탭에서 편집된 파일을 확인해보세요!");
+               })
+               .setNeutralButton("라이브러리 보기", (dialog, which) -> {
+                   // 라이브러리 탭으로 이동
+                   try {
+                       if (getActivity() instanceof MainActivity) {
+                           MainActivity mainActivity = (MainActivity) getActivity();
+                           // 라이브러리 탭으로 전환
+                           mainActivity.switchToLibraryTab();
+                           toastManager.showToastShort("라이브러리 탭으로 이동합니다");
+                       } else {
+                           toastManager.showToastLong("라이브러리 탭에서 편집된 파일을 확인해주세요");
+                       }
+                   } catch (Exception e) {
+                       LoggerManager.logger("라이브러리 탭 이동 실패: " + e.getMessage());
+                       toastManager.showToastLong("라이브러리 탭에서 편집된 파일을 확인해주세요");
+                   }
+                   dialog.dismiss();
+               })
+               .setCancelable(false)
+               .show();
     }
     
     @Override

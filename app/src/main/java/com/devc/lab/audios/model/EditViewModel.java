@@ -54,10 +54,21 @@ public class EditViewModel extends AndroidViewModel {
         });
         
         audioTrimManager.setOnCompletionListener(outputPath -> {
+            // 🔍 파일 생성 및 사용자 접근성 검증
+            boolean fileExists = verifyOutputFile(outputPath);
+            
             isProcessing.postValue(false);
             processingProgress.postValue(100);
-            statusMessage.postValue("자르기 완료!");
-            LoggerManager.logger("자르기 완료: " + outputPath);
+            
+            if (fileExists) {
+                // 🎉 사용자에게 파일 위치 안내 (라이브러리 연동)
+                String userMessage = "자르기 완료! 파일이 편집 폴더에 저장되었습니다.";
+                statusMessage.postValue(userMessage);
+                LoggerManager.logger("✅ 자르기 완료 및 편집 폴더 저장: " + outputPath);
+            } else {
+                statusMessage.postValue("오류: 파일이 정상적으로 생성되지 않았습니다");
+                LoggerManager.logger("❌ 자르기 완료되었지만 파일 생성 또는 이동 실패: " + outputPath);
+            }
         });
         
         audioTrimManager.setOnErrorListener(error -> {
@@ -196,6 +207,38 @@ public class EditViewModel extends AndroidViewModel {
      */
     public void setPlaybackPosition(float position) {
         playbackPosition.setValue(position);
+    }
+    
+    /**
+     * 출력 파일 생성 검증
+     */
+    private boolean verifyOutputFile(String outputPath) {
+        try {
+            if (outputPath == null || outputPath.isEmpty()) {
+                LoggerManager.logger("❌ 출력 경로가 null이거나 비어있음");
+                return false;
+            }
+            
+            java.io.File outputFile = new java.io.File(outputPath);
+            
+            if (!outputFile.exists()) {
+                LoggerManager.logger("❌ 출력 파일이 존재하지 않음: " + outputPath);
+                return false;
+            }
+            
+            long fileSize = outputFile.length();
+            if (fileSize <= 0) {
+                LoggerManager.logger("❌ 출력 파일 크기가 0 바이트: " + outputPath);
+                return false;
+            }
+            
+            LoggerManager.logger("✅ 출력 파일 검증 성공: " + outputPath + " (크기: " + fileSize + " bytes)");
+            return true;
+            
+        } catch (Exception e) {
+            LoggerManager.logger("❌ 출력 파일 검증 중 오류: " + e.getMessage());
+            return false;
+        }
     }
     
     /**

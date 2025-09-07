@@ -2,8 +2,6 @@ package com.devc.lab.audios.manager;
 
 import android.content.Context;
 import android.net.Uri;
-import com.arthenica.ffmpegkit.FFmpegKit;
-import com.arthenica.ffmpegkit.ReturnCode;
 import com.devc.lab.audios.manager.LoggerManager;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -65,72 +63,10 @@ public class AudioTrimManager {
      * @param outputFileName 출력 파일명
      */
     public void trimAudio(Uri sourceUri, long startTimeMs, long endTimeMs, String outputFileName) {
-        if (context == null) {
-            LoggerManager.logger("AudioTrimManager가 초기화되지 않음");
-            if (onErrorListener != null) {
-                onErrorListener.onTrimError("AudioTrimManager가 초기화되지 않았습니다");
-            }
-            return;
-        }
-        
-        // 임시 입력 파일 생성 (Scoped Storage 호환)
-        File tempInputFile = createTempFileFromUri(sourceUri);
-        if (tempInputFile == null) {
-            if (onErrorListener != null) {
-                onErrorListener.onTrimError("입력 파일을 준비할 수 없습니다");
-            }
-            return;
-        }
-        
-        // 출력 디렉토리 확인
-        File outputDir = new File(context.getExternalFilesDir(null), "Audios/Edited");
-        if (!outputDir.exists()) {
-            outputDir.mkdirs();
-        }
-        
-        // 출력 파일 경로
-        File outputFile = new File(outputDir, outputFileName);
-        
-        // 시간 포맷 변환 (밀리초 -> HH:MM:SS.mmm)
-        String startTime = formatTimeForFFmpeg(startTimeMs);
-        String duration = formatTimeForFFmpeg(endTimeMs - startTimeMs);
-        
-        // FFmpeg 명령어 생성
-        String command = String.format(
-            "-i %s -ss %s -t %s -acodec copy %s",
-            tempInputFile.getAbsolutePath(),
-            startTime,
-            duration,
-            outputFile.getAbsolutePath()
-        );
-        
-        LoggerManager.logger("FFmpeg 자르기 명령어: " + command);
-        
-        // 콜백 시작
-        if (onStartListener != null) {
-            onStartListener.onTrimStart();
-        }
-        
-        // FFmpegKit을 사용한 비동기 실행
-        FFmpegKit.executeAsync(command, session -> {
-            // 임시 파일 삭제
-            if (tempInputFile.exists()) {
-                tempInputFile.delete();
-            }
-            
-            if (ReturnCode.isSuccess(session.getReturnCode())) {
-                LoggerManager.logger("자르기 성공: " + outputFile.getAbsolutePath());
-                if (onCompletionListener != null) {
-                    onCompletionListener.onTrimComplete(outputFile.getAbsolutePath());
-                }
-            } else {
-                String error = "자르기 실패 (코드: " + session.getReturnCode() + ")";
-                LoggerManager.logger(error);
-                if (onErrorListener != null) {
-                    onErrorListener.onTrimError(error);
-                }
-            }
-        });
+        // Phase 3: Native API로 위임
+        NativeAudioTrimManager nativeTrimmer = NativeAudioTrimManager.getInstance();
+        setupNativeTrimmerCallbacks(nativeTrimmer);
+        nativeTrimmer.trimAudio(sourceUri, startTimeMs, endTimeMs, outputFileName);
     }
     
     /**
@@ -143,10 +79,10 @@ public class AudioTrimManager {
      */
     public void trimAudioByRatio(Uri sourceUri, float startRatio, float endRatio, 
                                   long durationMs, String outputFileName) {
-        long startTimeMs = (long) (startRatio * durationMs);
-        long endTimeMs = (long) (endRatio * durationMs);
-        
-        trimAudio(sourceUri, startTimeMs, endTimeMs, outputFileName);
+        // Phase 3: Native API로 위임
+        NativeAudioTrimManager nativeTrimmer = NativeAudioTrimManager.getInstance();
+        setupNativeTrimmerCallbacks(nativeTrimmer);
+        nativeTrimmer.trimAudioByRatio(sourceUri, startRatio, endRatio, durationMs, outputFileName);
     }
     
     /**
@@ -272,5 +208,34 @@ public class AudioTrimManager {
         onProgressListener = null;
         onCompletionListener = null;
         onErrorListener = null;
+    }
+    
+    /**
+     * Phase 3: Native 자르기 관리자에 콜백 설정
+     */
+    private void setupNativeTrimmerCallbacks(NativeAudioTrimManager nativeTrimmer) {
+        nativeTrimmer.setOnStartListener(() -> {
+            if (onStartListener != null) {
+                onStartListener.onTrimStart();
+            }
+        });
+        
+        nativeTrimmer.setOnProgressListener((progress) -> {
+            if (onProgressListener != null) {
+                onProgressListener.onTrimProgress(progress);
+            }
+        });
+        
+        nativeTrimmer.setOnCompletionListener((outputPath) -> {
+            if (onCompletionListener != null) {
+                onCompletionListener.onTrimComplete(outputPath);
+            }
+        });
+        
+        nativeTrimmer.setOnErrorListener((error) -> {
+            if (onErrorListener != null) {
+                onErrorListener.onTrimError(error);
+            }
+        });
     }
 }

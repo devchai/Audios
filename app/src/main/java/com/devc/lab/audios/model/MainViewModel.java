@@ -10,7 +10,7 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
 import com.devc.lab.audios.manager.AudioPlayerManager;
-import com.devc.lab.audios.manager.FFmpegManager;
+import com.devc.lab.audios.manager.AudioConversionManager;
 import com.devc.lab.audios.manager.FileManager;
 import com.devc.lab.audios.manager.LoggerManager;
 import com.devc.lab.audios.manager.PermissionManager;
@@ -27,7 +27,7 @@ public class MainViewModel extends AndroidViewModel {
     // Manager 인스턴스들
     private PermissionManager permissionManager;
     private FileManager fileManager;
-    private FFmpegManager ffmpegManager;
+    private AudioConversionManager audioConversionManager;
     private AudioPlayerManager audioPlayerManager;
     
     // UI 상태 LiveData
@@ -52,8 +52,8 @@ public class MainViewModel extends AndroidViewModel {
     private boolean isPermissionRequesting = false;
     
     // 현재 선택된 변환 옵션들
-    private FFmpegManager.OutputFormat selectedFormat = FFmpegManager.OutputFormat.MP3;
-    private FFmpegManager.AudioQuality selectedQuality = FFmpegManager.AudioQuality.MEDIUM;
+    private AudioConversionManager.OutputFormat selectedFormat = AudioConversionManager.OutputFormat.MP3;
+    private AudioConversionManager.AudioQuality selectedQuality = AudioConversionManager.AudioQuality.MEDIUM;
     
     public MainViewModel(@NonNull Application application) {
         super(application);
@@ -74,11 +74,11 @@ public class MainViewModel extends AndroidViewModel {
             // Manager들 초기화
             permissionManager = new PermissionManager(activity);
             fileManager = new FileManager(activity);
-            ffmpegManager = new FFmpegManager();
+            audioConversionManager = new AudioConversionManager();
             audioPlayerManager = new AudioPlayerManager(activity);
             
-            // FFmpeg 콜백 설정
-            setupFFmpegCallbacks();
+            // AudioConversion 콜백 설정
+            setupAudioConversionCallbacks();
             
             // AudioPlayer 콜백 설정
             setupAudioPlayerCallbacks();
@@ -97,21 +97,21 @@ public class MainViewModel extends AndroidViewModel {
     }
     
     /**
-     * FFmpeg 콜백 설정
+     * AudioConversion 콜백 설정
      */
-    private void setupFFmpegCallbacks() {
-        ffmpegManager.setOnStartListener(() -> {
+    private void setupAudioConversionCallbacks() {
+        audioConversionManager.setOnStartListener(() -> {
             isConverting.postValue(true);
             conversionProgress.postValue(0);
             updateStatusMessage("변환 시작");
         });
         
-        ffmpegManager.setOnProgressListener(progress -> {
+        audioConversionManager.setOnProgressListener(progress -> {
             conversionProgress.postValue(progress);
             updateStatusMessage("변환 중... " + progress + "%");
         });
         
-        ffmpegManager.setOnCompletionListener((inputPath, outputPath) -> {
+        audioConversionManager.setOnCompletionListener((inputPath, outputPath) -> {
             isConverting.postValue(false);
             conversionProgress.postValue(100);
             convertedFilePath.postValue(outputPath);
@@ -121,7 +121,7 @@ public class MainViewModel extends AndroidViewModel {
             loadAudioToPlayer(outputPath);
         });
         
-        ffmpegManager.setOnFailureListener((message, reason) -> {
+        audioConversionManager.setOnFailureListener((message, reason) -> {
             isConverting.postValue(false);
             conversionProgress.postValue(0);
             String error = "변환 실패: " + message + " (" + reason + ")";
@@ -315,12 +315,12 @@ public class MainViewModel extends AndroidViewModel {
             return;
         }
         
-        if (ffmpegManager == null) {
-            updateErrorMessage("FFmpegManager가 초기화되지 않음");
+        if (audioConversionManager == null) {
+            updateErrorMessage("AudioConversionManager가 초기화되지 않음");
             return;
         }
         
-        if (ffmpegManager.isConverting()) {
+        if (audioConversionManager.isConverting()) {
             updateStatusMessage("이미 변환이 진행 중입니다.");
             return;
         }
@@ -331,7 +331,7 @@ public class MainViewModel extends AndroidViewModel {
             // 출력 파일명 생성 (확장자 제거 후 선택된 포맷 확장자 추가)
             String outputFileName = fileName.replaceFirst("\\.[^.]+$", "") + selectedFormat.getExtension();
             
-            ffmpegManager.extractAudioFromVideoUri(
+            audioConversionManager.extractAudioFromVideoUri(
                 fileUri, 
                 outputFileName, 
                 selectedFormat, 
@@ -352,8 +352,8 @@ public class MainViewModel extends AndroidViewModel {
      * 변환 취소
      */
     public void cancelConversion() {
-        if (ffmpegManager != null) {
-            ffmpegManager.cancelConversion();
+        if (audioConversionManager != null) {
+            audioConversionManager.cancelConversion();
             updateStatusMessage("변환 취소됨");
         }
     }
@@ -402,7 +402,7 @@ public class MainViewModel extends AndroidViewModel {
     /**
      * 출력 포맷 설정
      */
-    public void setOutputFormat(FFmpegManager.OutputFormat format) {
+    public void setOutputFormat(AudioConversionManager.OutputFormat format) {
         this.selectedFormat = format;
         updateStatusMessage("출력 포맷: " + format.name());
     }
@@ -410,7 +410,7 @@ public class MainViewModel extends AndroidViewModel {
     /**
      * 오디오 품질 설정
      */
-    public void setAudioQuality(FFmpegManager.AudioQuality quality) {
+    public void setAudioQuality(AudioConversionManager.AudioQuality quality) {
         this.selectedQuality = quality;
         updateStatusMessage("오디오 품질: " + quality.getBitrate() + "kbps");
     }
@@ -490,20 +490,20 @@ public class MainViewModel extends AndroidViewModel {
     }
     
     // Getters
-    public FFmpegManager.OutputFormat getSelectedFormat() {
+    public AudioConversionManager.OutputFormat getSelectedFormat() {
         return selectedFormat;
     }
     
-    public FFmpegManager.AudioQuality getSelectedQuality() {
+    public AudioConversionManager.AudioQuality getSelectedQuality() {
         return selectedQuality;
     }
     
-    public FFmpegManager.OutputFormat[] getSupportedFormats() {
-        return ffmpegManager != null ? ffmpegManager.getSupportedFormats() : new FFmpegManager.OutputFormat[0];
+    public AudioConversionManager.OutputFormat[] getSupportedFormats() {
+        return audioConversionManager != null ? audioConversionManager.getSupportedFormats() : new AudioConversionManager.OutputFormat[0];
     }
     
-    public FFmpegManager.AudioQuality[] getSupportedQualities() {
-        return ffmpegManager != null ? ffmpegManager.getSupportedQualities() : new FFmpegManager.AudioQuality[0];
+    public AudioConversionManager.AudioQuality[] getSupportedQualities() {
+        return audioConversionManager != null ? audioConversionManager.getSupportedQualities() : new AudioConversionManager.AudioQuality[0];
     }
     
     /**
@@ -515,8 +515,8 @@ public class MainViewModel extends AndroidViewModel {
         
         try {
             // 리소스 정리
-            if (ffmpegManager != null) {
-                ffmpegManager.cleanup();
+            if (audioConversionManager != null) {
+                audioConversionManager.cleanup();
             }
             
             if (audioPlayerManager != null) {

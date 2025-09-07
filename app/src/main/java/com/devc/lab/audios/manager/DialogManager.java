@@ -42,6 +42,10 @@ public class DialogManager {
     public void showProgressDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
 
+        if (progressDialog != null && progressDialog.isShowing()){
+            progressDialog.dismiss();
+        }
+
         // 프로그래스바 생성
         progressBar = new ProgressBar(context);
         progressBar.setIndeterminate(false);

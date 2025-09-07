@@ -5,6 +5,9 @@ import android.app.Application;
 // import com.arthenica.mobileffmpeg.BuildConfig;
 // import com.devc.lab.audios.BuildConfig; // BuildConfig 작성 전에는 비활성화
 import com.devc.lab.audios.R;
+import com.devc.lab.audios.manager.NativeMediaInfoManager;
+import com.devc.lab.audios.manager.NativeAudioExtractorManager;
+import com.devc.lab.audios.manager.NativeAudioTrimManager;
 import com.devc.lab.audios.utils.DetailedLogTree;
 import com.devc.lab.audios.utils.TypefaceUtil;
 import io.github.inflationx.calligraphy3.CalligraphyConfig;
@@ -19,10 +22,15 @@ public class AudiosApplication extends Application {
         super.onCreate();
 
         initLogger();
+        
+        initNativeMediaManager();
+        
+        initNativeAudioExtractor();
+        
+        initNativeAudioTrimManager();
 
         initFont();
     }
-
     private void initLogger() {
         // BuildConfig 비활성화 때문에 임시 주석처리
         // if (BuildConfig.DEBUG) {
@@ -33,6 +41,24 @@ public class AudiosApplication extends Application {
 
 //        Timber.plant(new Timber.DebugTree());
         Timber.plant(new DetailedLogTree());
+    }
+
+    private void initNativeMediaManager() {
+        // Native 미디어 정보 관리자 초기화
+        NativeMediaInfoManager.getInstance().init(this);
+        Timber.d("NativeMediaInfoManager 초기화 완료");
+    }
+    
+    private void initNativeAudioExtractor() {
+        // Phase 2: Native 오디오 추출 관리자 초기화
+        NativeAudioExtractorManager.getInstance().init(this);
+        Timber.d("NativeAudioExtractorManager 초기화 완료");
+    }
+    
+    private void initNativeAudioTrimManager() {
+        // Phase 3: Native 오디오 자르기 관리자 초기화
+        NativeAudioTrimManager.getInstance().init(this);
+        Timber.d("NativeAudioTrimManager 초기화 완료");
     }
 
     private void initFont() {
