@@ -108,11 +108,15 @@ public class AudioConversionManager {
         extractorManager = NativeAudioExtractorManager.getInstance();
         trimManager = NativeAudioTrimManager.getInstance();
         
+        LoggerManager.logger("AudioConversionManager - Native 매니저들 인스턴스 생성 완료");
+        
         // 추출기 콜백 설정
         setupExtractorCallbacks();
         
         // 자르기 관리자 콜백 설정
         setupTrimmerCallbacks();
+        
+        LoggerManager.logger("AudioConversionManager - 콜백 설정 완료");
     }
     
     /**
@@ -194,6 +198,9 @@ public class AudioConversionManager {
             return;
         }
         
+        // Native 매니저들에 Context 설정 (중요!)
+        ensureNativeManagersInitialized(context);
+        
         // Native API 지원 포맷으로 매핑
         NativeAudioExtractorManager.AudioFormat nativeFormat = mapToNativeFormat(format);
         
@@ -227,6 +234,9 @@ public class AudioConversionManager {
             return;
         }
         
+        // Native 매니저들에 Context 설정 (중요!)
+        ensureNativeManagersInitialized(context);
+        
         LoggerManager.logger("오디오 추출 시작 - 입력: " + inputPath + ", 출력: " + outputPath);
         extractorManager.extractAudioFromVideo(inputPath, outputPath, NativeAudioExtractorManager.AudioFormat.M4A);
     }
@@ -246,6 +256,9 @@ public class AudioConversionManager {
             return;
         }
         
+        // Native 매니저들에 Context 설정 (중요!)
+        ensureNativeManagersInitialized(context);
+        
         // Native API 지원 포맷으로 매핑
         NativeAudioExtractorManager.AudioFormat nativeFormat = mapToNativeFormat(format);
         
@@ -256,7 +269,7 @@ public class AudioConversionManager {
     /**
      * 오디오 자르기 (시간 기반)
      */
-    public void trimAudio(Uri sourceUri, long startTimeMs, long endTimeMs, String outputFileName) {
+    public void trimAudio(Uri sourceUri, long startTimeMs, long endTimeMs, String outputFileName, Context context) {
         if (sourceUri == null || outputFileName == null) {
             notifyFailure("입력 파라미터 오류", "소스 URI 또는 출력 파일명이 null입니다.");
             return;
@@ -266,16 +279,28 @@ public class AudioConversionManager {
             notifyFailure("편집 진행 중", "다른 편집이 진행 중입니다.");
             return;
         }
+        
+        // Native 매니저들에 Context 설정 (중요!)
+        ensureNativeManagersInitialized(context);
         
         LoggerManager.logger("오디오 자르기 시작 - 시작: " + startTimeMs + "ms, 끝: " + endTimeMs + "ms");
         trimManager.trimAudio(sourceUri, startTimeMs, endTimeMs, outputFileName);
     }
     
     /**
+     * 오디오 자르기 (시간 기반) - 호환성 메서드
+     */
+    public void trimAudio(Uri sourceUri, long startTimeMs, long endTimeMs, String outputFileName) {
+        LoggerManager.logger("⚠️ trimAudio 호출시 Context 미제공. Context 필수로 변경 필요.");
+        // Context 없이 호출된 경우 오류 반환
+        notifyFailure("입력 파라미터 오류", "Context가 필요합니다. trimAudio(Uri, long, long, String, Context) 메서드를 사용해주세요.");
+    }
+    
+    /**
      * 오디오 자르기 (비율 기반)
      */
     public void trimAudioByRatio(Uri sourceUri, float startRatio, float endRatio, 
-                               long durationMs, String outputFileName) {
+                               long durationMs, String outputFileName, Context context) {
         if (sourceUri == null || outputFileName == null) {
             notifyFailure("입력 파라미터 오류", "소스 URI 또는 출력 파일명이 null입니다.");
             return;
@@ -286,8 +311,21 @@ public class AudioConversionManager {
             return;
         }
         
+        // Native 매니저들에 Context 설정 (중요!)
+        ensureNativeManagersInitialized(context);
+        
         LoggerManager.logger("오디오 자르기 시작 (비율) - 시작: " + startRatio + ", 끝: " + endRatio);
         trimManager.trimAudioByRatio(sourceUri, startRatio, endRatio, durationMs, outputFileName);
+    }
+    
+    /**
+     * 오디오 자르기 (비율 기반) - 호환성 메서드
+     */
+    public void trimAudioByRatio(Uri sourceUri, float startRatio, float endRatio, 
+                               long durationMs, String outputFileName) {
+        LoggerManager.logger("⚠️ trimAudioByRatio 호출시 Context 미제공. Context 필수로 변경 필요.");
+        // Context 없이 호출된 경우 오류 반환
+        notifyFailure("입력 파라미터 오류", "Context가 필요합니다. trimAudioByRatio(Uri, float, float, long, String, Context) 메서드를 사용해주세요.");
     }
     
     /**
@@ -380,6 +418,39 @@ public class AudioConversionManager {
     }
     
     /**
+     * Native 매니저들의 Context 초기화 보장
+     * @param context 애플리케이션 Context
+     */
+    private void ensureNativeManagersInitialized(Context context) {
+        if (context == null) {
+            LoggerManager.logger("⚠️ ensureNativeManagersInitialized - Context가 null");
+            return;
+        }
+        
+        try {
+            // NativeMediaInfoManager 초기화
+            if (mediaInfoManager != null) {
+                mediaInfoManager.init(context);
+            }
+            
+            // NativeAudioExtractorManager 초기화
+            if (extractorManager != null) {
+                extractorManager.init(context);
+            }
+            
+            // NativeAudioTrimManager 초기화
+            if (trimManager != null) {
+                trimManager.init(context);
+            }
+            
+            LoggerManager.logger("✅ Native 매니저들 Context 초기화 완료");
+            
+        } catch (Exception e) {
+            LoggerManager.logger("❌ Native 매니저들 Context 초기화 실패: " + e.getMessage());
+        }
+    }
+    
+    /**
      * 리소스 정리
      */
     public void cleanup() {
@@ -393,8 +464,12 @@ public class AudioConversionManager {
             }
             
             // Native API 정리
-            extractorManager.cleanup();
-            trimManager.cleanup();
+            if (extractorManager != null) {
+                extractorManager.cleanup();
+            }
+            if (trimManager != null) {
+                trimManager.cleanup();
+            }
             
             LoggerManager.logger("AudioConversionManager 리소스 정리 완료");
             

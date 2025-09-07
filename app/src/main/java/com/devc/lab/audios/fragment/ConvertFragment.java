@@ -76,44 +76,40 @@ public class ConvertFragment extends Fragment {
     }
     
     private void setupAudioConversionCallbacks() {
-        // 변환 시작 콜백
+        // 변환 시작 콜백 (AudioConversionManager는 이미 UI 스레드에서 콜백 실행)
         audioConversionManager.setOnStartListener(() -> {
-            if (getActivity() != null) {
-                getActivity().runOnUiThread(() -> {
-                    com.devc.lab.audios.manager.LoggerManager.logger("Native API 변환 시작");
-                });
+            // Fragment 생명주기 및 UI 스레드 안전성 체크
+            if (isFragmentActive()) {
+                com.devc.lab.audios.manager.LoggerManager.logger("Native API 변환 시작");
             }
         });
         
-        // 진행률 업데이트 콜백
+        // 진행률 업데이트 콜백 (UI 스레드에서 이미 실행됨)
         audioConversionManager.setOnProgressListener(progress -> {
-            if (getActivity() != null) {
-                getActivity().runOnUiThread(() -> {
-                    dialogManager.updateConversionProgress(progress);
-                    com.devc.lab.audios.manager.LoggerManager.logger("변환 진행률: " + progress + "%");
-                });
+            // Fragment 생명주기 체크 후 UI 업데이트
+            if (isFragmentActive() && dialogManager != null) {
+                dialogManager.updateConversionProgress(progress);
+                com.devc.lab.audios.manager.LoggerManager.logger("변환 진행률: " + progress + "%");
             }
         });
         
-        // 변환 완료 콜백
+        // 변환 완료 콜백 (UI 스레드에서 이미 실행됨)
         audioConversionManager.setOnCompletionListener((inputPath, outputPath) -> {
-            if (getActivity() != null) {
-                getActivity().runOnUiThread(() -> {
-                    dialogManager.dismissProgressDialog();
-                    toastManager.showToastShort("변환 완료: " + new java.io.File(outputPath).getName());
-                    com.devc.lab.audios.manager.LoggerManager.logger("변환 완료: " + outputPath);
-                });
+            // Fragment 생명주기 체크 후 UI 업데이트
+            if (isFragmentActive() && dialogManager != null && toastManager != null) {
+                dialogManager.dismissProgressDialog();
+                toastManager.showToastShort("변환 완료: " + new java.io.File(outputPath).getName());
+                com.devc.lab.audios.manager.LoggerManager.logger("변환 완료: " + outputPath);
             }
         });
         
-        // 변환 실패 콜백
+        // 변환 실패 콜백 (UI 스레드에서 이미 실행됨)
         audioConversionManager.setOnFailureListener((message, reason) -> {
-            if (getActivity() != null) {
-                getActivity().runOnUiThread(() -> {
-                    dialogManager.dismissProgressDialog();
-                    toastManager.showToastShort("변환 실패: " + message);
-                    com.devc.lab.audios.manager.LoggerManager.logger("변환 실패: " + message + " - " + reason);
-                });
+            // Fragment 생명주기 체크 후 UI 업데이트
+            if (isFragmentActive() && dialogManager != null && toastManager != null) {
+                dialogManager.dismissProgressDialog();
+                toastManager.showToastShort("변환 실패: " + message);
+                com.devc.lab.audios.manager.LoggerManager.logger("변환 실패: " + message + " - " + reason);
             }
         });
     }
@@ -365,15 +361,40 @@ public class ConvertFragment extends Fragment {
     }
     
     
+    /**
+     * Fragment가 활성 상태이고 UI 업데이트가 안전한지 확인
+     * @return Fragment가 활성 상태이면 true, 아니면 false
+     */
+    private boolean isFragmentActive() {
+        return getActivity() != null && 
+               !getActivity().isFinishing() && 
+               !getActivity().isDestroyed() && 
+               isAdded() && 
+               !isDetached() && 
+               !isRemoving() && 
+               getView() != null;
+    }
+    
     @Override
     public void onDestroyView() {
         super.onDestroyView();
+        
+        // 진행 중인 변환 정리
+        if (dialogManager != null) {
+            dialogManager.dismissProgressDialog();
+        }
         
         // AudioConversionManager 리소스 정리
         if (audioConversionManager != null) {
             audioConversionManager.cleanup();
         }
         
+        // 참조 해제
+        dialogManager = null;
+        toastManager = null;
+        audioConversionManager = null;
         binding = null;
+        
+        com.devc.lab.audios.manager.LoggerManager.logger("ConvertFragment 리소스 정리 완료");
     }
 }
