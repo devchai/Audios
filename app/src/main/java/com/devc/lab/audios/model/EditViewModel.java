@@ -210,6 +210,20 @@ public class EditViewModel extends AndroidViewModel {
     }
     
     /**
+     * 처리 상태 설정
+     */
+    public void setProcessing(boolean processing) {
+        isProcessing.setValue(processing);
+    }
+    
+    /**
+     * 처리 진행률 설정
+     */
+    public void setProcessingProgress(int progress) {
+        processingProgress.setValue(progress);
+    }
+    
+    /**
      * 출력 파일 생성 검증
      */
     private boolean verifyOutputFile(String outputPath) {
@@ -255,6 +269,40 @@ public class EditViewModel extends AndroidViewModel {
         statusMessage.setValue("");
         isPlaying.setValue(false);
         playbackPosition.setValue(0f);
+        LoggerManager.logger("🔄 EditViewModel 초기화 완료");
+    }
+    
+    /**
+     * 편집 완료 후 자동 초기화 활성화
+     */
+    public void enableAutoResetAfterCompletion() {
+        // AudioTrimManager의 완료 콜백을 재정의하여 자동 초기화 포함
+        audioTrimManager.setOnCompletionListener(outputPath -> {
+            // 🔍 파일 생성 및 사용자 접근성 검증
+            boolean fileExists = verifyOutputFile(outputPath);
+            
+            isProcessing.postValue(false);
+            processingProgress.postValue(100);
+            
+            if (fileExists) {
+                // 🎉 사용자에게 파일 위치 안내 (라이브러리 연동)
+                String userMessage = "자르기 완료! 파일이 편집 폴더에 저장되었습니다.";
+                statusMessage.postValue(userMessage);
+                LoggerManager.logger("✅ 자르기 완료 및 편집 폴더 저장: " + outputPath);
+                
+                // 🔄 일정 시간 후 자동 초기화 (사용자가 메시지를 읽을 시간 제공)
+                android.os.Handler handler = new android.os.Handler(android.os.Looper.getMainLooper());
+                handler.postDelayed(() -> {
+                    LoggerManager.logger("🔄 편집 완료 후 ViewModel 자동 초기화 시작");
+                    // statusMessage만 초기화하고 나머지는 Fragment에서 처리
+                    statusMessage.postValue("");
+                }, 2000); // 2초 후 메시지 클리어
+                
+            } else {
+                statusMessage.postValue("오류: 파일이 정상적으로 생성되지 않았습니다");
+                LoggerManager.logger("❌ 자르기 완료되었지만 파일 생성 또는 이동 실패: " + outputPath);
+            }
+        });
     }
     
     // Getter 메서드들 (LiveData)

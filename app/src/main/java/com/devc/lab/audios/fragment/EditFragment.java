@@ -475,6 +475,9 @@ public class EditFragment extends Fragment {
                     dialogManager.dismissProgressDialog();
                     toastManager.showToastLong(message);
                     LoggerManager.logger("❌ 사용자에게 오류 메시지 표시: " + message);
+                    
+                    // 🔄 오류 발생 시에도 편집 상태 부분 초기화
+                    resetEditStateAfterError();
                 } else {
                     // 진행 상황 메시지는 토스트 없이 로그만
                     LoggerManager.logger("ℹ️ 진행 상황: " + message);
@@ -745,21 +748,36 @@ public class EditFragment extends Fragment {
     }
     
     private void resetUI() {
-        // 파형 UI 초기화
-        binding.layoutWaveformPlaceholder.setVisibility(View.VISIBLE);
-        binding.waveformView.setVisibility(View.GONE);
-        
-        // 플레이어 컨트롤 초기화
-        binding.btnPlayPause.setCompoundDrawablesWithIntrinsicBounds(0, R.drawable.ic_play, 0, 0);
-        binding.sliderProgress.setValue(0);
-        binding.tvCurrentTime.setText("00:00");
-        binding.tvTotalTime.setText("00:00");
-        
-        // 파일 선택 버튼 텍스트 복원
-        binding.btnSelectFileToEdit.setText(R.string.select_file_to_edit);
-        
-        // 편집 도구들 비활성화
-        setEditToolsEnabled(false);
+        try {
+            // 파형 UI 초기화
+            binding.layoutWaveformPlaceholder.setVisibility(View.VISIBLE);
+            binding.waveformView.setVisibility(View.GONE);
+            
+            // 플레이어 컨트롤 초기화
+            binding.btnPlayPause.setIcon(getResources().getDrawable(R.drawable.ic_play, null));
+            binding.sliderProgress.setValue(0);
+            binding.tvCurrentTime.setText("00:00");
+            binding.tvTotalTime.setText("00:00");
+            
+            // 파일 선택 버튼 텍스트 복원
+            binding.btnSelectFileToEdit.setText(R.string.select_file_to_edit);
+            
+            // 자르기 시간 표시 초기화
+            if (binding.tvTrimTimeRange != null) {
+                binding.tvTrimTimeRange.setText("00:00 - 00:00");
+            }
+            if (binding.tvTrimDuration != null) {
+                binding.tvTrimDuration.setText("00:00");
+            }
+            
+            // 편집 도구들 비활성화
+            setEditToolsEnabled(false);
+            
+            LoggerManager.logger("✅ UI 초기화 완료");
+            
+        } catch (Exception e) {
+            LoggerManager.logger("❌ UI 초기화 중 오류: " + e.getMessage());
+        }
     }
     
     // 플레이어 관련 메서드들
@@ -931,7 +949,9 @@ public class EditFragment extends Fragment {
                           "🎵 라이브러리 탭에서 편집된 파일을 확인하실 수 있습니다.")
                .setPositiveButton("확인", (dialog, which) -> {
                    dialog.dismiss();
-                   toastManager.showToastShort("라이브러리 탭에서 편집된 파일을 확인해보세요!");
+                   // ✅ 편집 완료 후 자동 초기화
+                   resetEditAfterCompletion();
+                   toastManager.showToastShort("편집이 완료되었습니다. 새로운 파일을 선택해보세요!");
                })
                .setNeutralButton("라이브러리 보기", (dialog, which) -> {
                    // 라이브러리 탭으로 이동
@@ -949,9 +969,104 @@ public class EditFragment extends Fragment {
                        toastManager.showToastLong("라이브러리 탭에서 편집된 파일을 확인해주세요");
                    }
                    dialog.dismiss();
+                   // ✅ 라이브러리로 이동한 후에도 편집탭 초기화
+                   resetEditAfterCompletion();
                })
                .setCancelable(false)
                .show();
+    }
+    
+    /**
+     * 편집 완료 후 초기화 (새로운 편집 작업 준비)
+     */
+    private void resetEditAfterCompletion() {
+        try {
+            LoggerManager.logger("🔄 편집 완료 후 초기화 시작");
+            
+            // 재생 중인 미디어 정지
+            stopPlayback();
+            
+            // 선택된 파일 정보 초기화
+            selectedFileUri = null;
+            audioDurationMs = 0;
+            isPlaying = false;
+            
+            // ViewModel 초기화
+            editViewModel.reset();
+            
+            // UI 초기화
+            resetUI();
+            
+            // 편집 도구들 비활성화
+            setEditToolsEnabled(false);
+            
+            // 자르기 위치 초기화 (웨이브폼)
+            binding.waveformView.resetTrimPositions();
+            
+            LoggerManager.logger("✅ 편집 완료 후 초기화 완료 - 새로운 편집 준비됨");
+            
+        } catch (Exception e) {
+            LoggerManager.logger("❌ 편집 완료 후 초기화 중 오류: " + e.getMessage());
+            // 오류가 발생해도 기본적인 UI 초기화는 시도
+            try {
+                resetUI();
+                setEditToolsEnabled(false);
+            } catch (Exception uiError) {
+                LoggerManager.logger("❌ UI 초기화 중 추가 오류: " + uiError.getMessage());
+            }
+        }
+    }
+    
+    /**
+     * 오류 발생 후 편집 상태 부분 초기화 (파일 선택은 유지)
+     */
+    private void resetEditStateAfterError() {
+        try {
+            LoggerManager.logger("⚠️ 오류 발생 후 편집 상태 부분 초기화 시작");
+            
+            // 재생 중인 미디어 정지
+            if (isPlaying) {
+                pausePlayback();
+            }
+            
+            // 진행률 관련 상태만 초기화 (파일 선택은 유지)
+            editViewModel.setProcessing(false);
+            editViewModel.setProcessingProgress(0);
+            
+            // 편집 도구들 다시 활성화 (파일이 여전히 선택되어 있으므로)
+            if (selectedFileUri != null) {
+                setEditToolsEnabled(true);
+            }
+            
+            LoggerManager.logger("✅ 오류 발생 후 편집 상태 부분 초기화 완료");
+            
+        } catch (Exception e) {
+            LoggerManager.logger("❌ 오류 발생 후 부분 초기화 중 추가 오류: " + e.getMessage());
+        }
+    }
+    
+    /**
+     * 편집 세션 완전 초기화 (새로운 편집 세션 시작용)
+     */
+    public void startNewEditingSession() {
+        try {
+            LoggerManager.logger("🆕 새로운 편집 세션 시작");
+            
+            // 기존 편집 작업 정리
+            resetEditAfterCompletion();
+            
+            // 파일 선택 다이얼로그 자동 실행
+            android.os.Handler handler = new android.os.Handler(android.os.Looper.getMainLooper());
+            handler.postDelayed(() -> {
+                selectFileToEdit();
+                toastManager.showToastShort("새 파일을 선택해주세요");
+            }, 500); // 0.5초 후 파일 선택 다이얼로그 표시
+            
+            LoggerManager.logger("✅ 새로운 편집 세션 준비 완료");
+            
+        } catch (Exception e) {
+            LoggerManager.logger("❌ 새로운 편집 세션 시작 중 오류: " + e.getMessage());
+        }
     }
     
     @Override
