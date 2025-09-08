@@ -46,7 +46,7 @@ public class DialogManager {
             LoggerManager.logger("⚠️ DialogManager - Context가 유효하지 않음. 확인 다이얼로그 표시 취소");
             return;
         }
-        
+
         try {
             new AlertDialog.Builder(context)
                     .setTitle(title)

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    
+    <!-- Spotify 히어로 섹션 그라데이션 -->
+    <gradient
+        android:type="radial"
+        android:gradientRadius="800dp"
+        android:centerX="0.3"
+        android:centerY="0.2"
+        android:startColor="@color/spotify_hero_start"
+        android:centerColor="@color/spotify_hero_mid"
+        android:endColor="@color/spotify_hero_end" />
+        
+</shape>

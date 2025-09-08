@@ -1,0 +1,439 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- ===== Spotify 2024-2025 테마 시스템 ===== -->
+    
+    <!-- Spotify 베이스 테마 -->
+    <style name="Base.Theme.Audios.Spotify" parent="Theme.Material3.DayNight.NoActionBar">
+        
+        <!-- ===== Spotify Primary Color System ===== -->
+        <!-- Spotify Green 기반 Primary Palette -->
+        <item name="colorPrimary">@color/spotify_green_primary</item>
+        <item name="colorOnPrimary">@color/spotify_on_primary</item>
+        <item name="colorPrimaryContainer">@color/spotify_primary_container</item>
+        <item name="colorOnPrimaryContainer">@color/spotify_on_primary_container</item>
+        
+        <!-- Secondary는 Neutral Gray 사용 -->
+        <item name="colorSecondary">#B3B3B3</item>
+        <item name="colorOnSecondary">@color/spotify_background</item>
+        <item name="colorSecondaryContainer">@color/spotify_surface_variant</item>
+        <item name="colorOnSecondaryContainer">@color/spotify_on_surface</item>
+        
+        <!-- Tertiary는 Spotify Purple Accent 사용 -->
+        <item name="colorTertiary">@color/spotify_accent_purple</item>
+        <item name="colorOnTertiary">@color/white</item>
+        <item name="colorTertiaryContainer">#5B1A47</item>
+        <item name="colorOnTertiaryContainer">#E6B3D9</item>
+        
+        <!-- Error는 Spotify Red 사용 -->
+        <item name="colorError">@color/spotify_error</item>
+        <item name="colorOnError">@color/white</item>
+        <item name="colorErrorContainer">@color/spotify_error_container</item>
+        <item name="colorOnErrorContainer">@color/spotify_on_error_container</item>
+        
+        <!-- ===== Spotify Background & Surface System ===== -->
+        <!-- 다크 테마 기반 배경 시스템 -->
+        <item name="android:colorBackground">@color/spotify_background</item>
+        <item name="colorBackground">@color/spotify_background</item>
+        <item name="colorOnBackground">@color/spotify_on_background</item>
+        <item name="colorSurface">@color/spotify_surface</item>
+        <item name="colorOnSurface">@color/spotify_on_surface</item>
+        <item name="colorSurfaceVariant">@color/spotify_surface_variant</item>
+        <item name="colorOnSurfaceVariant">@color/spotify_on_surface_variant</item>
+        <item name="colorSurfaceContainer">@color/spotify_surface_container</item>
+        <item name="colorSurfaceContainerHigh">@color/spotify_surface_container_high</item>
+        <item name="colorSurfaceContainerHighest">@color/spotify_surface_container_highest</item>
+        <item name="colorSurfaceBright">@color/spotify_surface_bright</item>
+        <item name="colorSurfaceDim">@color/spotify_surface_dim</item>
+        
+        <!-- ===== Outline & Border System ===== -->
+        <!-- Spotify 스타일 구분선 -->
+        <item name="colorOutline">@color/spotify_outline</item>
+        <item name="colorOutlineVariant">@color/spotify_outline_variant</item>
+        
+        <!-- ===== System UI 설정 ===== -->
+        <!-- Edge-to-Edge 다크 테마 -->
+        <item name="android:statusBarColor">@color/transparent</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:enforceStatusBarContrast" tools:targetApi="s">false</item>
+        
+        <item name="android:navigationBarColor">@color/transparent</item>
+        <item name="android:windowLightNavigationBar" tools:targetApi="o_mr1">false</item>
+        <item name="android:enforceNavigationBarContrast" tools:targetApi="s">false</item>
+        
+        <!-- ===== Spotify Typography System ===== -->
+        <!-- Google Sans Variable Font 기반 -->
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="textAppearanceDisplayLarge">@style/TextAppearance.Spotify.Display.Large</item>
+        <item name="textAppearanceDisplayMedium">@style/TextAppearance.Spotify.Display.Medium</item>
+        <item name="textAppearanceDisplaySmall">@style/TextAppearance.Spotify.Display.Small</item>
+        <item name="textAppearanceHeadlineLarge">@style/TextAppearance.Spotify.Headline.Large</item>
+        <item name="textAppearanceHeadlineMedium">@style/TextAppearance.Spotify.Headline.Medium</item>
+        <item name="textAppearanceHeadlineSmall">@style/TextAppearance.Spotify.Headline.Small</item>
+        <item name="textAppearanceTitleLarge">@style/TextAppearance.Spotify.Title.Large</item>
+        <item name="textAppearanceTitleMedium">@style/TextAppearance.Spotify.Title.Medium</item>
+        <item name="textAppearanceTitleSmall">@style/TextAppearance.Spotify.Title.Small</item>
+        <item name="textAppearanceBodyLarge">@style/TextAppearance.Spotify.Body.Large</item>
+        <item name="textAppearanceBodyMedium">@style/TextAppearance.Spotify.Body.Medium</item>
+        <item name="textAppearanceBodySmall">@style/TextAppearance.Spotify.Body.Small</item>
+        <item name="textAppearanceLabelLarge">@style/TextAppearance.Spotify.Label.Large</item>
+        <item name="textAppearanceLabelMedium">@style/TextAppearance.Spotify.Label.Medium</item>
+        <item name="textAppearanceLabelSmall">@style/TextAppearance.Spotify.Label.Small</item>
+        
+        <!-- ===== Spotify Shape System ===== -->
+        <!-- 둥근 모서리 시스템 -->
+        <item name="shapeAppearanceSmallComponent">@style/ShapeAppearance.Spotify.SmallComponent</item>
+        <item name="shapeAppearanceMediumComponent">@style/ShapeAppearance.Spotify.MediumComponent</item>
+        <item name="shapeAppearanceLargeComponent">@style/ShapeAppearance.Spotify.LargeComponent</item>
+        
+        <!-- ===== Advanced Window Properties ===== -->
+        <!-- 모던 전환 효과 -->
+        <item name="android:windowContentTransitions">true</item>
+        <item name="android:windowActivityTransitions">true</item>
+        <item name="android:windowAllowEnterTransitionOverlap">true</item>
+        <item name="android:windowAllowReturnTransitionOverlap">true</item>
+        
+        <item name="android:windowDrawsSystemBarBackgrounds">true</item>
+        <item name="android:fitsSystemWindows">false</item>
+        
+        <!-- ===== Spotify Component Overrides ===== -->
+        <!-- 버튼 스타일 -->
+        <item name="materialButtonStyle">@style/Widget.Spotify.Button</item>
+        <item name="borderlessButtonStyle">@style/Widget.Spotify.Button.Text</item>
+        <item name="materialButtonOutlinedStyle">@style/Widget.Spotify.Button.Outlined</item>
+        
+        <!-- 카드 스타일 -->
+        <item name="materialCardViewStyle">@style/Widget.Spotify.Card</item>
+        
+        <!-- FAB 스타일 -->
+        <item name="floatingActionButtonStyle">@style/Widget.Spotify.FloatingActionButton</item>
+        
+        <!-- 네비게이션 스타일 -->
+        <item name="bottomNavigationStyle">@style/Widget.Spotify.BottomNavigationView</item>
+        
+    </style>
+
+    <!-- 메인 Spotify 테마 -->
+    <style name="Theme.Audios.Spotify" parent="Base.Theme.Audios.Spotify">
+        <!-- 추가 커스터마이징 -->
+    </style>
+    
+    <!-- ===== Spotify Shape System ===== -->
+    
+    <!-- 작은 컴포넌트 (버튼, 칩 등) -->
+    <style name="ShapeAppearance.Spotify.SmallComponent" parent="ShapeAppearance.Material3.SmallComponent">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">20dp</item>
+    </style>
+    
+    <!-- 중간 컴포넌트 (카드, 다이얼로그 등) -->
+    <style name="ShapeAppearance.Spotify.MediumComponent" parent="ShapeAppearance.Material3.MediumComponent">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">24dp</item>
+    </style>
+    
+    <!-- 큰 컴포넌트 (히어로 카드, 플레이어 등) -->
+    <style name="ShapeAppearance.Spotify.LargeComponent" parent="ShapeAppearance.Material3.LargeComponent">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">32dp</item>
+    </style>
+    
+    <!-- Spotify 플레이리스트 커버 스타일 -->
+    <style name="ShapeAppearance.Spotify.PlaylistCover" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">8dp</item>
+    </style>
+    
+    <!-- Spotify 앨범 커버 스타일 -->
+    <style name="ShapeAppearance.Spotify.AlbumCover" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">4dp</item>
+    </style>
+    
+    <!-- ===== Spotify Typography System ===== -->
+    
+    <!-- Display Styles - 브랜드 타이틀 -->
+    <style name="TextAppearance.Spotify.Display.Large" parent="TextAppearance.Material3.DisplayLarge">
+        <item name="android:textSize">48sp</item>
+        <item name="android:textColor">@color/spotify_on_background</item>
+        <item name="android:fontWeight" tools:targetApi="o">900</item>
+        <item name="android:letterSpacing">-0.025</item>
+        <item name="fontFamily">sans-serif-black</item>
+    </style>
+    
+    <style name="TextAppearance.Spotify.Display.Medium" parent="TextAppearance.Material3.DisplayMedium">
+        <item name="android:textSize">36sp</item>
+        <item name="android:textColor">@color/spotify_on_background</item>
+        <item name="android:fontWeight" tools:targetApi="o">800</item>
+        <item name="android:letterSpacing">-0.02</item>
+        <item name="fontFamily">sans-serif-black</item>
+    </style>
+    
+    <style name="TextAppearance.Spotify.Display.Small" parent="TextAppearance.Material3.DisplaySmall">
+        <item name="android:textSize">28sp</item>
+        <item name="android:textColor">@color/spotify_on_background</item>
+        <item name="android:fontWeight" tools:targetApi="o">700</item>
+        <item name="android:letterSpacing">-0.015</item>
+        <item name="fontFamily">sans-serif-medium</item>
+    </style>
+    
+    <!-- Headline Styles - 섹션 제목 -->
+    <style name="TextAppearance.Spotify.Headline.Large" parent="TextAppearance.Material3.HeadlineLarge">
+        <item name="android:textSize">26sp</item>
+        <item name="android:textColor">@color/spotify_on_surface</item>
+        <item name="android:fontWeight" tools:targetApi="o">700</item>
+        <item name="fontFamily">sans-serif-medium</item>
+    </style>
+    
+    <style name="TextAppearance.Spotify.Headline.Medium" parent="TextAppearance.Material3.HeadlineMedium">
+        <item name="android:textSize">22sp</item>
+        <item name="android:textColor">@color/spotify_on_surface</item>
+        <item name="android:fontWeight" tools:targetApi="o">600</item>
+        <item name="fontFamily">sans-serif-medium</item>
+    </style>
+    
+    <style name="TextAppearance.Spotify.Headline.Small" parent="TextAppearance.Material3.HeadlineSmall">
+        <item name="android:textSize">20sp</item>
+        <item name="android:textColor">@color/spotify_on_surface</item>
+        <item name="android:fontWeight" tools:targetApi="o">600</item>
+        <item name="fontFamily">sans-serif-medium</item>
+    </style>
+    
+    <!-- Title Styles - 아이템 제목 -->
+    <style name="TextAppearance.Spotify.Title.Large" parent="TextAppearance.Material3.TitleLarge">
+        <item name="android:textSize">18sp</item>
+        <item name="android:textColor">@color/spotify_on_surface</item>
+        <item name="android:fontWeight" tools:targetApi="o">600</item>
+        <item name="fontFamily">sans-serif-medium</item>
+    </style>
+    
+    <style name="TextAppearance.Spotify.Title.Medium" parent="TextAppearance.Material3.TitleMedium">
+        <item name="android:textSize">16sp</item>
+        <item name="android:textColor">@color/spotify_on_surface</item>
+        <item name="android:fontWeight" tools:targetApi="o">500</item>
+        <item name="fontFamily">sans-serif-medium</item>
+    </style>
+    
+    <style name="TextAppearance.Spotify.Title.Small" parent="TextAppearance.Material3.TitleSmall">
+        <item name="android:textSize">14sp</item>
+        <item name="android:textColor">@color/spotify_secondary_text</item>
+        <item name="android:fontWeight" tools:targetApi="o">500</item>
+        <item name="fontFamily">sans-serif</item>
+    </style>
+    
+    <!-- Body Styles - 본문 텍스트 -->
+    <style name="TextAppearance.Spotify.Body.Large" parent="TextAppearance.Material3.BodyLarge">
+        <item name="android:textSize">16sp</item>
+        <item name="android:textColor">@color/spotify_on_surface</item>
+        <item name="android:fontWeight" tools:targetApi="o">400</item>
+        <item name="android:lineSpacingExtra">2dp</item>
+        <item name="fontFamily">sans-serif</item>
+    </style>
+    
+    <style name="TextAppearance.Spotify.Body.Medium" parent="TextAppearance.Material3.BodyMedium">
+        <item name="android:textSize">14sp</item>
+        <item name="android:textColor">@color/spotify_secondary_text</item>
+        <item name="android:fontWeight" tools:targetApi="o">400</item>
+        <item name="android:lineSpacingExtra">1dp</item>
+        <item name="fontFamily">sans-serif</item>
+    </style>
+    
+    <style name="TextAppearance.Spotify.Body.Small" parent="TextAppearance.Material3.BodySmall">
+        <item name="android:textSize">12sp</item>
+        <item name="android:textColor">@color/spotify_tertiary_text</item>
+        <item name="android:fontWeight" tools:targetApi="o">400</item>
+        <item name="fontFamily">sans-serif</item>
+    </style>
+    
+    <!-- Label Styles - 버튼 및 기능 텍스트 -->
+    <style name="TextAppearance.Spotify.Label.Large" parent="TextAppearance.Material3.LabelLarge">
+        <item name="android:textSize">15sp</item>
+        <item name="android:textColor">@color/spotify_on_surface</item>
+        <item name="android:fontWeight" tools:targetApi="o">600</item>
+        <item name="android:letterSpacing">0.01</item>
+        <item name="fontFamily">sans-serif-medium</item>
+    </style>
+    
+    <style name="TextAppearance.Spotify.Label.Medium" parent="TextAppearance.Material3.LabelMedium">
+        <item name="android:textSize">13sp</item>
+        <item name="android:textColor">@color/spotify_secondary_text</item>
+        <item name="android:fontWeight" tools:targetApi="o">500</item>
+        <item name="android:letterSpacing">0.015</item>
+        <item name="fontFamily">sans-serif</item>
+    </style>
+    
+    <style name="TextAppearance.Spotify.Label.Small" parent="TextAppearance.Material3.LabelSmall">
+        <item name="android:textSize">11sp</item>
+        <item name="android:textColor">@color/spotify_tertiary_text</item>
+        <item name="android:fontWeight" tools:targetApi="o">500</item>
+        <item name="android:letterSpacing">0.02</item>
+        <item name="fontFamily">sans-serif</item>
+    </style>
+    
+    <!-- ===== Spotify Component Styles ===== -->
+    
+    <!-- Spotify 스타일 버튼 -->
+    <style name="Widget.Spotify.Button" parent="Widget.Material3.Button">
+        <item name="android:minHeight">48dp</item>
+        <item name="android:textAppearance">@style/TextAppearance.Spotify.Label.Large</item>
+        <item name="android:textColor">@color/spotify_button_text</item>
+        <item name="backgroundTint">@color/spotify_button_primary</item>
+        <item name="cornerRadius">24dp</item>
+        <item name="android:elevation">0dp</item>
+        <item name="rippleColor">@color/spotify_ripple_primary</item>
+        <item name="android:fontWeight" tools:targetApi="o">700</item>
+        <item name="android:textAllCaps">false</item>
+    </style>
+    
+    <style name="Widget.Spotify.Button.Text" parent="Widget.Material3.Button.TextButton">
+        <item name="android:textAppearance">@style/TextAppearance.Spotify.Label.Large</item>
+        <item name="android:textColor">@color/spotify_on_surface</item>
+        <item name="cornerRadius">20dp</item>
+        <item name="rippleColor">@color/spotify_ripple_surface</item>
+        <item name="android:fontWeight" tools:targetApi="o">600</item>
+        <item name="android:textAllCaps">false</item>
+    </style>
+    
+    <style name="Widget.Spotify.Button.Outlined" parent="Widget.Material3.Button.OutlinedButton">
+        <item name="android:minHeight">48dp</item>
+        <item name="android:textAppearance">@style/TextAppearance.Spotify.Label.Large</item>
+        <item name="android:textColor">@color/spotify_on_surface</item>
+        <item name="strokeColor">@color/spotify_outline</item>
+        <item name="strokeWidth">1dp</item>
+        <item name="cornerRadius">24dp</item>
+        <item name="rippleColor">@color/spotify_ripple_surface</item>
+        <item name="android:fontWeight" tools:targetApi="o">600</item>
+        <item name="android:textAllCaps">false</item>
+    </style>
+    
+    <!-- Spotify 스타일 카드 -->
+    <style name="Widget.Spotify.Card" parent="Widget.Material3.CardView.Filled">
+        <item name="cardCornerRadius">16dp</item>
+        <item name="cardElevation">0dp</item>
+        <item name="cardBackgroundColor">@color/spotify_card_background</item>
+        <item name="strokeColor">@color/transparent</item>
+        <item name="strokeWidth">0dp</item>
+        <item name="shapeAppearance">@style/ShapeAppearance.Spotify.MediumComponent</item>
+    </style>
+    
+    <style name="Widget.Spotify.Card.Elevated" parent="Widget.Material3.CardView.Elevated">
+        <item name="cardCornerRadius">16dp</item>
+        <item name="cardElevation">4dp</item>
+        <item name="cardBackgroundColor">@color/spotify_card_background_elevated</item>
+        <item name="strokeColor">@color/transparent</item>
+        <item name="strokeWidth">0dp</item>
+        <item name="shapeAppearance">@style/ShapeAppearance.Spotify.MediumComponent</item>
+    </style>
+    
+    <!-- Spotify 스타일 FAB -->
+    <style name="Widget.Spotify.FloatingActionButton" parent="Widget.Material3.FloatingActionButton.Primary">
+        <item name="shapeAppearance">@style/ShapeAppearance.Spotify.MediumComponent</item>
+        <item name="backgroundTint">@color/spotify_green_primary</item>
+        <item name="tint">@color/spotify_on_primary</item>
+        <item name="rippleColor">@color/spotify_ripple_primary</item>
+        <item name="elevation">8dp</item>
+        <item name="pressedTranslationZ">12dp</item>
+    </style>
+    
+    <!-- Spotify 스타일 Bottom Navigation -->
+    <style name="Widget.Spotify.BottomNavigationView" parent="Widget.Material3.BottomNavigationView">
+        <item name="android:background">@color/spotify_nav_background</item>
+        <item name="itemIconTint">@color/spotify_nav_selected</item>
+        <item name="itemTextColor">@color/spotify_nav_selected</item>
+        <item name="itemRippleColor">@color/spotify_ripple_primary</item>
+        <item name="elevation">0dp</item>
+        <item name="android:paddingTop">8dp</item>
+        <item name="android:paddingBottom">8dp</item>
+    </style>
+    
+    <!-- ===== 특수 테마들 ===== -->
+    
+    <!-- Spotify 스플래시 테마 -->
+    <style name="Theme.Spotify.Splash" parent="Theme.Audios.Spotify">
+        <item name="android:windowBackground">@color/spotify_background</item>
+        <item name="android:windowSplashScreenBackground" tools:targetApi="31">@color/spotify_background</item>
+        <item name="android:windowSplashScreenAnimatedIcon" tools:targetApi="31">@drawable/ic_app_animated</item>
+    </style>
+    
+    <!-- Spotify 다이얼로그 테마 -->
+    <style name="Theme.Spotify.Dialog" parent="Theme.Material3.DayNight.Dialog">
+        <item name="colorPrimary">@color/spotify_green_primary</item>
+        <item name="colorSecondary">@color/spotify_secondary_text</item>
+        <item name="colorSurface">@color/spotify_surface_container</item>
+        <item name="colorOnSurface">@color/spotify_on_surface</item>
+        <item name="dialogCornerRadius">24dp</item>
+        <item name="android:windowElevation">8dp</item>
+        <item name="android:backgroundDimAmount">0.7</item>
+        <item name="android:windowBackground">@color/spotify_surface_container</item>
+    </style>
+    
+    <!-- Spotify Bottom Sheet 테마 -->
+    <style name="Theme.Spotify.BottomSheetDialog" parent="Theme.Material3.DayNight.BottomSheetDialog">
+        <item name="colorPrimary">@color/spotify_green_primary</item>
+        <item name="colorSecondary">@color/spotify_secondary_text</item>
+        <item name="colorSurface">@color/spotify_surface_container</item>
+        <item name="colorOnSurface">@color/spotify_on_surface</item>
+        <item name="bottomSheetStyle">@style/Widget.Spotify.BottomSheet</item>
+        <item name="android:backgroundDimAmount">0.6</item>
+    </style>
+    
+    <style name="Widget.Spotify.BottomSheet" parent="Widget.Material3.BottomSheet">
+        <item name="shapeAppearance">@style/ShapeAppearance.Spotify.BottomSheet</item>
+        <item name="android:elevation">16dp</item>
+        <item name="android:background">@color/spotify_surface_container</item>
+    </style>
+    
+    <style name="ShapeAppearance.Spotify.BottomSheet" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSizeTopLeft">28dp</item>
+        <item name="cornerSizeTopRight">28dp</item>
+    </style>
+    
+    <!-- ===== Spotify 앱 특화 스타일 ===== -->
+    
+    <!-- 파형 표시 스타일 -->
+    <style name="Widget.Spotify.WaveformView" parent="">
+        <item name="android:background">@color/spotify_waveform_background</item>
+        <!-- 커스텀 속성들은 추후 정의 -->
+    </style>
+    
+    <!-- 플레이어 컨트롤 스타일 -->
+    <style name="Widget.Spotify.PlayerControl" parent="">
+        <item name="android:background">@color/spotify_player_control_background</item>
+        <item name="android:padding">16dp</item>
+        <item name="android:elevation">8dp</item>
+    </style>
+    
+    <!-- 변환 진행률 스타일 -->
+    <style name="Widget.Spotify.ConversionProgress" parent="">
+        <item name="android:progressTint">@color/spotify_green_primary</item>
+        <item name="android:progressBackgroundTint">@color/spotify_outline_variant</item>
+        <item name="android:indeterminateTint">@color/spotify_green_primary</item>
+    </style>
+    
+    <!-- ===== Spotify 탭바 전용 스타일 ===== -->
+    
+    <!-- Spotify 세그먼트 컨트롤 스타일 -->
+    <style name="Widget.Spotify.SegmentedControl" parent="">
+        <item name="android:background">@drawable/spotify_segmented_background</item>
+        <item name="android:padding">2dp</item>
+        <item name="android:elevation">0dp</item>
+    </style>
+    
+    <!-- Spotify 세그먼트 텍스트 스타일 -->
+    <style name="TextAppearance.Spotify.Segment" parent="TextAppearance.Material3.LabelMedium">
+        <item name="android:textSize">13sp</item>
+        <item name="android:fontWeight" tools:targetApi="o">600</item>
+        <item name="fontFamily">sans-serif-medium</item>
+        <item name="android:letterSpacing">0.01</item>
+    </style>
+    
+    <!-- 선택된 세그먼트 스타일 -->
+    <style name="TextAppearance.Spotify.Segment.Selected" parent="TextAppearance.Spotify.Segment">
+        <item name="android:textColor">@color/spotify_on_primary</item>
+    </style>
+    
+    <!-- 선택안된 세그먼트 스타일 -->
+    <style name="TextAppearance.Spotify.Segment.Unselected" parent="TextAppearance.Spotify.Segment">
+        <item name="android:textColor">@color/spotify_on_surface_variant</item>
+    </style>
+    
+</resources>

@@ -1,0 +1,432 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/spotify_background"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingHorizontal="24dp"
+        android:paddingVertical="16dp">
+
+        <!-- Spotify 스타일 헤더 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginBottom="24dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="오디오 편집"
+                android:textAppearance="@style/TextAppearance.Spotify.Headline.Large"
+                android:textColor="@color/spotify_on_background"
+                android:layout_marginBottom="8dp"
+                android:fontFamily="sans-serif-black" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="오디오 파일을 자르고 편집하세요"
+                android:textAppearance="@style/TextAppearance.Spotify.Body.Large"
+                android:textColor="@color/spotify_secondary_text" />
+
+        </LinearLayout>
+
+        <!-- 파일 선택 섹션 -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/file_select_card"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="24dp"
+            android:background="@drawable/spotify_card_background"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="0dp"
+            app:strokeColor="@color/spotify_outline_variant"
+            app:strokeWidth="1dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="20dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="편집할 파일 선택"
+                    android:textAppearance="@style/TextAppearance.Spotify.Title.Large"
+                    android:textColor="@color/spotify_on_surface"
+                    android:layout_marginBottom="16dp"
+                    android:fontFamily="sans-serif-medium" />
+
+                <!-- 파일 선택 버튼 -->
+                <LinearLayout
+                    android:id="@+id/select_file_area"
+                    android:layout_width="match_parent"
+                    android:layout_height="80dp"
+                    android:orientation="vertical"
+                    android:gravity="center"
+                    android:background="?attr/selectableItemBackground"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:layout_marginBottom="12dp"
+                    style="?attr/materialCardViewElevatedStyle">
+
+                    <ImageView
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:src="@drawable/ic_folder_empty"
+                        android:layout_marginBottom="8dp"
+                        app:tint="@color/spotify_secondary_text" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="파일 선택하기"
+                        android:textAppearance="@style/TextAppearance.Spotify.Body.Medium"
+                        android:textColor="@color/spotify_secondary_text" />
+
+                </LinearLayout>
+
+                <!-- 선택된 파일 정보 -->
+                <LinearLayout
+                    android:id="@+id/selected_file_info"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:visibility="gone"
+                    tools:visibility="visible">
+
+                    <ImageView
+                        android:layout_width="32dp"
+                        android:layout_height="32dp"
+                        android:src="@drawable/ic_music"
+                        android:layout_marginEnd="12dp"
+                        app:tint="@color/file_type_audio"
+                        android:background="@drawable/circle_background"
+                        android:backgroundTint="@color/spotify_surface_variant"
+                        android:padding="6dp" />
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:id="@+id/file_name"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="sample_audio.mp3"
+                            android:textAppearance="@style/TextAppearance.Spotify.Title.Medium"
+                            android:textColor="@color/spotify_on_surface" />
+
+                        <TextView
+                            android:id="@+id/file_duration"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="03:24"
+                            android:textAppearance="@style/TextAppearance.Spotify.Body.Small"
+                            android:textColor="@color/spotify_secondary_text"
+                            android:layout_marginTop="2dp" />
+
+                    </LinearLayout>
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- 파형 및 편집 도구 -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/waveform_card"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="24dp"
+            android:background="@drawable/spotify_card_background"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="0dp"
+            app:strokeColor="@color/spotify_outline_variant"
+            app:strokeWidth="1dp"
+            android:visibility="gone"
+            tools:visibility="visible">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="20dp">
+
+                <!-- 파형 제목 -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="파형 편집"
+                    android:textAppearance="@style/TextAppearance.Spotify.Title.Large"
+                    android:textColor="@color/spotify_on_surface"
+                    android:layout_marginBottom="16dp"
+                    android:fontFamily="sans-serif-medium" />
+
+                <!-- 파형 시각화 영역 -->
+                <LinearLayout
+                    android:id="@+id/waveform_container"
+                    android:layout_width="match_parent"
+                    android:layout_height="120dp"
+                    android:background="@drawable/spotify_waveform_background"
+                    android:layout_marginBottom="16dp"
+                    android:gravity="center">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="🎵 파형 표시 영역"
+                        android:textAppearance="@style/TextAppearance.Spotify.Body.Medium"
+                        android:textColor="@color/spotify_secondary_text" />
+
+                </LinearLayout>
+
+                <!-- 재생 컨트롤 -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginBottom="16dp">
+
+                    <ImageView
+                        android:id="@+id/play_pause_button"
+                        android:layout_width="48dp"
+                        android:layout_height="48dp"
+                        android:src="@drawable/ic_play"
+                        android:background="@drawable/circle_background"
+                        android:backgroundTint="@color/spotify_green_primary"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:padding="12dp"
+                        app:tint="@color/spotify_on_primary"
+                        android:layout_marginEnd="16dp" />
+
+                    <!-- 현재 시간 -->
+                    <TextView
+                        android:id="@+id/current_time"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="00:00"
+                        android:textAppearance="@style/TextAppearance.Spotify.Body.Small"
+                        android:textColor="@color/spotify_secondary_text"
+                        android:layout_marginEnd="8dp" />
+
+                    <!-- 진행률 바 -->
+                    <SeekBar
+                        android:id="@+id/progress_bar"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:layout_marginHorizontal="8dp"
+                        android:progressTint="@color/spotify_green_primary"
+                        android:progressBackgroundTint="@color/spotify_outline_variant"
+                        android:thumbTint="@color/spotify_green_primary" />
+
+                    <!-- 전체 시간 -->
+                    <TextView
+                        android:id="@+id/total_time"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="03:24"
+                        android:textAppearance="@style/TextAppearance.Spotify.Body.Small"
+                        android:textColor="@color/spotify_secondary_text"
+                        android:layout_marginStart="8dp" />
+
+                </LinearLayout>
+
+                <!-- 편집 범위 설정 -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="편집 범위"
+                        android:textAppearance="@style/TextAppearance.Spotify.Label.Large"
+                        android:textColor="@color/spotify_on_surface"
+                        android:layout_marginBottom="12dp" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical">
+
+                        <!-- 시작 시간 -->
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical"
+                            android:layout_marginEnd="16dp">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="시작 시간"
+                                android:textAppearance="@style/TextAppearance.Spotify.Body.Small"
+                                android:textColor="@color/spotify_secondary_text"
+                                android:layout_marginBottom="4dp" />
+
+                            <com.google.android.material.textfield.TextInputLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                app:boxBackgroundMode="filled"
+                                app:boxBackgroundColor="@color/spotify_surface_variant"
+                                app:boxCornerRadiusTopEnd="8dp"
+                                app:boxCornerRadiusTopStart="8dp"
+                                app:boxCornerRadiusBottomEnd="8dp"
+                                app:boxCornerRadiusBottomStart="8dp"
+                                app:boxStrokeWidth="0dp">
+
+                                <com.google.android.material.textfield.TextInputEditText
+                                    android:id="@+id/start_time_input"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:text="00:00"
+                                    android:textAppearance="@style/TextAppearance.Spotify.Body.Medium"
+                                    android:textColor="@color/spotify_on_surface"
+                                    android:gravity="center"
+                                    android:inputType="time" />
+
+                            </com.google.android.material.textfield.TextInputLayout>
+
+                        </LinearLayout>
+
+                        <!-- 끝 시간 -->
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="끝 시간"
+                                android:textAppearance="@style/TextAppearance.Spotify.Body.Small"
+                                android:textColor="@color/spotify_secondary_text"
+                                android:layout_marginBottom="4dp" />
+
+                            <com.google.android.material.textfield.TextInputLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                app:boxBackgroundMode="filled"
+                                app:boxBackgroundColor="@color/spotify_surface_variant"
+                                app:boxCornerRadiusTopEnd="8dp"
+                                app:boxCornerRadiusTopStart="8dp"
+                                app:boxCornerRadiusBottomEnd="8dp"
+                                app:boxCornerRadiusBottomStart="8dp"
+                                app:boxStrokeWidth="0dp">
+
+                                <com.google.android.material.textfield.TextInputEditText
+                                    android:id="@+id/end_time_input"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:text="03:24"
+                                    android:textAppearance="@style/TextAppearance.Spotify.Body.Medium"
+                                    android:textColor="@color/spotify_on_surface"
+                                    android:gravity="center"
+                                    android:inputType="time" />
+
+                            </com.google.android.material.textfield.TextInputLayout>
+
+                        </LinearLayout>
+
+                    </LinearLayout>
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- 편집 옵션 -->
+        <LinearLayout
+            android:id="@+id/editing_options"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginBottom="24dp"
+            android:visibility="gone"
+            tools:visibility="visible">
+
+            <!-- 빠른 편집 버튼들 -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="빠른 편집"
+                android:textAppearance="@style/TextAppearance.Spotify.Title.Large"
+                android:textColor="@color/spotify_on_background"
+                android:layout_marginBottom="16dp"
+                android:fontFamily="sans-serif-medium" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginBottom="16dp">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/trim_start"
+                    style="@style/Widget.Spotify.Button.Outlined"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="앞부분 자르기"
+                    android:layout_marginEnd="8dp"
+                    app:icon="@drawable/ic_cut"
+                    app:iconTint="@color/spotify_on_surface" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/trim_end"
+                    style="@style/Widget.Spotify.Button.Outlined"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="뒷부분 자르기"
+                    android:layout_marginStart="8dp"
+                    app:icon="@drawable/ic_cut"
+                    app:iconTint="@color/spotify_on_surface" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+        <!-- 저장 버튼 -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/save_edited_file"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:text="편집 완료"
+            android:textAppearance="@style/TextAppearance.Spotify.Label.Large"
+            android:textColor="@color/spotify_on_primary"
+            android:backgroundTint="@color/spotify_button_primary"
+            android:enabled="false"
+            app:cornerRadius="28dp"
+            app:elevation="0dp"
+            app:rippleColor="@color/spotify_ripple_primary"
+            app:icon="@drawable/ic_save"
+            app:iconTint="@color/spotify_on_primary"
+            android:fontFamily="sans-serif-medium"
+            android:textStyle="bold" />
+
+    </LinearLayout>
+
+</ScrollView>

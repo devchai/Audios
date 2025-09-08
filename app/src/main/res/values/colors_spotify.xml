@@ -1,0 +1,176 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- ===== Spotify 2024-2025 테마 색상 시스템 ===== -->
+    
+    <!-- ===== Spotify 브랜드 Primary 색상군 ===== -->
+    <!-- Spotify Green 기반 Primary Palette -->
+    <color name="spotify_green_primary">#1DB954</color>
+    <color name="spotify_green_light">#1ED760</color>
+    <color name="spotify_green_dark">#169C46</color>
+    <color name="spotify_green_darker">#0F7A35</color>
+    <color name="spotify_on_primary">#000000</color>
+    <color name="spotify_primary_container">#0D4A1F</color>
+    <color name="spotify_on_primary_container">#B8E6C8</color>
+    
+    <!-- ===== Spotify Dark Surface 색상군 ===== -->
+    <!-- Spotify 특화 다크 테마 -->
+    <color name="spotify_background">#191414</color>
+    <color name="spotify_surface">#121212</color>
+    <color name="spotify_surface_variant">#282828</color>
+    <color name="spotify_surface_container">#1F1F1F</color>
+    <color name="spotify_surface_container_high">#2A2A2A</color>
+    <color name="spotify_surface_container_highest">#333333</color>
+    <color name="spotify_surface_bright">#3E3E3E</color>
+    <color name="spotify_surface_dim">#0F0F0F</color>
+    
+    <!-- ===== Spotify Text & Content 색상군 ===== -->
+    <!-- 계층적 텍스트 색상 -->
+    <color name="spotify_on_background">#FFFFFF</color>
+    <color name="spotify_on_surface">#FFFFFF</color>
+    <color name="spotify_on_surface_variant">#B3B3B3</color>
+    <color name="spotify_secondary_text">#A7A7A7</color>
+    <color name="spotify_tertiary_text">#737373</color>
+    <color name="spotify_disabled_text">#535353</color>
+    
+    <!-- ===== Spotify Outline & Border 색상군 ===== -->
+    <!-- 구분선 및 테두리 -->
+    <color name="spotify_outline">#535353</color>
+    <color name="spotify_outline_variant">#404040</color>
+    <color name="spotify_divider">#2E2E2E</color>
+    <color name="spotify_border_subtle">#1A1A1A</color>
+    
+    <!-- ===== Spotify Accent 색상군 ===== -->
+    <!-- 보조 브랜드 색상 -->
+    <color name="spotify_accent_blue">#5090D3</color>
+    <color name="spotify_accent_purple">#AF2896</color>
+    <color name="spotify_accent_orange">#E22134</color>
+    <color name="spotify_accent_yellow">#FFC107</color>
+    
+    <!-- ===== State & Feedback 색상군 ===== -->
+    <!-- 상태 표시 색상 -->
+    <color name="spotify_success">#1DB954</color>
+    <color name="spotify_success_container">#0D4A1F</color>
+    <color name="spotify_on_success_container">#B8E6C8</color>
+    <color name="spotify_warning">#FFA500</color>
+    <color name="spotify_warning_container">#4D3300</color>
+    <color name="spotify_on_warning_container">#FFE0B3</color>
+    <color name="spotify_error">#E22134</color>
+    <color name="spotify_error_container">#4D0C12</color>
+    <color name="spotify_on_error_container">#F5B3BB</color>
+    <color name="spotify_info">#5090D3</color>
+    <color name="spotify_info_container">#1A2F4D</color>
+    <color name="spotify_on_info_container">#B3D1F0</color>
+    
+    <!-- ===== Hero & Gradient 색상군 ===== -->
+    <!-- 플레이리스트 커버 스타일 그라데이션 -->
+    <color name="spotify_hero_start">#1DB954</color>
+    <color name="spotify_hero_mid">#169C46</color>
+    <color name="spotify_hero_end">#0F7A35</color>
+    
+    <!-- Dynamic Color Gradients -->
+    <color name="spotify_gradient_green_start">#1ED760</color>
+    <color name="spotify_gradient_green_end">#056B26</color>
+    <color name="spotify_gradient_purple_start">#AF2896</color>
+    <color name="spotify_gradient_purple_end">#5B1A47</color>
+    <color name="spotify_gradient_blue_start">#5090D3</color>
+    <color name="spotify_gradient_blue_end">#2A4A73</color>
+    <color name="spotify_gradient_orange_start">#E22134</color>
+    <color name="spotify_gradient_orange_end">#8B1520</color>
+    
+    <!-- ===== Glass & Overlay 효과 ===== -->
+    <!-- 글래스 모피즘 효과 -->
+    <color name="spotify_glass_surface">#1A121212</color>
+    <color name="spotify_glass_surface_strong">#33121212</color>
+    <color name="spotify_glass_border">#33535353</color>
+    <color name="spotify_glass_border_bright">#4DFFFFFF</color>
+    
+    <!-- Overlay & Scrim -->
+    <color name="spotify_scrim_light">#4D000000</color>
+    <color name="spotify_scrim_medium">#80000000</color>
+    <color name="spotify_scrim_heavy">#B3000000</color>
+    <color name="spotify_modal_overlay">#CC000000</color>
+    
+    <!-- Player & Now Playing -->
+    <color name="spotify_player_overlay">#E6191414</color>
+    <color name="spotify_nowplaying_background">#CC000000</color>
+    <color name="spotify_player_control_background">#1A1A1A</color>
+    
+    <!-- ===== Interactive Elements 색상군 ===== -->
+    <!-- 버튼 및 인터랙티브 요소 -->
+    <color name="spotify_button_primary">#1DB954</color>
+    <color name="spotify_button_primary_pressed">#169C46</color>
+    <color name="spotify_button_secondary">#FFFFFF</color>
+    <color name="spotify_button_secondary_pressed">#E6E6E6</color>
+    <color name="spotify_button_text">#191414</color>
+    
+    <!-- Ripple & Selection -->
+    <color name="spotify_ripple_primary">#331DB954</color>
+    <color name="spotify_ripple_surface">#1AFFFFFF</color>
+    <color name="spotify_selection_highlight">#4D1DB954</color>
+    <color name="spotify_focus_indicator">#661DB954</color>
+    
+    <!-- ===== Navigation & Tab 색상군 ===== -->
+    <!-- 네비게이션 관련 -->
+    <color name="spotify_nav_selected">#1DB954</color>
+    <color name="spotify_nav_unselected">#B3B3B3</color>
+    <color name="spotify_nav_background">#121212</color>
+    <color name="spotify_nav_indicator">#1DB954</color>
+    <color name="spotify_tab_background">#191414</color>
+    
+    <!-- ===== Card & Item 색상군 ===== -->
+    <!-- 카드 및 아이템 배경 -->
+    <color name="spotify_card_background">#181818</color>
+    <color name="spotify_card_background_elevated">#282828</color>
+    <color name="spotify_card_stroke">#404040</color>
+    <color name="spotify_item_background">#1A1A1A</color>
+    <color name="spotify_item_background_selected">#0D4A1F</color>
+    <color name="spotify_item_background_pressed">#2A2A2A</color>
+    
+    <!-- ===== Progress & Loading 색상군 ===== -->
+    <!-- 진행률 및 로딩 -->
+    <color name="spotify_progress_primary">#1DB954</color>
+    <color name="spotify_progress_background">#404040</color>
+    <color name="spotify_progress_secondary">#B3B3B3</color>
+    <color name="spotify_loading_shimmer_base">#1A181818</color>
+    <color name="spotify_loading_shimmer_highlight">#33FFFFFF</color>
+    
+    <!-- ===== Light Theme Alternative (선택적) ===== -->
+    <!-- Spotify 라이트 테마 (사용자 선택권) -->
+    <color name="spotify_light_background">#FFFFFF</color>
+    <color name="spotify_light_surface">#F8F8F8</color>
+    <color name="spotify_light_surface_variant">#F0F0F0</color>
+    <color name="spotify_light_surface_container">#FAFAFA</color>
+    <color name="spotify_light_on_background">#191414</color>
+    <color name="spotify_light_on_surface">#191414</color>
+    <color name="spotify_light_on_surface_variant">#666666</color>
+    <color name="spotify_light_outline">#C0C0C0</color>
+    <color name="spotify_light_outline_variant">#E0E0E0</color>
+    <color name="spotify_light_divider">#E6E6E6</color>
+    
+    
+    <!-- ===== 앱 특화 기능 색상 ===== -->
+    <!-- 오디오 변환 관련 -->
+    <color name="conversion_progress">@color/spotify_green_primary</color>
+    <color name="conversion_complete">@color/spotify_success</color>
+    <color name="conversion_error">@color/spotify_error</color>
+    <color name="conversion_waiting">@color/spotify_secondary_text</color>
+    
+    <!-- 파일 타입별 색상 -->
+    <color name="file_type_audio">#1DB954</color>
+    <color name="file_type_video">#AF2896</color>
+    <color name="file_type_unknown">#B3B3B3</color>
+    
+    <!-- 품질 표시 색상 -->
+    <color name="quality_high">#1DB954</color>
+    <color name="quality_medium">#FFA500</color>
+    <color name="quality_low">#E22134</color>
+    
+    <!-- Waveform & Visualizer -->
+    <color name="waveform_active">#1DB954</color>
+    <color name="waveform_inactive">#535353</color>
+    <color name="waveform_background">#282828</color>
+    <color name="spotify_waveform_background">#282828</color>
+    <color name="visualizer_primary">#1ED760</color>
+    <color name="visualizer_secondary">#AF2896</color>
+    
+</resources>

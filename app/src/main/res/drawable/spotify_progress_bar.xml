@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    
+    <!-- 배경 -->
+    <item android:id="@android:id/background">
+        <shape android:shape="rectangle">
+            <solid android:color="@color/spotify_progress_background" />
+            <corners android:radius="8dp" />
+        </shape>
+    </item>
+    
+    <!-- 진행률 -->
+    <item android:id="@android:id/progress">
+        <scale android:scaleWidth="100%">
+            <shape android:shape="rectangle">
+                <solid android:color="@color/spotify_progress_primary" />
+                <corners android:radius="8dp" />
+            </shape>
+        </scale>
+    </item>
+    
+</layer-list>

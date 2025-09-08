@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@drawable/spotify_card_elevated"
+    android:paddingTop="28dp"
+    android:paddingBottom="20dp"
+    android:paddingHorizontal="24dp">
+
+    <!-- 아이콘 (옵션) -->
+    <LinearLayout
+        android:id="@+id/icon_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:layout_marginBottom="16dp"
+        android:visibility="gone"
+        tools:visibility="visible">
+
+        <ImageView
+            android:id="@+id/dialog_icon"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:src="@drawable/ic_audio"
+            android:background="@drawable/circle_background"
+            android:backgroundTint="@color/spotify_info_container"
+            android:padding="12dp"
+            app:tint="@color/spotify_info"
+            tools:src="@drawable/ic_info" />
+
+    </LinearLayout>
+
+    <!-- 타이틀 -->
+    <TextView
+        android:id="@+id/dialog_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="변환 완료"
+        android:textAppearance="@style/TextAppearance.Spotify.Title.Large"
+        android:textColor="@color/spotify_on_surface"
+        android:gravity="center"
+        android:layout_marginBottom="12dp"
+        android:fontFamily="sans-serif-medium"
+        android:textStyle="bold"
+        tools:text="변환 완료" />
+
+    <!-- 메시지 내용 -->
+    <TextView
+        android:id="@+id/dialog_message"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="오디오 파일이 성공적으로 변환되었습니다.\n라이브러리에서 확인할 수 있습니다."
+        android:textAppearance="@style/TextAppearance.Spotify.Body.Large"
+        android:textColor="@color/spotify_secondary_text"
+        android:gravity="center"
+        android:layout_marginBottom="24dp"
+        android:lineSpacingExtra="2dp"
+        tools:text="오디오 파일이 성공적으로 변환되었습니다.\n라이브러리에서 확인할 수 있습니다." />
+
+    <!-- 파일 정보 카드 (옵션) -->
+    <LinearLayout
+        android:id="@+id/file_info_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:background="@drawable/spotify_card_background"
+        android:backgroundTint="@color/spotify_surface_variant"
+        android:padding="12dp"
+        android:layout_marginBottom="20dp"
+        android:gravity="center_vertical"
+        android:visibility="gone"
+        tools:visibility="visible">
+
+        <ImageView
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:src="@drawable/ic_music"
+            android:layout_marginEnd="12dp"
+            app:tint="@color/file_type_audio" />
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/file_name"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="converted_audio.mp3"
+                android:textAppearance="@style/TextAppearance.Spotify.Body.Medium"
+                android:textColor="@color/spotify_on_surface"
+                android:fontFamily="sans-serif-medium"
+                tools:text="converted_audio.mp3" />
+
+            <TextView
+                android:id="@+id/file_size"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="5.2 MB • MP3 • 320kbps"
+                android:textAppearance="@style/TextAppearance.Spotify.Body.Small"
+                android:textColor="@color/spotify_tertiary_text"
+                android:layout_marginTop="2dp"
+                tools:text="5.2 MB • MP3 • 320kbps" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <!-- 액션 버튼들 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="end">
+
+        <!-- 보조 버튼 (옵션) -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/secondary_button"
+            style="@style/Widget.Spotify.Button.Text"
+            android:layout_width="wrap_content"
+            android:layout_height="48dp"
+            android:text="라이브러리로"
+            android:textColor="@color/spotify_secondary_text"
+            android:layout_marginEnd="8dp"
+            android:visibility="gone"
+            app:rippleColor="@color/spotify_ripple_surface"
+            tools:visibility="visible"
+            tools:text="라이브러리로" />
+
+        <!-- 주 버튼 -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/primary_button"
+            style="@style/Widget.Spotify.Button"
+            android:layout_width="wrap_content"
+            android:layout_height="48dp"
+            android:text="확인"
+            android:backgroundTint="@color/spotify_button_primary"
+            android:textColor="@color/spotify_on_primary"
+            android:minWidth="88dp"
+            app:rippleColor="@color/spotify_ripple_primary"
+            tools:text="확인" />
+
+    </LinearLayout>
+
+</LinearLayout>

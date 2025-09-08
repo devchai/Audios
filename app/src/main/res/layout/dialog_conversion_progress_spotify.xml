@@ -31,6 +31,16 @@
                 android:background="@drawable/circle_background"
                 android:backgroundTint="@color/spotify_surface_variant" />
 
+            <!-- 진행률 표시 -->
+            <ProgressBar
+                android:id="@+id/conversion_progress"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:indeterminateDrawable="@drawable/spotify_conversion_progress"
+                android:indeterminate="false"
+                android:progress="45"
+                android:max="100" />
+
             <!-- 변환 아이콘 -->
             <ImageView
                 android:layout_width="32dp"
@@ -43,10 +53,10 @@
 
         <!-- 진행률 텍스트 -->
         <TextView
-            android:id="@+id/tvProgressPercent"
+            android:id="@+id/progress_percentage"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="0%"
+            android:text="45%"
             android:textAppearance="@style/TextAppearance.Spotify.Headline.Medium"
             android:textColor="@color/spotify_on_surface"
             android:fontFamily="sans-serif-medium"
@@ -64,51 +74,63 @@
 
         <!-- 변환 제목 -->
         <TextView
+            android:id="@+id/conversion_title"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/converting"
+            android:text="오디오 변환 중..."
             android:textAppearance="@style/TextAppearance.Spotify.Title.Large"
             android:textColor="@color/spotify_on_surface"
             android:gravity="center"
             android:layout_marginBottom="8dp"
-            android:fontFamily="sans-serif-medium" />
+            android:fontFamily="sans-serif-medium"
+            tools:text="오디오 변환 중..." />
 
         <!-- 파일 정보 -->
         <TextView
-            android:id="@+id/tvFileName"
+            android:id="@+id/file_info"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="video_sample.mp4"
+            android:text="sample_video.mp4 → sample_audio.mp3"
             android:textAppearance="@style/TextAppearance.Spotify.Body.Medium"
             android:textColor="@color/spotify_secondary_text"
             android:gravity="center"
-            android:maxLines="1"
-            android:ellipsize="middle"
-            android:layout_marginBottom="4dp"
-            tools:text="sample_video.mp4" />
+            android:layout_marginBottom="12dp"
+            tools:text="sample_video.mp4 → sample_audio.mp3" />
 
-        <!-- 변환 정보 -->
-        <TextView
-            android:id="@+id/tvConversionInfo"
+        <!-- 상세 정보 -->
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="MP4 → M4A"
-            android:textAppearance="@style/TextAppearance.Spotify.Body.Small"
-            android:textColor="@color/spotify_tertiary_text"
-            android:gravity="center"
-            android:layout_marginBottom="8dp"
-            tools:text="MP4 → M4A" />
+            android:orientation="horizontal"
+            android:gravity="center">
 
-        <!-- 현재 단계 -->
-        <TextView
-            android:id="@+id/tvCurrentStep"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="변환 준비 중..."
-            android:textAppearance="@style/TextAppearance.Spotify.Body.Small"
-            android:textColor="@color/spotify_tertiary_text"
-            android:gravity="center"
-            tools:text="오디오 추출 중..." />
+            <TextView
+                android:id="@+id/conversion_speed"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="2.5x 속도"
+                android:textAppearance="@style/TextAppearance.Spotify.Body.Small"
+                android:textColor="@color/spotify_tertiary_text"
+                android:layout_marginEnd="16dp"
+                tools:text="2.5x 속도" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="•"
+                android:textColor="@color/spotify_tertiary_text"
+                android:layout_marginEnd="16dp" />
+
+            <TextView
+                android:id="@+id/estimated_time"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="약 30초 남음"
+                android:textAppearance="@style/TextAppearance.Spotify.Body.Small"
+                android:textColor="@color/spotify_tertiary_text"
+                tools:text="약 30초 남음" />
+
+        </LinearLayout>
 
     </LinearLayout>
 
@@ -120,38 +142,41 @@
         android:layout_marginBottom="20dp">
 
         <ProgressBar
-            android:id="@+id/progressBar"
+            android:id="@+id/linear_progress"
             style="@android:style/Widget.ProgressBar.Horizontal"
             android:layout_width="match_parent"
             android:layout_height="6dp"
-            android:progress="0"
+            android:progress="45"
             android:max="100"
-            android:progressTint="@color/spotify_green_primary"
-            android:progressBackgroundTint="@color/spotify_outline_variant"
+            android:progressDrawable="@drawable/spotify_progress_bar"
             android:layout_marginBottom="8dp" />
 
-        <!-- 예상 시간 -->
-        <TextView
-            android:id="@+id/tvEstimatedTime"
+        <!-- 진행률 상세 -->
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="예상 시간: 계산 중..."
-            android:textAppearance="@style/TextAppearance.Spotify.Body.Small"
-            android:textColor="@color/spotify_secondary_text"
-            android:gravity="center"
-            android:layout_marginBottom="8dp"
-            tools:text="남은 시간: 2:30" />
+            android:orientation="horizontal">
 
-        <!-- 파일 크기 정보 -->
-        <TextView
-            android:id="@+id/tvFileSizeInfo"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="원본: 45.2 MB • 출력: 예상 8.5 MB"
-            android:textAppearance="@style/TextAppearance.Spotify.Body.Small"
-            android:textColor="@color/spotify_tertiary_text"
-            android:gravity="center"
-            tools:text="원본: 120.5 MB • 출력: 25.8 MB" />
+            <TextView
+                android:id="@+id/processed_size"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="6.8 MB / 15.2 MB"
+                android:textAppearance="@style/TextAppearance.Spotify.Body.Small"
+                android:textColor="@color/spotify_secondary_text"
+                tools:text="6.8 MB / 15.2 MB" />
+
+            <TextView
+                android:id="@+id/processing_time"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="01:23"
+                android:textAppearance="@style/TextAppearance.Spotify.Body.Small"
+                android:textColor="@color/spotify_secondary_text"
+                tools:text="01:23" />
+
+        </LinearLayout>
 
     </LinearLayout>
 
@@ -164,28 +189,28 @@
 
         <!-- 백그라운드 실행 버튼 -->
         <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnBackground"
-            style="@style/Widget.Material3.Button.TextButton"
+            android:id="@+id/background_button"
+            style="@style/Widget.Spotify.Button.Text"
             android:layout_width="0dp"
             android:layout_height="48dp"
             android:layout_weight="1"
             android:text="백그라운드"
             android:textColor="@color/spotify_secondary_text"
             android:layout_marginEnd="8dp"
-            app:rippleColor="@color/spotify_green_primary" />
+            app:rippleColor="@color/spotify_ripple_surface" />
 
         <!-- 취소 버튼 -->
         <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnCancelConversion"
-            style="@style/Widget.Material3.Button.OutlinedButton"
+            android:id="@+id/cancel_button"
+            style="@style/Widget.Spotify.Button.Outlined"
             android:layout_width="0dp"
             android:layout_height="48dp"
             android:layout_weight="1"
-            android:text="@string/cancel"
+            android:text="취소"
             android:textColor="@color/spotify_error"
             android:layout_marginStart="8dp"
             app:strokeColor="@color/spotify_error"
-            app:rippleColor="@color/spotify_green_primary" />
+            app:rippleColor="@color/spotify_ripple_surface" />
 
     </LinearLayout>
 

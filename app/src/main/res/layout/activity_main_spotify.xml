@@ -1,0 +1,358 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/spotify_background"
+    android:fitsSystemWindows="true"
+    tools:context=".activity.MainActivity">
+
+    <!-- Spotify 스타일 그라데이션 오버레이 -->
+    <View
+        android:id="@+id/gradient_overlay"
+        android:layout_width="match_parent"
+        android:layout_height="200dp"
+        android:background="@drawable/spotify_hero_gradient"
+        android:alpha="0.3"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <!-- Spotify 스타일 상단 네비게이션 바 -->
+    <LinearLayout
+        android:id="@+id/spotify_navigation_bar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingTop="24dp"
+        android:paddingBottom="16dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <!-- 앱 타이틀 섹션 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingHorizontal="24dp"
+            android:paddingVertical="12dp">
+
+            <!-- 앱 아이콘 -->
+            <ImageView
+                android:id="@+id/app_icon"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:src="@mipmap/ic_launcher"
+                android:layout_marginEnd="12dp"
+                android:background="@drawable/circle_background"
+                android:padding="4dp" />
+
+            <!-- 앱 타이틀 -->
+            <TextView
+                android:id="@+id/app_title"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/app_name"
+                android:textAppearance="@style/TextAppearance.Spotify.Headline.Large"
+                android:textColor="@color/spotify_on_background"
+                android:fontFamily="sans-serif-black"
+                android:textStyle="bold" />
+
+            <!-- 설정 버튼 -->
+            <ImageView
+                android:id="@+id/settings_button"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@drawable/ic_more_vert"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:clickable="true"
+                android:focusable="true"
+                android:padding="2dp"
+                app:tint="@color/spotify_on_surface_variant" />
+
+        </LinearLayout>
+
+        <!-- Spotify 스타일 탭 네비게이션 -->
+        <HorizontalScrollView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:scrollbars="none"
+            android:paddingHorizontal="24dp"
+            android:paddingTop="8dp">
+
+            <LinearLayout
+                android:id="@+id/spotify_tab_container"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <!-- 변환 탭 -->
+                <TextView
+                    android:id="@+id/tab_convert"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/tab_convert"
+                    android:textAppearance="@style/TextAppearance.Spotify.Label.Large"
+                    android:textColor="@color/spotify_on_background"
+                    android:background="@drawable/spotify_button_primary"
+                    android:paddingHorizontal="20dp"
+                    android:paddingVertical="8dp"
+                    android:layout_marginEnd="12dp"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:fontFamily="sans-serif-medium"
+                    android:textStyle="bold" />
+
+                <!-- 라이브러리 탭 -->
+                <TextView
+                    android:id="@+id/tab_library"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/tab_library"
+                    android:textAppearance="@style/TextAppearance.Spotify.Label.Large"
+                    android:textColor="@color/spotify_secondary_text"
+                    android:background="?attr/selectableItemBackground"
+                    android:paddingHorizontal="20dp"
+                    android:paddingVertical="8dp"
+                    android:layout_marginEnd="12dp"
+                    android:clickable="true"
+                    android:focusable="true" />
+
+                <!-- 편집 탭 -->
+                <TextView
+                    android:id="@+id/tab_edit"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/tab_edit"
+                    android:textAppearance="@style/TextAppearance.Spotify.Label.Large"
+                    android:textColor="@color/spotify_secondary_text"
+                    android:background="?attr/selectableItemBackground"
+                    android:paddingHorizontal="20dp"
+                    android:paddingVertical="8dp"
+                    android:clickable="true"
+                    android:focusable="true" />
+
+            </LinearLayout>
+
+        </HorizontalScrollView>
+
+    </LinearLayout>
+
+    <!-- 메인 컨텐츠 영역 -->
+    <androidx.viewpager2.widget.ViewPager2
+        android:id="@+id/view_pager"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginTop="16dp"
+        android:background="@color/transparent"
+        app:layout_constraintBottom_toTopOf="@id/spotify_player_mini"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/spotify_navigation_bar" />
+
+    <!-- Spotify 스타일 미니 플레이어 (변환 상태 표시) -->
+    <LinearLayout
+        android:id="@+id/spotify_player_mini"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:background="@drawable/spotify_player_background"
+        android:padding="16dp"
+        android:layout_margin="16dp"
+        android:gravity="center_vertical"
+        android:visibility="gone"
+        app:layout_constraintBottom_toTopOf="@id/spotify_bottom_navigation"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        tools:visibility="visible">
+
+        <!-- 변환 상태 아이콘 -->
+        <ProgressBar
+            android:id="@+id/conversion_progress"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:indeterminateDrawable="@drawable/spotify_conversion_progress"
+            android:layout_marginEnd="12dp" />
+
+        <!-- 변환 정보 -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/conversion_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="변환 중..."
+                android:textAppearance="@style/TextAppearance.Spotify.Title.Medium"
+                android:textColor="@color/spotify_on_surface"
+                android:fontFamily="sans-serif-medium" />
+
+            <TextView
+                android:id="@+id/conversion_subtitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="audio.mp4 → audio.mp3"
+                android:textAppearance="@style/TextAppearance.Spotify.Body.Small"
+                android:textColor="@color/spotify_secondary_text"
+                android:layout_marginTop="2dp" />
+
+        </LinearLayout>
+
+        <!-- 취소 버튼 -->
+        <ImageView
+            android:id="@+id/cancel_conversion"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:src="@drawable/ic_arrow_back"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:clickable="true"
+            android:focusable="true"
+            android:padding="4dp"
+            app:tint="@color/spotify_secondary_text" />
+
+    </LinearLayout>
+
+    <!-- Spotify 스타일 하단 네비게이션 -->
+    <LinearLayout
+        android:id="@+id/spotify_bottom_navigation"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:background="@color/spotify_surface"
+        android:elevation="8dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
+
+        <!-- 상단 구분선 -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="0.5dp"
+            android:background="@color/spotify_outline_variant" />
+
+        <!-- 네비게이션 탭들 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:paddingVertical="8dp"
+            android:paddingBottom="8dp">
+
+            <!-- 변환 탭 -->
+            <LinearLayout
+                android:id="@+id/nav_convert"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:orientation="vertical"
+                android:paddingVertical="8dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:clickable="true"
+                android:focusable="true">
+
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/ic_convert"
+                    app:tint="@color/spotify_nav_selected" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/tab_convert"
+                    android:textAppearance="@style/TextAppearance.Spotify.Label.Small"
+                    android:textColor="@color/spotify_nav_selected"
+                    android:layout_marginTop="4dp"
+                    android:fontFamily="sans-serif-medium" />
+
+            </LinearLayout>
+
+            <!-- 라이브러리 탭 -->
+            <LinearLayout
+                android:id="@+id/nav_library"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:orientation="vertical"
+                android:paddingVertical="8dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:clickable="true"
+                android:focusable="true">
+
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/ic_library"
+                    app:tint="@color/spotify_nav_unselected" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/tab_library"
+                    android:textAppearance="@style/TextAppearance.Spotify.Label.Small"
+                    android:textColor="@color/spotify_nav_unselected"
+                    android:layout_marginTop="4dp" />
+
+            </LinearLayout>
+
+            <!-- 편집 탭 -->
+            <LinearLayout
+                android:id="@+id/nav_edit"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:orientation="vertical"
+                android:paddingVertical="8dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:clickable="true"
+                android:focusable="true">
+
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/ic_edit"
+                    app:tint="@color/spotify_nav_unselected" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/tab_edit"
+                    android:textAppearance="@style/TextAppearance.Spotify.Label.Small"
+                    android:textColor="@color/spotify_nav_unselected"
+                    android:layout_marginTop="4dp" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <!-- Spotify 스타일 FAB (플로팅 액션 버튼) -->
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fab_main_action"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="24dp"
+        android:src="@drawable/ic_add"
+        android:backgroundTint="@color/spotify_green_primary"
+        app:tint="@color/spotify_on_primary"
+        app:elevation="8dp"
+        app:pressedTranslationZ="12dp"
+        app:rippleColor="@color/spotify_ripple_primary"
+        app:shapeAppearance="@style/ShapeAppearance.Spotify.MediumComponent"
+        app:layout_constraintBottom_toTopOf="@id/spotify_bottom_navigation"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:contentDescription="메인 액션" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

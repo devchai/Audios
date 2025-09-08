@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    
+    <!-- 선택된 상태 -->
+    <item android:state_selected="true">
+        <shape android:shape="rectangle">
+            <solid android:color="@color/spotify_item_background_selected" />
+            <corners android:radius="12dp" />
+            <stroke
+                android:width="1dp"
+                android:color="@color/spotify_green_primary" />
+        </shape>
+    </item>
+    
+    <!-- 눌린 상태 -->
+    <item android:state_pressed="true">
+        <shape android:shape="rectangle">
+            <solid android:color="@color/spotify_item_background_pressed" />
+            <corners android:radius="12dp" />
+        </shape>
+    </item>
+    
+    <!-- 기본 상태 -->
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="@color/spotify_item_background" />
+            <corners android:radius="12dp" />
+        </shape>
+    </item>
+    
+</selector>

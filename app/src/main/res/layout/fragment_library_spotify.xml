@@ -1,0 +1,283 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/spotify_background"
+    android:orientation="vertical">
+
+    <!-- Spotify 스타일 검색 바 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="16dp"
+        android:gravity="center_vertical">
+
+        <!-- 검색 입력 필드 -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/search_layout"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginEnd="12dp"
+            app:boxBackgroundMode="filled"
+            app:boxBackgroundColor="@color/spotify_surface_variant"
+            app:boxCornerRadiusTopEnd="24dp"
+            app:boxCornerRadiusTopStart="24dp"
+            app:boxCornerRadiusBottomEnd="24dp"
+            app:boxCornerRadiusBottomStart="24dp"
+            app:boxStrokeWidth="0dp"
+            app:boxStrokeWidthFocused="1dp"
+            app:boxStrokeColor="@color/spotify_green_primary"
+            app:hintTextColor="@color/spotify_secondary_text"
+            app:startIconDrawable="@drawable/ic_audio"
+            app:startIconTint="@color/spotify_secondary_text">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/search_input"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="파일 검색..."
+                android:textAppearance="@style/TextAppearance.Spotify.Body.Large"
+                android:textColor="@color/spotify_on_surface"
+                android:textColorHint="@color/spotify_secondary_text"
+                android:maxLines="1"
+                android:imeOptions="actionSearch" />
+
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- 필터 버튼 -->
+        <ImageView
+            android:id="@+id/filter_button"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:src="@drawable/ic_sort"
+            android:clickable="true"
+            android:focusable="true"
+            android:padding="12dp"
+            app:tint="@color/spotify_secondary_text"
+            android:background="?attr/selectableItemBackgroundBorderless" />
+
+    </LinearLayout>
+
+    <!-- 최근 사용된 섹션 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingHorizontal="16dp"
+        android:paddingBottom="8dp">
+
+        <!-- 섹션 헤더 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="12dp">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="최근 사용된"
+                android:textAppearance="@style/TextAppearance.Spotify.Title.Large"
+                android:textColor="@color/spotify_on_background"
+                android:fontFamily="sans-serif-medium" />
+
+            <TextView
+                android:id="@+id/see_all_recent"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="모두 보기"
+                android:textAppearance="@style/TextAppearance.Spotify.Label.Medium"
+                android:textColor="@color/spotify_secondary_text"
+                android:background="?attr/selectableItemBackground"
+                android:clickable="true"
+                android:focusable="true"
+                android:paddingHorizontal="8dp"
+                android:paddingVertical="4dp" />
+
+        </LinearLayout>
+
+        <!-- 최근 파일 가로 스크롤 -->
+        <HorizontalScrollView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:scrollbars="none">
+
+            <LinearLayout
+                android:id="@+id/recent_files_container"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <!-- 최근 파일 아이템 예시 -->
+                <LinearLayout
+                    android:layout_width="120dp"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_marginEnd="16dp"
+                    android:background="?attr/selectableItemBackground"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:padding="8dp">
+
+                    <com.google.android.material.card.MaterialCardView
+                        android:layout_width="match_parent"
+                        android:layout_height="100dp"
+                        android:layout_marginBottom="8dp"
+                        app:cardCornerRadius="8dp"
+                        app:cardElevation="0dp"
+                        app:cardBackgroundColor="@color/spotify_surface_variant">
+
+                        <ImageView
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:src="@drawable/ic_music"
+                            android:scaleType="centerInside"
+                            android:padding="24dp"
+                            app:tint="@color/file_type_audio" />
+
+                    </com.google.android.material.card.MaterialCardView>
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="song.mp3"
+                        android:textAppearance="@style/TextAppearance.Spotify.Body.Small"
+                        android:textColor="@color/spotify_on_surface"
+                        android:maxLines="2"
+                        android:ellipsize="end" />
+
+                </LinearLayout>
+
+                <!-- 더 많은 최근 파일들을 동적으로 추가 -->
+
+            </LinearLayout>
+
+        </HorizontalScrollView>
+
+    </LinearLayout>
+
+    <!-- 파일 목록 섹션 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:paddingHorizontal="16dp">
+
+        <!-- 파일 목록 헤더 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingVertical="12dp">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="모든 파일"
+                android:textAppearance="@style/TextAppearance.Spotify.Title.Large"
+                android:textColor="@color/spotify_on_background"
+                android:fontFamily="sans-serif-medium" />
+
+            <!-- 정렬 버튼 -->
+            <LinearLayout
+                android:id="@+id/sort_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:background="?attr/selectableItemBackground"
+                android:clickable="true"
+                android:focusable="true"
+                android:paddingHorizontal="8dp"
+                android:paddingVertical="4dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="이름순"
+                    android:textAppearance="@style/TextAppearance.Spotify.Label.Medium"
+                    android:textColor="@color/spotify_secondary_text"
+                    android:layout_marginEnd="4dp" />
+
+                <ImageView
+                    android:layout_width="16dp"
+                    android:layout_height="16dp"
+                    android:src="@drawable/ic_sort"
+                    app:tint="@color/spotify_secondary_text" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+        <!-- 파일 목록 리사이클러뷰 -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/files_recycler"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scrollbars="vertical"
+            tools:listitem="@layout/item_audio_file_spotify" />
+
+    </LinearLayout>
+
+    <!-- 빈 상태 뷰 -->
+    <LinearLayout
+        android:id="@+id/empty_state"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:padding="32dp"
+        android:visibility="gone"
+        tools:visibility="visible">
+
+        <ImageView
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:src="@drawable/ic_folder_empty"
+            android:layout_marginBottom="24dp"
+            app:tint="@color/spotify_tertiary_text"
+            android:alpha="0.6" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="파일이 없습니다"
+            android:textAppearance="@style/TextAppearance.Spotify.Title.Large"
+            android:textColor="@color/spotify_secondary_text"
+            android:layout_marginBottom="8dp"
+            android:fontFamily="sans-serif-medium" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="변환 탭에서 오디오 파일을\n만들어보세요"
+            android:textAppearance="@style/TextAppearance.Spotify.Body.Large"
+            android:textColor="@color/spotify_tertiary_text"
+            android:textAlignment="center"
+            android:layout_marginBottom="24dp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/go_to_convert"
+            android:layout_width="wrap_content"
+            android:layout_height="48dp"
+            android:text="변환 시작하기"
+            android:textAppearance="@style/TextAppearance.Spotify.Label.Large"
+            android:textColor="@color/spotify_on_primary"
+            android:backgroundTint="@color/spotify_button_primary"
+            app:cornerRadius="24dp"
+            app:elevation="0dp"
+            app:rippleColor="@color/spotify_ripple_primary"
+            android:fontFamily="sans-serif-medium" />
+
+    </LinearLayout>
+
+</LinearLayout>

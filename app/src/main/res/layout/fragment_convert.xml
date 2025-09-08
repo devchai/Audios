@@ -4,115 +4,136 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/ios_system_grouped_background"
+    android:background="@color/spotify_background"
     android:fillViewport="true">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        android:paddingHorizontal="24dp"
+        android:paddingVertical="16dp">
 
-        <!-- Main Action Section -->
-        <LinearLayout
+        <!-- Spotify 스타일 히어로 카드 -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/hero_card"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="16dp">
+            android:layout_marginBottom="24dp"
+            android:background="@drawable/spotify_hero_gradient"
+            app:cardCornerRadius="24dp"
+            app:cardElevation="0dp"
+            app:strokeWidth="0dp">
 
-            <!-- Hero Section -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:gravity="center"
-                android:paddingVertical="32dp">
+                android:padding="32dp"
+                android:gravity="center">
 
-                <!-- Icon Container -->
-                <FrameLayout
-                    android:layout_width="120dp"
-                    android:layout_height="120dp"
-                    android:background="@drawable/ios_circle_background">
+                <!-- 메인 아이콘 -->
+                <ImageView
+                    android:layout_width="80dp"
+                    android:layout_height="80dp"
+                    android:src="@drawable/ic_convert"
+                    android:layout_marginBottom="16dp"
+                    app:tint="@color/white"
+                    android:background="@drawable/circle_background"
+                    android:backgroundTint="@color/spotify_glass_surface"
+                    android:padding="20dp" />
 
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:gravity="center"
-                        android:orientation="horizontal">
-
-                        <ImageView
-                            android:layout_width="40dp"
-                            android:layout_height="40dp"
-                            android:src="@drawable/ic_video"
-                            app:tint="@color/ios_system_blue" />
-
-                        <ImageView
-                            android:layout_width="24dp"
-                            android:layout_height="24dp"
-                            android:layout_marginHorizontal="8dp"
-                            android:src="@drawable/ic_arrow_right"
-                            app:tint="@color/ios_system_gray3" />
-
-                        <ImageView
-                            android:layout_width="40dp"
-                            android:layout_height="40dp"
-                            android:src="@drawable/ic_audio"
-                            app:tint="@color/ios_system_orange" />
-
-                    </LinearLayout>
-
-                </FrameLayout>
-
-                <!-- Title -->
+                <!-- 타이틀 -->
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
-                    android:text="미디어 변환"
-                    android:textAppearance="@style/TextAppearance.iOS.Display.Small"
-                    android:textColor="@color/ios_label" />
+                    android:text="오디오 변환"
+                    android:textAppearance="@style/TextAppearance.Spotify.Headline.Large"
+                    android:textColor="@color/white"
+                    android:layout_marginBottom="8dp"
+                    android:fontFamily="sans-serif-black"
+                    android:textAlignment="center" />
 
-                <!-- Subtitle -->
+                <!-- 서브타이틀 -->
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
-                    android:text="비디오를 오디오로, 오디오 포맷 변경"
-                    android:textAppearance="@style/TextAppearance.iOS.Body.Medium"
-                    android:textColor="@color/ios_secondary_label" />
+                    android:text="비디오에서 오디오를 추출하고\n다양한 포맷으로 변환하세요"
+                    android:textAppearance="@style/TextAppearance.Spotify.Body.Large"
+                    android:textColor="@color/white"
+                    android:textAlignment="center"
+                    android:alpha="0.9" />
 
             </LinearLayout>
 
-            <!-- Primary Action Button -->
-            <LinearLayout
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- 파일 선택 섹션 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginBottom="32dp">
+
+            <!-- 섹션 타이틀 -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="파일 선택"
+                android:textAppearance="@style/TextAppearance.Spotify.Title.Large"
+                android:textColor="@color/spotify_on_background"
+                android:layout_marginBottom="16dp"
+                android:fontFamily="sans-serif-medium" />
+
+            <!-- 파일 선택 버튼 (기존 ID 유지) -->
+            <com.google.android.material.card.MaterialCardView
                 android:id="@+id/btn_select_file_container"
                 android:layout_width="match_parent"
-                android:layout_height="56dp"
-                android:background="@drawable/ios_button_primary"
-                android:gravity="center"
-                android:orientation="horizontal"
+                android:layout_height="120dp"
+                android:layout_marginBottom="16dp"
+                android:background="@drawable/spotify_card_background"
                 android:clickable="true"
-                android:focusable="true">
+                android:focusable="true"
+                android:foreground="?attr/selectableItemBackground"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="0dp"
+                app:strokeColor="@color/spotify_outline_variant"
+                app:strokeWidth="1dp">
 
-                <ImageView
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
-                    android:layout_marginEnd="8dp"
-                    android:src="@drawable/ic_file_plus"
-                    app:tint="@color/white" />
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:orientation="vertical"
+                    android:gravity="center">
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/select_file"
-                    android:textAppearance="@style/TextAppearance.iOS.Body.Large"
-                    android:textColor="@color/white"
-                    android:fontWeight="600" />
+                    <ImageView
+                        android:layout_width="32dp"
+                        android:layout_height="32dp"
+                        android:src="@drawable/ic_file_plus"
+                        android:layout_marginBottom="8dp"
+                        app:tint="@color/spotify_green_primary" />
 
-            </LinearLayout>
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="파일 선택하기"
+                        android:textAppearance="@style/TextAppearance.Spotify.Title.Medium"
+                        android:textColor="@color/spotify_on_surface"
+                        android:fontFamily="sans-serif-medium" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="MP4, AVI, MOV 등"
+                        android:textAppearance="@style/TextAppearance.Spotify.Body.Small"
+                        android:textColor="@color/spotify_secondary_text"
+                        android:layout_marginTop="4dp" />
+
+                </LinearLayout>
+
+            </com.google.android.material.card.MaterialCardView>
 
         </LinearLayout>
-
-
 
         <!-- Bottom Padding for Safe Area -->
         <View

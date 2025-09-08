@@ -178,14 +178,34 @@ public class MainActivity extends BaseActivity<ActivityMainBinding> {
         // 선택된 세그먼트 하이라이트
         switch (selectedPosition) {
             case 0:
-                binding.segmentConvert.setBackground(getDrawable(R.drawable.ios_segment_selected));
+                binding.segmentConvert.setBackground(getDrawable(R.drawable.spotify_segment_selected));
+                binding.segmentConvert.setTextColor(getColor(R.color.spotify_on_primary));
+                binding.segmentConvert.setTextAppearance(R.style.TextAppearance_Spotify_Segment_Selected);
                 break;
             case 1:
-                binding.segmentLibrary.setBackground(getDrawable(R.drawable.ios_segment_selected));
+                binding.segmentLibrary.setBackground(getDrawable(R.drawable.spotify_segment_selected));
+                binding.segmentLibrary.setTextColor(getColor(R.color.spotify_on_primary));
+                binding.segmentLibrary.setTextAppearance(R.style.TextAppearance_Spotify_Segment_Selected);
                 break;
             case 2:
-                binding.segmentEdit.setBackground(getDrawable(R.drawable.ios_segment_selected));
+                binding.segmentEdit.setBackground(getDrawable(R.drawable.spotify_segment_selected));
+                binding.segmentEdit.setTextColor(getColor(R.color.spotify_on_primary));
+                binding.segmentEdit.setTextAppearance(R.style.TextAppearance_Spotify_Segment_Selected);
                 break;
+        }
+        
+        // 선택되지 않은 세그먼트들의 텍스트 색상 및 스타일 설정
+        if (selectedPosition != 0) {
+            binding.segmentConvert.setTextColor(getColor(R.color.spotify_on_surface_variant));
+            binding.segmentConvert.setTextAppearance(R.style.TextAppearance_Spotify_Segment_Unselected);
+        }
+        if (selectedPosition != 1) {
+            binding.segmentLibrary.setTextColor(getColor(R.color.spotify_on_surface_variant));
+            binding.segmentLibrary.setTextAppearance(R.style.TextAppearance_Spotify_Segment_Unselected);
+        }
+        if (selectedPosition != 2) {
+            binding.segmentEdit.setTextColor(getColor(R.color.spotify_on_surface_variant));
+            binding.segmentEdit.setTextAppearance(R.style.TextAppearance_Spotify_Segment_Unselected);
         }
         
         // 하단 탭바도 동기화
@@ -217,29 +237,29 @@ public class MainActivity extends BaseActivity<ActivityMainBinding> {
      * 하단 탭바 선택 상태 업데이트
      */
     private void updateBottomTabSelection(int selectedPosition) {
-        // 모든 탭을 기본 상태로 초기화 (회색)
-        binding.iconConvert.setColorFilter(getColor(R.color.ios_system_gray));
-        binding.labelConvert.setTextColor(getColor(R.color.ios_system_gray));
+        // 모든 탭을 기본 상태로 초기화 (Spotify 회색)
+        binding.iconConvert.setColorFilter(getColor(R.color.spotify_nav_unselected));
+        binding.labelConvert.setTextColor(getColor(R.color.spotify_nav_unselected));
         
-        binding.iconLibrary.setColorFilter(getColor(R.color.ios_system_gray));
-        binding.labelLibrary.setTextColor(getColor(R.color.ios_system_gray));
+        binding.iconLibrary.setColorFilter(getColor(R.color.spotify_nav_unselected));
+        binding.labelLibrary.setTextColor(getColor(R.color.spotify_nav_unselected));
         
-        binding.iconEdit.setColorFilter(getColor(R.color.ios_system_gray));
-        binding.labelEdit.setTextColor(getColor(R.color.ios_system_gray));
+        binding.iconEdit.setColorFilter(getColor(R.color.spotify_nav_unselected));
+        binding.labelEdit.setTextColor(getColor(R.color.spotify_nav_unselected));
         
-        // 선택된 탭을 활성 상태로 변경 (파란색)
+        // 선택된 탭을 활성 상태로 변경 (Spotify Green)
         switch (selectedPosition) {
             case 0:
-                binding.iconConvert.setColorFilter(getColor(R.color.ios_system_blue));
-                binding.labelConvert.setTextColor(getColor(R.color.ios_system_blue));
+                binding.iconConvert.setColorFilter(getColor(R.color.spotify_nav_selected));
+                binding.labelConvert.setTextColor(getColor(R.color.spotify_nav_selected));
                 break;
             case 1:
-                binding.iconLibrary.setColorFilter(getColor(R.color.ios_system_blue));
-                binding.labelLibrary.setTextColor(getColor(R.color.ios_system_blue));
+                binding.iconLibrary.setColorFilter(getColor(R.color.spotify_nav_selected));
+                binding.labelLibrary.setTextColor(getColor(R.color.spotify_nav_selected));
                 break;
             case 2:
-                binding.iconEdit.setColorFilter(getColor(R.color.ios_system_blue));
-                binding.labelEdit.setTextColor(getColor(R.color.ios_system_blue));
+                binding.iconEdit.setColorFilter(getColor(R.color.spotify_nav_selected));
+                binding.labelEdit.setTextColor(getColor(R.color.spotify_nav_selected));
                 break;
         }
     }
