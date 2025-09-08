@@ -37,7 +37,7 @@ public class PermissionManager {
     private AppCompatActivity activity;
     private PermissionCallback callback;
     private ActivityResultLauncher<String[]> permissionLauncher;
-    private ActivityResultLauncher<Intent> manageStorageLauncher;
+    // manageStorageLauncher 제거: MANAGE_EXTERNAL_STORAGE 권한 불필요
     
     // 권한 상태 LiveData
     private MutableLiveData<Boolean> storagePermissionStatus = new MutableLiveData<>(false);
@@ -59,20 +59,7 @@ public class PermissionManager {
             this::handlePermissionResults
         );
         
-        // MANAGE_EXTERNAL_STORAGE 권한을 위한 설정 화면 런처
-        manageStorageLauncher = activity.registerForActivityResult(
-            new ActivityResultContracts.StartActivityForResult(),
-            result -> {
-                updatePermissionStatus();
-                if (callback != null) {
-                    if (hasAllRequiredPermissions()) {
-                        callback.onPermissionGranted(getRequiredPermissions());
-                    } else {
-                        callback.onPermissionDenied(getMissingPermissions());
-                    }
-                }
-            }
-        );
+        // MANAGE_EXTERNAL_STORAGE 런처 제거: Google Play 정책 준수를 위한 권한 간소화
     }
     
     /**
@@ -113,12 +100,8 @@ public class PermissionManager {
         List<String> missingPermissions = getMissingPermissions();
         LoggerManager.logger("누락된 권한 목록: " + missingPermissions);
         
-        // API 30+ MANAGE_EXTERNAL_STORAGE 권한 처리 (선택적)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && 
-            !Environment.isExternalStorageManager()) {
-            LoggerManager.logger("MANAGE_EXTERNAL_STORAGE 권한 요청으로 이동");
-            requestManageExternalStoragePermission();
-        } else if (!missingPermissions.isEmpty()) {
+        // 필수 미디어 권한만 요청 (MANAGE_EXTERNAL_STORAGE 제거)
+        if (!missingPermissions.isEmpty()) {
             // 일반 권한 요청
             LoggerManager.logger("일반 권한 다이얼로그 표시: " + missingPermissions);
             permissionLauncher.launch(missingPermissions.toArray(new String[0]));
@@ -127,24 +110,8 @@ public class PermissionManager {
         }
     }
     
-    /**
-     * MANAGE_EXTERNAL_STORAGE 권한 요청 (API 30+)
-     */
-    private void requestManageExternalStoragePermission() {
-        try {
-            Intent intent = new Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION);
-            Uri uri = Uri.fromParts("package", activity.getPackageName(), null);
-            intent.setData(uri);
-            manageStorageLauncher.launch(intent);
-        } catch (Exception e) {
-            LoggerManager.logger("MANAGE_EXTERNAL_STORAGE 권한 요청 실패: " + e.getMessage());
-            // Fallback: 일반 권한 요청
-            List<String> missingPermissions = getMissingPermissions();
-            if (!missingPermissions.isEmpty()) {
-                permissionLauncher.launch(missingPermissions.toArray(new String[0]));
-            }
-        }
-    }
+    // requestManageExternalStoragePermission() 메서드 제거
+    // Google Play 정책 준수: MANAGE_EXTERNAL_STORAGE 권한 완전 제거
     
     /**
      * 권한 요청 결과 처리
@@ -220,22 +187,11 @@ public class PermissionManager {
         return true;
     }
     
-    /**
-     * MANAGE_EXTERNAL_STORAGE 권한 확인 (선택적 권한)
-     */
-    public boolean hasManageExternalStoragePermission() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            return Environment.isExternalStorageManager();
-        }
-        return true; // API 30 미만에서는 해당 없음
-    }
+    // hasManageExternalStoragePermission() 메서드 제거
+    // Scoped Storage 방식으로 완전 전환하여 해당 권한 불필요
     
-    /**
-     * 모든 권한(기본 + 확장) 확인
-     */
-    public boolean hasAllPermissionsIncludingOptional() {
-        return hasAllRequiredPermissions() && hasManageExternalStoragePermission();
-    }
+    // hasAllPermissionsIncludingOptional() 메서드 제거
+    // 필수 미디어 권한만 확인하는 hasAllRequiredPermissions() 사용 권장
     
     /**
      * 특정 권한 확인
@@ -321,21 +277,13 @@ public class PermissionManager {
               .append(granted ? "허용" : "거부").append("\n");
         }
         
-        // 선택적 권한 상태 (API 30+)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            boolean manageStorageGranted = Environment.isExternalStorageManager();
-            sb.append("- 전체 파일 접근 권한 (선택적): ")
-              .append(manageStorageGranted ? "허용" : "거부").append("\n");
-        }
+        // MANAGE_EXTERNAL_STORAGE 권한 상태 표시 제거
+        // Google Play 정책 준수로 해당 권한 사용 안함
         
-        // 전체 상태 요약
+        // 전체 상태 요약 (간소화)
         sb.append("\n상태 요약: ");
         if (allRequiredGranted) {
-            if (hasManageExternalStoragePermission()) {
-                sb.append("모든 권한 허용됨 (전체 기능 이용 가능)");
-            } else {
-                sb.append("기본 권한 허용됨 (기본 기능 이용 가능)");
-            }
+            sb.append("필수 미디어 권한 허용됨 (모든 기능 이용 가능)");
         } else {
             sb.append("필수 권한 없음 (앱 기능 제한됨)");
         }

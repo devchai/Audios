@@ -53,8 +53,8 @@
     <uses-permission android:name="android.permission.READ_MEDIA_AUDIO"/>
     <uses-permission android:name="android.permission.READ_MEDIA_VIDEO"/>
     
-    <!-- 전체 파일 시스템 접근을 위한 선택적 권한 -->
-    <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE"/>
+    <!-- MANAGE_EXTERNAL_STORAGE 권한 제거: Google Play 정책 준수 -->
+    <!-- 미디어 변환 앱은 해당 권한이 불필요하며, Scoped Storage로 완전 대체 -->
 
 
 
