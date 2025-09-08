@@ -266,17 +266,17 @@ public class AudioFileAdapter extends RecyclerView.Adapter<AudioFileAdapter.Audi
          * 비트레이트에 따른 품질 태그 설정
          */
         private void setQualityTag(AudioFile audioFile) {
-            // 비트레이트 정보가 있으면 표시
-            long bitrate = audioFile.getBitrate();
+            // 비트레이트 정보가 있으면 표시 (이미 kbps 단위)
+            int bitrate = audioFile.getBitrate();
             if (bitrate > 0) {
-                String bitrateText = (bitrate / 1000) + "kbps";
+                String bitrateText = bitrate + "kbps";
                 binding.qualityTag.setText(bitrateText);
                 binding.qualityTag.setVisibility(View.VISIBLE);
                 
-                // 품질에 따른 색상 설정
-                if (bitrate >= 320000) { // 320kbps 이상
+                // 품질에 따른 색상 설정 (kbps 기준)
+                if (bitrate >= 320) { // 320kbps 이상
                     binding.qualityTag.setTextColor(context.getColor(R.color.quality_high));
-                } else if (bitrate >= 192000) { // 192kbps 이상
+                } else if (bitrate >= 192) { // 192kbps 이상
                     binding.qualityTag.setTextColor(context.getColor(R.color.quality_medium));
                 } else { // 192kbps 미만
                     binding.qualityTag.setTextColor(context.getColor(R.color.quality_low));
