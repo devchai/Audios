@@ -18,7 +18,7 @@ android {
         applicationId "com.devc.lab.audios"
         minSdk 29       //29 부터 파일 관련 Scoped Storage 정책이 적용 되고 있다
         targetSdk 34
-        versionCode 5
+        versionCode 7
         versionName "2.0"
         multiDexEnabled true
 
