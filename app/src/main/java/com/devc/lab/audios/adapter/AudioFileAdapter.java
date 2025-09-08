@@ -9,7 +9,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 import com.devc.lab.audios.R;
-import com.devc.lab.audios.databinding.ItemAudioFileBinding;
+import com.devc.lab.audios.databinding.ItemAudioFileSpotifyBinding;
 import com.devc.lab.audios.model.AudioFile;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -48,7 +48,7 @@ public class AudioFileAdapter extends RecyclerView.Adapter<AudioFileAdapter.Audi
     @Override
     public AudioFileViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         LayoutInflater inflater = LayoutInflater.from(parent.getContext());
-        ItemAudioFileBinding binding = ItemAudioFileBinding.inflate(inflater, parent, false);
+        ItemAudioFileSpotifyBinding binding = ItemAudioFileSpotifyBinding.inflate(inflater, parent, false);
         return new AudioFileViewHolder(binding);
     }
     
@@ -146,9 +146,9 @@ public class AudioFileAdapter extends RecyclerView.Adapter<AudioFileAdapter.Audi
     }
     
     class AudioFileViewHolder extends RecyclerView.ViewHolder {
-        private ItemAudioFileBinding binding;
+        private ItemAudioFileSpotifyBinding binding;
         
-        public AudioFileViewHolder(@NonNull ItemAudioFileBinding binding) {
+        public AudioFileViewHolder(@NonNull ItemAudioFileSpotifyBinding binding) {
             super(binding.getRoot());
             this.binding = binding;
         }
@@ -158,106 +158,83 @@ public class AudioFileAdapter extends RecyclerView.Adapter<AudioFileAdapter.Audi
             android.util.Log.d("AudioFileAdapter", "바인딩: " + audioFile.getDisplayName() + " at position: " + position);
             
             // 파일 이름 설정
-            binding.tvFileName.setText(audioFile.getDisplayName());
+            binding.fileName.setText(audioFile.getDisplayName());
             
             // 파일 크기 설정
-            String sizeText = context.getString(R.string.file_size, audioFile.getFormattedFileSize());
-            binding.tvFileSize.setText(sizeText);
+            binding.fileSize.setText(audioFile.getFormattedFileSize());
             
             // 파일 길이 설정
-            String durationText = context.getString(R.string.file_duration, audioFile.getFormattedDuration());
-            binding.tvFileDuration.setText(durationText);
+            binding.fileDuration.setText(audioFile.getFormattedDuration());
             
             // 파일 날짜 설정
-            String dateText = context.getString(R.string.file_date, 
-                    audioFile.getModifiedDate() != null ? 
+            binding.fileDate.setText(audioFile.getModifiedDate() != null ? 
                     dateFormat.format(audioFile.getModifiedDate()) : "알 수 없음");
-            binding.tvFileDate.setText(dateText);
             
             // 포맷 배지 설정
             String extension = audioFile.getFileExtension().toUpperCase();
-            binding.tvFormatBadge.setText(extension);
+            binding.formatTag.setText(extension);
+            
+            // 품질 태그 설정 (비트레이트 기반)
+            setQualityTag(audioFile);
             
             // 썸네일/아이콘 설정 (포맷별로 다른 아이콘 사용 가능)
             setFileIcon(audioFile.getFormat());
             
-            // 메인 컨테이너에 클릭 리스너 설정 - 재생 버튼 제외한 영역
-            View mainContainer = binding.getRoot().findViewById(R.id.layout_main_container);
-            if (mainContainer != null) {
-                // 메인 아이템 클릭 리스너 (파일 상세 정보 표시)
-                mainContainer.setOnClickListener(v -> {
-                    android.util.Log.d("AudioFileAdapter", "클릭 감지: " + audioFile.getDisplayName());
-                    if (onItemClickListener != null) {
-                        onItemClickListener.onItemClick(audioFile, position);
-                    }
-                });
-                
-                // 길게 누르기 - 더보기 메뉴 표시 (디버깅 로그 추가)
-                mainContainer.setOnLongClickListener(v -> {
-                    android.util.Log.d("AudioFileAdapter", "길게 누르기 감지: " + audioFile.getDisplayName());
-                    if (onItemLongClickListener != null) {
-                        android.util.Log.d("AudioFileAdapter", "onItemLongClickListener 호출");
-                        onItemLongClickListener.onItemLongClick(audioFile, position);
-                        return true;
-                    } else {
-                        android.util.Log.e("AudioFileAdapter", "onItemLongClickListener가 null입니다!");
-                        return false;
-                    }
-                });
-            } else {
-                android.util.Log.e("AudioFileAdapter", "layout_main_container를 찾을 수 없습니다!");
-            }
+            // 메인 컨테이너에 클릭 리스너 설정 (전체 아이템 영역)
+            binding.getRoot().setOnClickListener(v -> {
+                android.util.Log.d("AudioFileAdapter", "클릭 감지: " + audioFile.getDisplayName());
+                if (onItemClickListener != null) {
+                    onItemClickListener.onItemClick(audioFile, position);
+                }
+            });
+            
+            // 길게 누르기 - 더보기 메뉴 표시
+            binding.getRoot().setOnLongClickListener(v -> {
+                android.util.Log.d("AudioFileAdapter", "길게 누르기 감지: " + audioFile.getDisplayName());
+                if (onItemLongClickListener != null) {
+                    android.util.Log.d("AudioFileAdapter", "onItemLongClickListener 호출");
+                    onItemLongClickListener.onItemLongClick(audioFile, position);
+                    return true;
+                } else {
+                    android.util.Log.e("AudioFileAdapter", "onItemLongClickListener가 null입니다!");
+                    return false;
+                }
+            });
             
             // 재생 상태에 따른 아이콘 설정
             updatePlayButtonIcon(audioFile);
             
             // 재생 버튼 클릭 리스너
-            binding.btnPlay.setOnClickListener(v -> {
+            binding.playButton.setOnClickListener(v -> {
                 if (onItemClickListener != null) {
                     onItemClickListener.onPlayClick(audioFile, position);
                 }
             });
             
-            // 재생 버튼 길게 누르기 리스너 - 완전 정지 기능
-            binding.btnPlay.setOnLongClickListener(v -> {
-                android.util.Log.d("AudioFileAdapter", "플레이 버튼 길게 누르기: " + audioFile.getDisplayName());
-                
-                // 현재 재생 중인 파일인지 확인
-                boolean isCurrentlyPlaying = audioFile.getFilePath().equals(currentPlayingFilePath) && isPlaying;
-                
-                if (isCurrentlyPlaying) {
-                    showStopText(audioFile);
-                    android.util.Log.d("AudioFileAdapter", "재생 중인 파일 - 정지 텍스트 표시");
-                    return true;
-                } else {
-                    android.util.Log.d("AudioFileAdapter", "재생 중이 아님 - 길게 누르기 무시");
-                    return false;
+            // 더보기 버튼 클릭 리스너
+            binding.moreOptions.setOnClickListener(v -> {
+                if (onItemClickListener != null) {
+                    onItemClickListener.onMoreClick(audioFile, position);
                 }
             });
+            
+            // 재생 버튼 길게 누르기 리스너 제거 (Spotify 스타일에는 없음)
         }
         
         /**
-         * 재생 상태에 따른 재생 버튼 아이콘 업데이트
+         * 재생 상태에 따른 재생 버튼 아이콘 업데이트 (Spotify 스타일)
          */
         private void updatePlayButtonIcon(AudioFile audioFile) {
-            // 새로운 XML 구조에 맞게 ImageView와 TextView 찾기
-            ImageView playIcon = binding.btnPlay.findViewById(R.id.iv_play_icon);
-            TextView stopText = binding.btnPlay.findViewById(R.id.tv_stop_text);
-            
             // 현재 파일이 재생 중인지 확인
             boolean isCurrentlyPlaying = audioFile.getFilePath().equals(currentPlayingFilePath) && isPlaying;
             
-            if (playIcon != null) {
-                // 정지 텍스트가 표시 중이 아닐 때만 아이콘 업데이트
-                if (stopText != null && stopText.getVisibility() != View.VISIBLE) {
-                    if (isCurrentlyPlaying) {
-                        // 재생 중이면 일시정지 아이콘 표시
-                        playIcon.setImageResource(R.drawable.ic_pause);
-                    } else {
-                        // 정지 상태이면 재생 아이콘 표시  
-                        playIcon.setImageResource(R.drawable.ic_play);
-                    }
-                }
+            // Spotify 스타일: 단순한 ImageView로 아이콘 변경
+            if (isCurrentlyPlaying) {
+                // 재생 중이면 일시정지 아이콘 표시
+                binding.playButton.setImageResource(R.drawable.ic_pause);
+            } else {
+                // 정지 상태이면 재생 아이콘 표시  
+                binding.playButton.setImageResource(R.drawable.ic_play);
             }
         }
         
@@ -282,41 +259,31 @@ public class AudioFileAdapter extends RecyclerView.Adapter<AudioFileAdapter.Audi
                 }
             }
             
-            binding.ivFileThumbnail.setImageResource(iconResource);
+            binding.fileIcon.setImageResource(iconResource);
         }
         
         /**
-         * 정지 텍스트 표시 및 UI 효과
+         * 비트레이트에 따른 품질 태그 설정
          */
-        private void showStopText(AudioFile audioFile) {
-            ImageView playIcon = binding.btnPlay.findViewById(R.id.iv_play_icon);
-            TextView stopText = binding.btnPlay.findViewById(R.id.tv_stop_text);
-            
-            if (playIcon != null && stopText != null) {
-                // 아이콘 숨김, 텍스트 표시
-                playIcon.setVisibility(View.INVISIBLE);
-                stopText.setVisibility(View.VISIBLE);
+        private void setQualityTag(AudioFile audioFile) {
+            // 비트레이트 정보가 있으면 표시
+            long bitrate = audioFile.getBitrate();
+            if (bitrate > 0) {
+                String bitrateText = (bitrate / 1000) + "kbps";
+                binding.qualityTag.setText(bitrateText);
+                binding.qualityTag.setVisibility(View.VISIBLE);
                 
-                // TODO: 실제 오디오 정지 기능 호출
-                // if (onItemClickListener != null) {
-                //     onItemClickListener.onStopClick(audioFile);
-                // }
-                
-                // 500ms 후 UI 복원
-                android.os.Handler handler = new android.os.Handler(android.os.Looper.getMainLooper());
-                handler.postDelayed(() -> {
-                    stopText.setVisibility(View.GONE);
-                    playIcon.setVisibility(View.VISIBLE);
-                    
-                    // 재생 상태 업데이트 (정지 후이므로 재생 아이콘 표시)
-                    if (playIcon instanceof ImageView) {
-                        ((ImageView) playIcon).setImageResource(R.drawable.ic_play);
-                    }
-                    
-                    android.util.Log.d("AudioFileAdapter", "정지 텍스트 숨김 및 UI 복원");
-                }, 500);
-                
-                android.util.Log.d("AudioFileAdapter", "정지 텍스트 표시 완료");
+                // 품질에 따른 색상 설정
+                if (bitrate >= 320000) { // 320kbps 이상
+                    binding.qualityTag.setTextColor(context.getColor(R.color.quality_high));
+                } else if (bitrate >= 192000) { // 192kbps 이상
+                    binding.qualityTag.setTextColor(context.getColor(R.color.quality_medium));
+                } else { // 192kbps 미만
+                    binding.qualityTag.setTextColor(context.getColor(R.color.quality_low));
+                }
+            } else {
+                // 비트레이트 정보가 없으면 숨김
+                binding.qualityTag.setVisibility(View.GONE);
             }
         }
     }
