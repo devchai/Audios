@@ -328,13 +328,20 @@ public class LibraryFragment extends Fragment implements AudioFileAdapter.OnItem
     private void showSortOptions() {
         String[] sortOptions = {"이름순 (A-Z)", "날짜순 (최신순)", "크기순 (큰 순)"};
         
+        // Spotify 테마 적용된 AlertDialog.Builder 생성
         androidx.appcompat.app.AlertDialog.Builder builder = 
-                new androidx.appcompat.app.AlertDialog.Builder(getContext());
+                new androidx.appcompat.app.AlertDialog.Builder(getContext(), R.style.Theme_Spotify_Dialog);
         builder.setTitle("정렬 방식 선택");
         builder.setItems(sortOptions, (dialog, which) -> {
             sortFiles(which);
         });
-        builder.show();
+        
+        // Spotify 스타일 다이얼로그 표시
+        androidx.appcompat.app.AlertDialog dialog = builder.create();
+        dialog.show();
+        
+        // 다이얼로그 표시 후 텍스트 색상을 흰색으로 강제 설정
+        applyWhiteTextToDialog(dialog);
     }
     
     private void sortFiles(int sortType) {
@@ -482,31 +489,36 @@ public class LibraryFragment extends Fragment implements AudioFileAdapter.OnItem
     }
     
     private void showFileOptionsMenu(AudioFile audioFile, int position) {
-        String[] options = {"재생", "공유", "다운로드 폴더로 복사", "이름 변경", "삭제"};
+        String[] options = {"재생", "다운로드 폴더로 복사", "이름 변경", "삭제"};
         
+        // Spotify 테마 적용된 AlertDialog.Builder 생성
         androidx.appcompat.app.AlertDialog.Builder builder = 
-                new androidx.appcompat.app.AlertDialog.Builder(getContext());
+                new androidx.appcompat.app.AlertDialog.Builder(getContext(), R.style.Theme_Spotify_Dialog);
+        
         builder.setTitle(audioFile.getDisplayName());
         builder.setItems(options, (dialog, which) -> {
             switch (which) {
                 case 0: // 재생
                     onPlayClick(audioFile, position);
                     break;
-                case 1: // 공유
-                    shareFile(audioFile);
-                    break;
-                case 2: // 다운로드 폴더로 복사
+                case 1: // 다운로드 폴더로 복사
                     copyToDownloadsFolder(audioFile);
                     break;
-                case 3: // 이름 변경
+                case 2: // 이름 변경
                     showRenameDialog(audioFile, position);
                     break;
-                case 4: // 삭제
+                case 3: // 삭제
                     showDeleteConfirmDialog(audioFile, position);
                     break;
             }
         });
-        builder.show();
+        
+        // Spotify 스타일 다이얼로그 표시
+        androidx.appcompat.app.AlertDialog dialog = builder.create();
+        dialog.show();
+        
+        // 다이얼로그 표시 후 텍스트 색상을 흰색으로 강제 설정
+        applyWhiteTextToDialog(dialog);
     }
     
     private void shareFile(AudioFile audioFile) {
@@ -545,8 +557,9 @@ public class LibraryFragment extends Fragment implements AudioFileAdapter.OnItem
         editText.setText(removeFileExtension(audioFile.getDisplayName()));
         editText.setSelection(editText.getText().length());
         
+        // Spotify 테마 적용된 AlertDialog.Builder 생성
         androidx.appcompat.app.AlertDialog.Builder builder = 
-                new androidx.appcompat.app.AlertDialog.Builder(getContext());
+                new androidx.appcompat.app.AlertDialog.Builder(getContext(), R.style.Theme_Spotify_Dialog);
         builder.setTitle("파일 이름 변경");
         builder.setView(editText);
         builder.setPositiveButton("변경", (dialog, which) -> {
@@ -556,15 +569,22 @@ public class LibraryFragment extends Fragment implements AudioFileAdapter.OnItem
             }
         });
         builder.setNegativeButton("취소", null);
-        builder.show();
+        
+        // Spotify 스타일 다이얼로그 표시
+        androidx.appcompat.app.AlertDialog dialog = builder.create();
+        dialog.show();
+        
+        // 다이얼로그 표시 후 텍스트 색상을 흰색으로 강제 설정
+        applyWhiteTextToDialog(dialog);
     }
     
     private void showDeleteConfirmDialog(AudioFile audioFile, int position) {
         // 현재 재생 중인 파일인지 확인
         boolean isCurrentlyPlaying = checkIfFileIsCurrentlyPlaying(audioFile.getFilePath());
         
+        // Spotify 테마 적용된 AlertDialog.Builder 생성
         androidx.appcompat.app.AlertDialog.Builder builder = 
-                new androidx.appcompat.app.AlertDialog.Builder(getContext());
+                new androidx.appcompat.app.AlertDialog.Builder(getContext(), R.style.Theme_Spotify_Dialog);
         builder.setTitle("파일 삭제");
         
         // 재생 중인 파일이면 안내 메시지 추가
@@ -578,7 +598,13 @@ public class LibraryFragment extends Fragment implements AudioFileAdapter.OnItem
             deleteFile(audioFile, position);
         });
         builder.setNegativeButton("취소", null);
-        builder.show();
+        
+        // Spotify 스타일 다이얼로그 표시
+        androidx.appcompat.app.AlertDialog dialog = builder.create();
+        dialog.show();
+        
+        // 다이얼로그 표시 후 텍스트 색상을 흰색으로 강제 설정
+        applyWhiteTextToDialog(dialog);
     }
     
     private void renameFile(AudioFile audioFile, String newName, int position) {
@@ -758,8 +784,9 @@ public class LibraryFragment extends Fragment implements AudioFileAdapter.OnItem
      * 파일 복사 진행상황을 표시하는 ProgressDialog 생성
      */
     private androidx.appcompat.app.AlertDialog createProgressDialog(String fileName) {
+        // Spotify 테마 적용된 AlertDialog.Builder 생성
         androidx.appcompat.app.AlertDialog.Builder builder = 
-                new androidx.appcompat.app.AlertDialog.Builder(getContext());
+                new androidx.appcompat.app.AlertDialog.Builder(getContext(), R.style.Theme_Spotify_Dialog);
         builder.setTitle(getString(R.string.copy_progress_title));
         builder.setMessage(getString(R.string.copy_progress_message, fileName));
         builder.setCancelable(false);
@@ -775,27 +802,43 @@ public class LibraryFragment extends Fragment implements AudioFileAdapter.OnItem
         android.widget.TextView messageView = new android.widget.TextView(getContext());
         messageView.setText(getString(R.string.copy_progress_message, fileName));
         messageView.setGravity(android.view.Gravity.CENTER);
+        // 텍스트 색상을 흰색으로 설정
+        messageView.setTextColor(getResources().getColor(R.color.spotify_on_surface, null));
         
         layout.addView(messageView);
         layout.addView(progressBar);
         
         builder.setView(layout);
         
-        return builder.create();
+        androidx.appcompat.app.AlertDialog dialog = builder.create();
+        
+        // 다이얼로그 생성 후 텍스트 색상 적용
+        dialog.setOnShowListener(dialogInterface -> {
+            applyWhiteTextToDialog(dialog);
+        });
+        
+        return dialog;
     }
     
     /**
      * 복사 성공 시 안내 다이얼로그 표시
      */
     private void showCopySuccessDialog(String fileName) {
+        // Spotify 테마 적용된 AlertDialog.Builder 생성
         androidx.appcompat.app.AlertDialog.Builder builder = 
-                new androidx.appcompat.app.AlertDialog.Builder(getContext());
+                new androidx.appcompat.app.AlertDialog.Builder(getContext(), R.style.Theme_Spotify_Dialog);
         builder.setTitle("복사 완료");
         builder.setMessage("'" + fileName + "' 파일이 다운로드 폴더로 복사되었습니다.\n\n" +
                           "📁 위치: 다운로드 폴더\n" + 
                           "🎵 파일 관리자나 음악 앱에서 확인하실 수 있습니다.");
         builder.setPositiveButton(getString(R.string.ok), null);
-        builder.show();
+        
+        // Spotify 스타일 다이얼로그 표시
+        androidx.appcompat.app.AlertDialog dialog = builder.create();
+        dialog.show();
+        
+        // 다이얼로그 표시 후 텍스트 색상을 흰색으로 강제 설정
+        applyWhiteTextToDialog(dialog);
     }
     
     /**
@@ -821,5 +864,119 @@ public class LibraryFragment extends Fragment implements AudioFileAdapter.OnItem
         }
         
         binding = null;
+    }
+    
+    /**
+     * AlertDialog의 모든 텍스트 요소를 흰색으로 강제 설정
+     * Spotify 다크 테마에서 텍스트가 보이지 않는 문제 해결
+     */
+    private void applyWhiteTextToDialog(androidx.appcompat.app.AlertDialog dialog) {
+        try {
+            // 다이얼로그가 표시된 후에 실행되도록 post 사용
+            dialog.getListView().post(() -> {
+                try {
+                    // 1. 다이얼로그 타이틀 텍스트 색상 설정
+                    int titleId = getResources().getIdentifier("alertTitle", "id", "android");
+                    if (titleId != 0) {
+                        android.widget.TextView titleView = dialog.findViewById(titleId);
+                        if (titleView != null) {
+                            titleView.setTextColor(getResources().getColor(R.color.spotify_on_surface, null));
+                        }
+                    }
+                    
+                    // 2. 다이얼로그 메시지 텍스트 색상 설정
+                    int messageId = android.R.id.message;
+                    android.widget.TextView messageView = dialog.findViewById(messageId);
+                    if (messageView != null) {
+                        messageView.setTextColor(getResources().getColor(R.color.spotify_on_surface, null));
+                    }
+                    
+                    // 3. 리스트 아이템 텍스트 색상 설정
+                    android.widget.ListView listView = dialog.getListView();
+                    if (listView != null) {
+                        // ListView의 모든 자식 뷰에 대해 텍스트 색상 설정
+                        for (int i = 0; i < listView.getChildCount(); i++) {
+                            android.view.View child = listView.getChildAt(i);
+                            if (child instanceof android.widget.TextView) {
+                                ((android.widget.TextView) child).setTextColor(
+                                    getResources().getColor(R.color.spotify_on_surface, null)
+                                );
+                            }
+                        }
+                        
+                        // ListView 어댑터를 통한 텍스트 색상 설정
+                        android.widget.ListAdapter adapter = listView.getAdapter();
+                        if (adapter instanceof android.widget.ArrayAdapter) {
+                            // ArrayAdapter의 경우 커스텀 레이아웃으로 텍스트 색상 적용
+                            applyWhiteTextToArrayAdapter(listView);
+                        }
+                    }
+                    
+                    // 4. 다이얼로그 버튼 텍스트 색상 설정
+                    android.widget.Button positiveButton = dialog.getButton(androidx.appcompat.app.AlertDialog.BUTTON_POSITIVE);
+                    if (positiveButton != null) {
+                        positiveButton.setTextColor(getResources().getColor(R.color.spotify_green_primary, null));
+                    }
+                    
+                    android.widget.Button negativeButton = dialog.getButton(androidx.appcompat.app.AlertDialog.BUTTON_NEGATIVE);
+                    if (negativeButton != null) {
+                        negativeButton.setTextColor(getResources().getColor(R.color.spotify_on_surface, null));
+                    }
+                    
+                    android.widget.Button neutralButton = dialog.getButton(androidx.appcompat.app.AlertDialog.BUTTON_NEUTRAL);
+                    if (neutralButton != null) {
+                        neutralButton.setTextColor(getResources().getColor(R.color.spotify_on_surface, null));
+                    }
+                    
+                } catch (Exception e) {
+                    // 텍스트 색상 설정 실패 시 로그 기록
+                    android.util.Log.w("LibraryFragment", "다이얼로그 텍스트 색상 설정 실패: " + e.getMessage());
+                }
+            });
+            
+        } catch (Exception e) {
+            android.util.Log.w("LibraryFragment", "applyWhiteTextToDialog 실행 실패: " + e.getMessage());
+        }
+    }
+    
+    /**
+     * ListView의 ArrayAdapter에서 각 아이템의 텍스트 색상을 흰색으로 설정
+     * 주의: OnItemClickListener를 설정하지 않아야 원래 다이얼로그 이벤트가 보존됨
+     */
+    private void applyWhiteTextToArrayAdapter(android.widget.ListView listView) {
+        try {
+            // ListView의 텍스트 색상을 전역적으로 설정
+            listView.post(() -> {
+                try {
+                    for (int i = 0; i < listView.getChildCount(); i++) {
+                        android.view.View itemView = listView.getChildAt(i);
+                        setTextColorRecursively(itemView, getResources().getColor(R.color.spotify_on_surface, null));
+                    }
+                } catch (Exception e) {
+                    android.util.Log.w("LibraryFragment", "ListView 아이템 텍스트 색상 설정 실패: " + e.getMessage());
+                }
+            });
+            
+        } catch (Exception e) {
+            android.util.Log.w("LibraryFragment", "applyWhiteTextToArrayAdapter 실행 실패: " + e.getMessage());
+        }
+    }
+    
+    /**
+     * 뷰 계층 구조를 재귀적으로 탐색하여 모든 TextView의 텍스트 색상 설정
+     */
+    private void setTextColorRecursively(android.view.View view, int color) {
+        try {
+            if (view instanceof android.widget.TextView) {
+                ((android.widget.TextView) view).setTextColor(color);
+            } else if (view instanceof android.view.ViewGroup) {
+                android.view.ViewGroup viewGroup = (android.view.ViewGroup) view;
+                for (int i = 0; i < viewGroup.getChildCount(); i++) {
+                    setTextColorRecursively(viewGroup.getChildAt(i), color);
+                }
+            }
+        } catch (Exception e) {
+            android.util.Log.w("LibraryFragment", "재귀적 텍스트 색상 설정 실패: " + e.getMessage());
+        }
     }
 }

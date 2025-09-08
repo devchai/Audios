@@ -359,10 +359,17 @@
         <item name="colorSecondary">@color/spotify_secondary_text</item>
         <item name="colorSurface">@color/spotify_surface_container</item>
         <item name="colorOnSurface">@color/spotify_on_surface</item>
+        <item name="colorOnBackground">@color/spotify_on_surface</item>
+        <item name="android:textColor">@color/spotify_on_surface</item>
+        <item name="android:textColorPrimary">@color/spotify_on_surface</item>
+        <item name="android:textColorSecondary">@color/spotify_secondary_text</item>
         <item name="dialogCornerRadius">24dp</item>
         <item name="android:windowElevation">8dp</item>
         <item name="android:backgroundDimAmount">0.7</item>
         <item name="android:windowBackground">@color/spotify_surface_container</item>
+        <item name="textAppearanceBody1">@style/TextAppearance.Spotify.DialogBody</item>
+        <item name="textAppearanceBody2">@style/TextAppearance.Spotify.DialogBody</item>
+        <item name="textAppearanceSubtitle1">@style/TextAppearance.Spotify.DialogTitle</item>
     </style>
     
     <!-- Spotify Bottom Sheet 테마 -->
@@ -434,6 +441,34 @@
     <!-- 선택안된 세그먼트 스타일 -->
     <style name="TextAppearance.Spotify.Segment.Unselected" parent="TextAppearance.Spotify.Segment">
         <item name="android:textColor">@color/spotify_on_surface_variant</item>
+    </style>
+    
+    <!-- ===== Spotify 다이얼로그 전용 텍스트 스타일 ===== -->
+    
+    <!-- 다이얼로그 타이틀 텍스트 스타일 -->
+    <style name="TextAppearance.Spotify.DialogTitle" parent="TextAppearance.Material3.HeadlineSmall">
+        <item name="android:textSize">18sp</item>
+        <item name="android:textColor">@color/spotify_on_surface</item>
+        <item name="android:fontWeight" tools:targetApi="o">600</item>
+        <item name="fontFamily">sans-serif-medium</item>
+    </style>
+    
+    <!-- 다이얼로그 본문 텍스트 스타일 -->
+    <style name="TextAppearance.Spotify.DialogBody" parent="TextAppearance.Material3.BodyMedium">
+        <item name="android:textSize">14sp</item>
+        <item name="android:textColor">@color/spotify_on_surface</item>
+        <item name="android:fontWeight" tools:targetApi="o">400</item>
+        <item name="android:lineSpacingExtra">2dp</item>
+        <item name="fontFamily">sans-serif</item>
+    </style>
+    
+    <!-- 다이얼로그 리스트 아이템 텍스트 스타일 -->
+    <style name="TextAppearance.Spotify.DialogListItem" parent="TextAppearance.Material3.BodyLarge">
+        <item name="android:textSize">16sp</item>
+        <item name="android:textColor">@color/spotify_on_surface</item>
+        <item name="android:fontWeight" tools:targetApi="o">400</item>
+        <item name="android:padding">16dp</item>
+        <item name="fontFamily">sans-serif</item>
     </style>
     
 </resources>
