@@ -25,7 +25,7 @@
         <activity
                 android:name=".activity.SplashActivity"
                 android:exported="true"
-                android:screenOrientation="unspecified">
+                android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
 
@@ -33,7 +33,7 @@
             </intent-filter>
         </activity>
 
-        <activity android:name=".activity.MainActivity" android:screenOrientation="unspecified"/>
+        <activity android:name=".activity.MainActivity" android:screenOrientation="portrait"/>
 
         <activity
                 android:name="com.mocoplex.adlib.AdlibDialogActivity"
