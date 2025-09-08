@@ -100,6 +100,7 @@ public class MainViewModel extends AndroidViewModel {
      * AudioConversion 콜백 설정
      */
     private void setupAudioConversionCallbacks() {
+
         audioConversionManager.setOnStartListener(() -> {
             isConverting.postValue(true);
             conversionProgress.postValue(0);
@@ -107,6 +108,7 @@ public class MainViewModel extends AndroidViewModel {
         });
         
         audioConversionManager.setOnProgressListener(progress -> {
+            LoggerManager.logger("setupAudioConversionCallbacks - setOnProgressListener");
             conversionProgress.postValue(progress);
             updateStatusMessage("변환 중... " + progress + "%");
         });
